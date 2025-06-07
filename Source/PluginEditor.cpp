@@ -4,14 +4,16 @@
 //==============================================================================
 XyclesAudioProcessorEditor::XyclesAudioProcessorEditor(
     XyclesAudioProcessor &p)
-    : AudioProcessorEditor(&p), processorRef(p),
-      gainAttachment(p.state, "gain", gainSlider) {
+    : AudioProcessorEditor(&p), processorRef(p)//,gainAttachment(p.state, "gain", gainSlider)
+{
 
   addAndMakeVisible(gainSlider);
   gainSlider.setSliderStyle(juce::Slider::LinearHorizontal);
   gainSlider.setRange(0.01, 1.00, 0.01);
   gainSlider.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
-
+    gainSlider.onValueChange = [&]() {
+      processorRef.setGain(static_cast<float>(gainSlider.getValue()));
+    };
 
     addAndMakeVisible(textEditor);
     textEditor.onReturnKey = [&]() {

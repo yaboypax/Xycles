@@ -1,33 +1,35 @@
 use std::fs::File;
 use std::io::BufReader;
-use rodio::{Decoder, OutputStream, source::Source};
+use std::sync::Mutex;
+use rodio::{Decoder, OutputStream, Sink, source::Source};
 mod load_file;
 #[cxx::bridge]
 mod ffi {
     #[namespace = "rust_part"]
     extern "Rust" {
-        fn process_channel_gain(channel_data: &mut [f32], gain: f32);
+        fn process_channel_gain(gain: f32);
         fn get_audio(_path: &str);
     }
 }
-#[no_mangle]
-pub fn process_channel_gain(channel_data: &mut [f32], gain: f32) {
-    channel_data.iter_mut().for_each(|s| *s *= gain);
-}
 
+static GAIN_STATE: Mutex<f32> = Mutex::new(1.0);
+
+#[no_mangle]
+pub fn process_channel_gain(g: f32) {
+    let mut gain = GAIN_STATE.lock().unwrap();
+    *gain = g;
+}
 #[no_mangle]
 pub fn get_audio(_path: &str) {
-    // Get an output stream handle to the default physical sound device.
-    // Note that no sound will be played if _stream is dropped
+    let gain = GAIN_STATE.lock().unwrap();
+    
     let (_stream, stream_handle) = OutputStream::try_default().unwrap();
-    // Load a sound from a file, using a path relative to Cargo.toml
+    let sink = Sink::try_new(&stream_handle).unwrap();
     let file = BufReader::new(File::open(_path).unwrap());
-    // Decode that sound file into a source
     let source = Decoder::new(file).unwrap();
-    // Play the sound directly on the device
-    let _result = stream_handle.play_raw(source.convert_samples());
-
-    // The sound plays in a separate audio thread,
-    // so we need to keep the main thread alive while it's playing.
+    
+    sink.append(source);
+    sink.set_volume(*gain);
+    
     std::thread::sleep(std::time::Duration::from_secs(5));
 }

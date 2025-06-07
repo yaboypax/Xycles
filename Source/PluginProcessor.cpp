@@ -141,8 +141,6 @@ void XyclesAudioProcessor::processBlock(juce::AudioBuffer<float> &buffer,
   for (int channel = 0; channel < totalNumInputChannels; ++channel) {
     auto* channelData = buffer.getWritePointer(channel);
 
-    const auto slice = rust::Slice<float>(channelData, static_cast<size_t>(buffer.getNumSamples()));
-    rust_part::process_channel_gain(slice, gainParameter );
   }
 }
 
@@ -176,6 +174,11 @@ void XyclesAudioProcessor::setStateInformation(const void *data,
 // This creates new instances of the plugin..
 juce::AudioProcessor *JUCE_CALLTYPE createPluginFilter() {
   return new XyclesAudioProcessor();
+}
+
+void XyclesAudioProcessor::setGain(float gain)
+{
+  rust_part::process_channel_gain(gain);
 }
 
 void XyclesAudioProcessor::loadFile(const std::string& path) {
