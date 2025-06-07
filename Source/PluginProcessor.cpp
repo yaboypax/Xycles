@@ -178,7 +178,7 @@ juce::AudioProcessor *JUCE_CALLTYPE createPluginFilter() {
 
 void XyclesAudioProcessor::setGain(float gain)
 {
-  rust_part::process_channel_gain(gain);
+  rust_part::set_gain(gain);
 }
 
 void XyclesAudioProcessor::loadFile(const std::string& path) {
