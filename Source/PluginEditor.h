@@ -19,7 +19,7 @@ private:
   XyclesAudioProcessor &processorRef;
 
   juce::TextEditor textEditor;
-  juce::Slider gainSlider;
+  juce::Slider gainSlider, speedSlider;
   //juce::AudioProcessorValueTreeState::SliderAttachment gainAttachment;
 
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(XyclesAudioProcessorEditor)

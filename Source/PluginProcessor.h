@@ -43,6 +43,7 @@ public:
   void setStateInformation(const void *data, int sizeInBytes) override;
 
   void setGain(float gain);
+  void setSpeed(float speed);
   void loadFile(const std::string& path);
 
   juce::AudioProcessorValueTreeState state;

@@ -181,6 +181,11 @@ void XyclesAudioProcessor::setGain(float gain)
   rust_part::set_gain(gain);
 }
 
+void XyclesAudioProcessor::setSpeed(float speed)
+{
+  rust_part::set_speed(speed);
+}
+
 void XyclesAudioProcessor::loadFile(const std::string& path) {
   rust::Str string = path;
   rust_part::get_audio(path);
