@@ -135,7 +135,10 @@ target_link_libraries(Xycles
         juce::juce_audio_utils
         userenv ntdll
         rust_part
-        ${RUST_PART_LIB}          # Link the Rust library
+        OleAut32              # for PropVariantToBSTR, VariantToPropVariant, etc.
+        Propsys               # for PropVariantCompareEx, PropVariantToUInt16, etc.
+        runtimeobject         # for RoGetActivationFactory
+        ${RUST_PART_LIB}      # Link the Rust library
         PUBLIC
         juce::juce_recommended_config_flags
         juce::juce_recommended_lto_flags
