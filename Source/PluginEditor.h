@@ -18,6 +18,7 @@ private:
   // access the processor object that created it.
   XyclesAudioProcessor &processorRef;
 
+  juce::TextEditor textEditor;
   juce::Slider gainSlider;
   juce::AudioProcessorValueTreeState::SliderAttachment gainAttachment;
 
