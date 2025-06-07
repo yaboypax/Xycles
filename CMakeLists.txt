@@ -26,9 +26,10 @@ set(CMAKE_CXX_STANDARD 17)
 set(RUST_CRATE_NAME "rust_part")
 
 # Add everything necessary for the Rust libary
-include_directories(${CMAKE_BINARY_DIR}/${RUST_CRATE_NAME})
+include_directories(${CMAKE_CURRENT_BINARY_DIR}/${RUST_CRATE_NAME})
 include_directories(include)
 add_subdirectory(${RUST_CRATE_NAME})
+
 
 # If you've installed JUCE somehow (via a package manager, or directly using the CMake install
 # target), you'll need to tell this project that it depends on the installed copy of JUCE. If you've
@@ -109,7 +110,8 @@ target_compile_definitions(Xycles
         # JUCE_WEB_BROWSER and JUCE_USE_CURL would be on by default, but you might not need them.
         JUCE_WEB_BROWSER=0  # If you remove this, add `NEEDS_WEB_BROWSER TRUE` to the `juce_add_plugin` call
         JUCE_USE_CURL=0     # If you remove this, add `NEEDS_CURL TRUE` to the `juce_add_plugin` call
-        JUCE_VST3_CAN_REPLACE_VST2=0)
+        JUCE_VST3_CAN_REPLACE_VST2=0
+        _ALLOW_ITERATOR_DEBUG_LEVEL_MISMATCH)
 
 # If your target needs extra binary assets, you can add them here. The first argument is the name of
 # a new static library target that will include all the binary resources. There is an optional
@@ -126,11 +128,14 @@ target_compile_definitions(Xycles
 # linked automatically. If we'd generated a binary data target above, we would need to link to it
 # here too. This is a standard CMake command.
 
+
 target_link_libraries(Xycles
         PRIVATE
         # AudioPluginData           # If we'd created a binary data target, we'd link to it here
         juce::juce_audio_utils
-        ${RUST_CRATE_NAME}          # Link the Rust library
+        userenv ntdll
+        rust_part
+        ${RUST_PART_LIB}          # Link the Rust library
         PUBLIC
         juce::juce_recommended_config_flags
         juce::juce_recommended_lto_flags

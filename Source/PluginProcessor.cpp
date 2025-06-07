@@ -136,7 +136,10 @@ void XyclesAudioProcessor::processBlock(juce::AudioBuffer<float> &buffer,
   // Alternatively, you can process the samples with the channels
   // interleaved by keeping the same state.
   for (int channel = 0; channel < totalNumInputChannels; ++channel) {
+    auto* channelData = buffer.getWritePointer(channel);
 
+    auto slice = ::rust::Slice<float>(channelData, static_cast<size_t>(buffer.getNumSamples()));
+    rust_part::process_channel_gain(slice, gainParameter );
   }
 }
 

@@ -6,14 +6,12 @@ XyclesAudioProcessorEditor::XyclesAudioProcessorEditor(
     XyclesAudioProcessor &p)
     : AudioProcessorEditor(&p), processorRef(p),
       gainAttachment(p.state, "gain", gainSlider) {
-  juce::ignoreUnused(processorRef);
 
   addAndMakeVisible(gainSlider);
   gainSlider.setSliderStyle(juce::Slider::LinearHorizontal);
+  gainSlider.setRange(0.01, 1.00, 0.01);
   gainSlider.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
 
-  // Make sure that before the constructor has finished, you've set the
-  // editor's size to whatever you need it to be.
   setSize(400, 300);
 }
 
@@ -21,8 +19,6 @@ XyclesAudioProcessorEditor::~XyclesAudioProcessorEditor() {}
 
 //==============================================================================
 void XyclesAudioProcessorEditor::paint(juce::Graphics &g) {
-  // (Our component is opaque, so we must completely fill the background with a
-  // solid colour)
   g.fillAll(
       getLookAndFeel().findColour(juce::ResizableWindow::backgroundColourId));
 
@@ -40,6 +36,4 @@ void XyclesAudioProcessorEditor::paint(juce::Graphics &g) {
 }
 
 void XyclesAudioProcessorEditor::resized() {
-  // This is generally where you'll want to lay out the positions of any
-  // subcomponents in your editor..
 }
