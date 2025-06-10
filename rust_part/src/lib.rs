@@ -7,14 +7,15 @@ mod load_file;
 mod ffi {
     #[namespace = "rust_part"]
     extern "Rust" {
-        fn new() -> UniquePtr<Engine>;
-        fn set_gain(self: Pin<&mut Engine>, gain: f32);
-        fn set_speed(self: Pin<&mut Engine>, speed: f32);
-        fn load_audio(self: Pin<&mut Engine>, path: &str);
+        type Engine;
+        fn new_engine() -> Box<Engine>;
+        fn set_gain(self: &mut Engine, gain: f32);
+        fn set_speed(self: &mut Engine, speed: f32);
+        fn load_audio(self: &mut Engine, path: &str);
     }
 }
 
-
+pub fn new_engine() -> Box<Engine> { Box::new(Engine::new()) }
 pub struct Engine {
     gain: f32,
     speed: f32,
