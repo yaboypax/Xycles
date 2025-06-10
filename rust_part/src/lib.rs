@@ -7,35 +7,47 @@ mod load_file;
 mod ffi {
     #[namespace = "rust_part"]
     extern "Rust" {
-        fn set_gain(gain: f32);
-        fn set_speed(pitch: f32);
-        fn get_audio(_path: &str);
+        fn new() -> UniquePtr<Engine>;
+        fn set_gain(self: Pin<&mut Engine>, gain: f32);
+        fn set_speed(self: Pin<&mut Engine>, speed: f32);
+        fn load_audio(self: Pin<&mut Engine>, path: &str);
     }
 }
 
-static GAIN_STATE: Mutex<f32> = Mutex::new(1.0);
-static SPEED_STATE: Mutex<f32> = Mutex::new(1.0);
 
-pub fn set_gain(g: f32) {
-    let mut gain = GAIN_STATE.lock().unwrap();
-    *gain = g;
+pub struct Engine {
+    gain: f32,
+    speed: f32,
+    audio_sink: Sink
 }
-pub fn set_speed(s: f32) {
-    let mut speed = SPEED_STATE.lock().unwrap();
-    *speed = s;
+impl Engine {
+    pub fn new() -> Self {
+        let (_stream, handle) = OutputStream::try_default().unwrap();
+        let sink = Sink::try_new(&handle).unwrap();
+        Engine { gain: 1.0, speed: 1.0, audio_sink: sink }
+    }
+    pub fn set_gain(&mut self, gain: f32) {
+        self.gain = gain;
+        self.audio_sink.set_volume(gain);
+    }
+    pub fn set_speed(&mut self, speed: f32) {
+        self.speed = speed;
+        self.audio_sink.set_speed(speed);
+    }
+    pub fn load_audio(&mut self, path: &str) {
+        let (_stream, handle) = OutputStream::try_default().unwrap();
+        let new_sink = Sink::try_new(&handle).unwrap();
+        let file = BufReader::new(File::open(path).unwrap());
+        let source = Decoder::new(file).unwrap();
+        new_sink.append(source);
+        self.audio_sink = new_sink;
+    }
 }
-pub fn get_audio(_path: &str) {
-    let gain = GAIN_STATE.lock().unwrap();
-    let speed = SPEED_STATE.lock().unwrap();
 
-    let (_stream, stream_handle) = OutputStream::try_default().unwrap();
-    let sink = Sink::try_new(&stream_handle).unwrap();
-    let file = BufReader::new(File::open(_path).unwrap());
-    let source = Decoder::new(file).unwrap();
 
-    sink.append(source);
-    sink.set_volume(*gain);
-    sink.set_speed(*speed);
-        
-    std::thread::sleep(std::time::Duration::from_secs(5));
-}
+
+
+// pub fn get_next_samples() -> (f32, f32)
+// {
+//     return ()
+// }
