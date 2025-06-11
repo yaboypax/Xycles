@@ -48,6 +48,8 @@ public:
 
   juce::AudioProcessorValueTreeState state;
 private:
+
+  rust::Box<rust_part::Engine> m_rustEngine = rust_part::new_engine();
   //==============================================================================
 
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(XyclesAudioProcessor)
