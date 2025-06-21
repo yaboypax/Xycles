@@ -41,11 +41,13 @@
     pub enum EngineState {
         Idle,
         Playing {
+            stream: OutputStream,
             sink: Sink,
             gain: f32,
             speed: f32,
         },
         Paused {
+            stream: OutputStream,
             sink: Sink,
             gain: f32,
             speed: f32,
@@ -68,7 +70,7 @@
     impl Engine {
 
         // FFI Bridge
-        pub fn load_audio(&mut self, path: &str)    { self.transition(EngineEvent::Load(path.into())) }
+        pub fn load_audio(&mut self, path: &str)   { self.transition(EngineEvent::Load(path.into())) }
         pub fn play(&mut self)                     { self.transition(EngineEvent::Play) }
         pub fn pause(&mut self)                    { self.transition(EngineEvent::Pause) }
         pub fn stop(&mut self)                     { self.transition(EngineEvent::Stop) }
@@ -86,15 +88,16 @@
 
                 // ─── Idle ───
                 (EngineState::Idle, EngineEvent::Load(path)) => {
-                    let (_stream, handle) = OutputStream::try_default().unwrap();
-                    let sink = Sink::try_new(&handle).unwrap();
+                    let (stream, handle) = OutputStream::try_default().unwrap();
+                    let mut sink = Sink::try_new(&handle).unwrap();
                     let file   = BufReader::new(File::open(&path).unwrap());
                     let source = Decoder::new(file).unwrap();
                     sink.append(source);
 
-                    EngineState::Playing { sink, gain: 1.0, speed: 1.0 }
+                    EngineState::Playing { stream, sink, gain: 1.0, speed: 1.0 }
                 }
                 (EngineState::Idle, EngineEvent::Play) => {
+                    dbg!("play");
                     EngineState::Idle
                 }
                 (EngineState::Idle, EngineEvent::Pause)
@@ -102,48 +105,48 @@
                 => EngineState::Idle,
 
                 // ─── Playing ───
-                (EngineState::Playing { sink, gain, speed }, EngineEvent::Pause) => {
+                (EngineState::Playing { stream, sink, gain, speed }, EngineEvent::Pause) => {
                     sink.pause();
-                    EngineState::Paused { sink, gain, speed }
+                    EngineState::Paused { stream, sink, gain, speed }
                 }
-                (EngineState::Playing { sink, gain, speed }, EngineEvent::Stop) => {
+                (EngineState::Playing { stream, sink, gain, speed }, EngineEvent::Stop) => {
                     sink.stop();
                     EngineState::Idle
                 }
-                (EngineState::Playing { sink, mut gain, speed }, EngineEvent::SetGain(g)) => {
+                (EngineState::Playing { stream, sink, mut gain, speed }, EngineEvent::SetGain(g)) => {
                     gain = g;
                     sink.set_volume(g);
-                    EngineState::Playing { sink, gain, speed }
+                    EngineState::Playing { stream, sink, gain, speed }
                 }
-                (EngineState::Playing { sink, gain, mut speed }, EngineEvent::SetSpeed(s)) => {
+                (EngineState::Playing { stream, sink, gain, mut speed }, EngineEvent::SetSpeed(s)) => {
                     speed = s;
                     sink.set_speed(s);
-                    EngineState::Playing { sink, gain, speed }
+                    EngineState::Playing { stream, sink, gain, speed }
                 }
-                (EngineState::Playing { sink, gain, speed }, EngineEvent::Play) => {
-                    EngineState::Playing { sink, gain, speed }
+                (EngineState::Playing { stream, sink, gain, speed }, EngineEvent::Play) => {
+                    EngineState::Playing { stream, sink, gain, speed }
                 }
                 
-                (EngineState::Paused { sink, gain, speed }, EngineEvent::Play) => {
+                (EngineState::Paused { stream, sink, gain, speed }, EngineEvent::Play) => {
                     sink.play();
-                    EngineState::Playing { sink, gain, speed }
+                    EngineState::Playing { stream, sink, gain, speed }
                 }
                 
-                (EngineState::Paused { sink, gain, speed }, EngineEvent::Stop) => {
+                (EngineState::Paused { stream, sink, gain, speed }, EngineEvent::Stop) => {
                     sink.stop();
                     EngineState::Idle
                 }
-                (EngineState::Paused { sink, mut gain, speed }, EngineEvent::SetGain(g)) => {
+                (EngineState::Paused { stream, sink, mut gain, speed }, EngineEvent::SetGain(g)) => {
                     gain = g;
-                    EngineState::Paused { sink, gain, speed }
+                    EngineState::Paused { stream, sink, gain, speed }
                 }
                 
-                (EngineState::Paused { sink, gain, mut speed }, EngineEvent::SetSpeed(s)) => {
+                (EngineState::Paused { stream, sink, gain, mut speed }, EngineEvent::SetSpeed(s)) => {
                     speed = s;
-                    EngineState::Paused { sink, gain, speed }
+                    EngineState::Paused { stream, sink, gain, speed }
                 }
-                (EngineState::Paused { sink, gain, speed }, EngineEvent::Pause) => {
-                    EngineState::Paused { sink, gain, speed }
+                (EngineState::Paused { stream, sink, gain, speed }, EngineEvent::Pause) => {
+                    EngineState::Paused { stream, sink, gain, speed }
                 }
 
                 // no state change

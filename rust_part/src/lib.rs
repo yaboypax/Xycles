@@ -1,13 +1,17 @@
 mod engine;
 pub use engine::{Engine, EngineEvent};
+
 pub fn new_engine() -> Box<Engine> { Box::new(Engine::new()) }
+
 #[cxx::bridge]
 mod ffi {
     #[namespace = "rust_part"]
     extern "Rust" {
         type Engine;
         type EngineEvent;
+        
         fn new_engine() -> Box<Engine>;
+        
         fn load_audio(self: &mut Engine, path: &str);
         fn play(self: &mut Engine);
         fn pause(self: &mut Engine);
