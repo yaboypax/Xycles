@@ -46,6 +46,9 @@ public:
   void setSpeed(float speed);
   void loadFile(const std::string& path);
 
+  void play();
+  void stop();
+
   juce::AudioProcessorValueTreeState state;
 private:
 

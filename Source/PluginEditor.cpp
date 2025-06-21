@@ -30,6 +30,16 @@ XyclesAudioProcessorEditor::XyclesAudioProcessorEditor(
         processorRef.loadFile(textEditor.getText().toStdString());
     };
 
+    addAndMakeVisible(playButton);
+    playButton.onClick = [&]() {
+        processorRef.play();
+    };
+
+    addAndMakeVisible(stopButton);
+    stopButton.onClick = [&]() {
+        processorRef.stop();
+    };
+
   setSize(400, 300);
 }
 
@@ -49,4 +59,6 @@ void XyclesAudioProcessorEditor::resized() {
     gainSlider.setBounds(50, 50, getWidth()-100, 30);
     speedSlider.setBounds(gainSlider.getX(), gainSlider.getBottom() + 20,gainSlider.getWidth(), gainSlider.getHeight());
     textEditor.setBounds(speedSlider.getX(), speedSlider.getBottom() + 20,speedSlider.getWidth(), speedSlider.getHeight());
+    playButton.setBounds(textEditor.getX(), textEditor.getBottom() + 20,textEditor.getWidth()/2-10, textEditor.getHeight());
+    stopButton.setBounds(playButton.getRight() + 10, textEditor.getBottom() + 20,playButton.getWidth(), textEditor.getHeight());
 }

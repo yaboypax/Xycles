@@ -179,3 +179,11 @@ void XyclesAudioProcessor::loadFile(const std::string& path) {
   rust::Str string = path;
   m_rustEngine->load_audio(path);
 }
+
+void XyclesAudioProcessor::play() {
+  m_rustEngine->play();
+}
+
+void XyclesAudioProcessor::stop() {
+  m_rustEngine->stop();
+}
