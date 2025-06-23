@@ -51,7 +51,7 @@ public:
 
   juce::AudioProcessorValueTreeState state;
 private:
-
+  rust::Vec<float> m_interleavedBuffer;
   rust::Box<rust_part::Engine> m_rustEngine = rust_part::new_engine();
   //==============================================================================
 

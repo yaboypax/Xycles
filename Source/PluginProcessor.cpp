@@ -82,15 +82,12 @@ void XyclesAudioProcessor::changeProgramName(int index,
 
 //==============================================================================
 void XyclesAudioProcessor::prepareToPlay(double sampleRate,
-                                              int samplesPerBlock) {
-  // Use this method as the place to do any pre-playback
-  // initialisation that you need..
-  juce::ignoreUnused(sampleRate, samplesPerBlock);
+                                              const int samplesPerBlock)
+{
+  m_interleavedBuffer.reserve(samplesPerBlock * 2);
 }
 
 void XyclesAudioProcessor::releaseResources() {
-  // When playback stops, you can use this as an opportunity to free up any
-  // spare memory, etc.
 }
 
 bool XyclesAudioProcessor::isBusesLayoutSupported(
@@ -120,17 +117,16 @@ bool XyclesAudioProcessor::isBusesLayoutSupported(
 void XyclesAudioProcessor::processBlock(juce::AudioBuffer<float> &buffer,
                                              juce::MidiBuffer &midiMessages) {
   juce::ignoreUnused(midiMessages);
-
   juce::ScopedNoDenormals noDenormals;
-  auto totalNumInputChannels = getTotalNumInputChannels();
-  auto totalNumOutputChannels = getTotalNumOutputChannels();
-  for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
-    buffer.clear(i, 0, buffer.getNumSamples());
 
-  for (int channel = 0; channel < totalNumInputChannels; ++channel) {
-    auto* channelData = buffer.getWritePointer(channel);
+  using Format = AudioData::Format<AudioData::Float32, AudioData::NativeEndian>;
+  juce::AudioData::interleaveSamples (AudioData::NonInterleavedSource<Format> { buffer.getArrayOfReadPointers(), buffer.getNumChannels() },
+                                      AudioData::InterleavedDest<Format>      { &m_interleavedBuffer[0],   1 }, buffer.getNumSamples());
 
-  }
+  m_rustEngine->process_block(m_interleavedBuffer);
+
+  juce::AudioData::deinterleaveSamples(AudioData::InterleavedSource<Format>{&m_interleavedBuffer[0], 1},
+                                        AudioData::NonInterleavedDest<Format>{buffer.getArrayOfWritePointers(), buffer.getNumChannels()}, buffer.getNumSamples());
 }
 
 //==============================================================================
