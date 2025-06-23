@@ -84,7 +84,9 @@ void XyclesAudioProcessor::changeProgramName(int index,
 void XyclesAudioProcessor::prepareToPlay(double sampleRate,
                                               const int samplesPerBlock)
 {
-  m_interleavedBuffer.reserve(samplesPerBlock * 2);
+  for (int i = 0; i < samplesPerBlock; i++) {
+    m_interleavedBuffer.push_back(0.f);
+  }
 }
 
 void XyclesAudioProcessor::releaseResources() {
