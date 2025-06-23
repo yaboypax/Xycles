@@ -12,6 +12,8 @@ mod ffi {
         
         fn new_engine() -> Box<Engine>;
         
+        
+        fn process_block(self: &mut Engine, buffer: &mut Vec<f32>);
         fn load_audio(self: &mut Engine, path: &str);
         fn play(self: &mut Engine);
         fn pause(self: &mut Engine);
