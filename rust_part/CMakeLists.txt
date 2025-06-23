@@ -29,7 +29,8 @@ add_library(${RUST_CRATE_NAME} STATIC ${RUST_PART_CXX})
 
 add_custom_command(
         OUTPUT  ${RUST_PART_CXX} ${RUST_PART_H}
-        COMMAND ${CARGO_CMD}  --target-dir=${RUST_OUT_DIR}           # e.g. cargo build --release
+        COMMAND cargo clean
+        COMMAND ${CARGO_CMD} --target-dir=${RUST_OUT_DIR}           # e.g. cargo build --release
         COMMAND cp ${CMAKE_CURRENT_BINARY_DIR}/cxxbridge/${RUST_CRATE_NAME}/src/lib.rs.cc ${RUST_PART_CXX}
         COMMAND cp ${CMAKE_CURRENT_BINARY_DIR}/cxxbridge/${RUST_CRATE_NAME}/src/lib.rs.h ${CMAKE_CURRENT_BINARY_DIR}/rust_part.h
         BYPRODUCTS ${RUST_PART_LIB}
