@@ -47,22 +47,22 @@
         pub fn stop(&mut self)                     { self.transition(EngineEvent::Stop) }
         pub fn set_gain(&mut self, g: f32)         { self.transition(EngineEvent::SetGain(g)) }
         pub fn set_speed(&mut self, s: f32)        { self.transition(EngineEvent::SetSpeed(s)) }
-        
+
         pub fn new() -> Self {
             Engine { state: EngineState::Idle }
         }
         
+        pub fn fill_silence(buffer: &mut Vec<f32>) {for sample in buffer.iter_mut() {*sample = 0.0}; }
+
         pub fn process_block(&mut self, buffer: &mut Vec<f32>)
         {
-            for sample in buffer.iter_mut() {*sample = 0.0}; //mute
-            
             match &mut self.state {
                 EngineState::Idle => {
-                    
+                    Self::fill_silence(buffer);
                 }
                 
                 EngineState::Ready {samples, position, gain, speed } => {
-
+                    Self::fill_silence(buffer);
                 }
 
                 EngineState::Playing {samples, position, gain, speed } => {
@@ -73,7 +73,7 @@
                 }
 
                 EngineState::Paused {samples, position, gain, speed } => {
-
+                    Self::fill_silence(buffer);
                 }
             }
             
