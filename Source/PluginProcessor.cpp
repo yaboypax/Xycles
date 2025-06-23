@@ -84,7 +84,7 @@ void XyclesAudioProcessor::changeProgramName(int index,
 void XyclesAudioProcessor::prepareToPlay(double sampleRate,
                                               const int samplesPerBlock)
 {
-  for (int i = 0; i < samplesPerBlock; i++) {
+  for (int i = 0; i < samplesPerBlock*2; i++) {
     m_interleavedBuffer.push_back(0.f);
   }
 }
@@ -123,11 +123,11 @@ void XyclesAudioProcessor::processBlock(juce::AudioBuffer<float> &buffer,
 
   using Format = AudioData::Format<AudioData::Float32, AudioData::NativeEndian>;
   juce::AudioData::interleaveSamples (AudioData::NonInterleavedSource<Format> { buffer.getArrayOfReadPointers(), buffer.getNumChannels() },
-                                      AudioData::InterleavedDest<Format>      { &m_interleavedBuffer[0],   1 }, buffer.getNumSamples());
+                                      AudioData::InterleavedDest<Format>      { &m_interleavedBuffer[0],   buffer.getNumChannels() }, buffer.getNumSamples());
 
   m_rustEngine->process_block(m_interleavedBuffer);
 
-  juce::AudioData::deinterleaveSamples(AudioData::InterleavedSource<Format>{&m_interleavedBuffer[0], 1},
+  juce::AudioData::deinterleaveSamples(AudioData::InterleavedSource<Format>{&m_interleavedBuffer[0], buffer.getNumChannels()},
                                         AudioData::NonInterleavedDest<Format>{buffer.getArrayOfWritePointers(), buffer.getNumChannels()}, buffer.getNumSamples());
 }
 
