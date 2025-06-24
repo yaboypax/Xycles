@@ -2,36 +2,20 @@
     use dasp::{Frame};
     use rodio::{Decoder, OutputStream, Sink, source::Source, buffer::SamplesBuffer};
     use std::{fs::File, io::BufReader, mem};
-    
+    pub struct Track {
+        samples:    Vec<f32>,
+        position:   f32,
+        start:      usize,
+        end:        usize,
+        channels:   usize,
+        gain:       f32,
+        speed:      f32,
+    }
     pub enum EngineState {
         Idle,
-        Ready {
-            samples:    Vec<f32>,
-            position:   f32,
-            start:      usize, 
-            end:        usize,
-            channels:   usize,
-            gain:       f32,
-            speed:      f32,
-        },
-        Playing {
-            samples:    Vec<f32>,
-            position:   f32,
-            start:      usize,
-            end:        usize,
-            channels:   usize,
-            gain:       f32,
-            speed:      f32,
-        },
-        Paused {
-            samples:    Vec<f32>,
-            position:   f32,
-            start:      usize,
-            end:        usize,
-            channels:   usize,
-            gain:       f32,
-            speed:      f32,
-        },
+        Ready (Track),
+        Playing (Track),
+        Paused (Track),
     }
     #[derive(Debug)]
     pub enum EngineEvent {
@@ -70,41 +54,41 @@
                     Self::fill_silence(buffer);
                 }
 
-                EngineState::Ready { samples, position, start, end, channels, gain, speed } => {
+                EngineState::Ready (_track) => {
                     Self::fill_silence(buffer);
                 }
 
-                EngineState::Playing { samples, position, start, end, channels, gain, speed } => {
-                    let total_frames = samples.len() / *channels;
-                    let block = buffer.len() / *channels;
+                EngineState::Playing (track) => {
+                    let total_frames = track.samples.len() / track.channels;
+                    let block = buffer.len() / track.channels;
 
                     for frame in 0..block {
-                        if *position < *start as f32 {
-                            *position = (*end - 1) as f32 + (*position - *start as f32);
-                        } else if *position >= *end as f32 {
-                            *position = *start as f32 + (*position - *end as f32);
+                        if track.position < track.start as f32 {
+                            track.position = (track.end - 1) as f32 + (track.position - track.start as f32);
+                        } else if track.position >= track.end as f32 {
+                            track.position = track.start as f32 + (track.position - track.end as f32);
                         }
 
-                        let index = *position as usize;
-                        let base = index * *channels;
-                        let next = ((index + 1) % total_frames) * *channels;
+                        let index = track.position as usize;
+                        let base = index * track.channels;
+                        let next = ((index + 1) % total_frames) * track.channels;
 
-                        for ch in 0..*channels {
-                            let s0 = samples[base + ch];
-                            let s1 = samples[next + ch];
-                            let s = s0 + (s1 - s0) * position.fract();
-                            buffer[frame * *channels + ch] = s * *gain;
+                        for ch in 0..track.channels {
+                            let s0 = track.samples[base + ch];
+                            let s1 = track.samples[next + ch];
+                            let s = s0 + (s1 - s0) * track.position.fract();
+                            buffer[frame * track.channels + ch] = s * track.gain;
                         }
 
-                        *position += *speed;
+                        track.position += track.speed;
                     }
                 }
             
 
-            EngineState::Paused { samples, position, start, end, channels, gain, speed } => {
+            EngineState::Paused (_track) => {
                     Self::fill_silence(buffer);
                 }
-            }
+            };
             
         }
         
@@ -116,7 +100,8 @@
             let channels = source.channels() as usize;
             let samples: Vec<f32> = source.convert_samples().collect();
             let end = samples.len() / channels;
-            EngineState::Ready { samples, position: 0.0, start: 0, end, channels, gain: 1.0, speed: 1.0 }
+            let track = Track{ samples, position: 0.0, start: 0, end, channels, gain: 1.0, speed: 1.0 };
+            EngineState::Ready(track)
         }
         
 
@@ -129,44 +114,48 @@
                 (EngineState::Idle, EngineEvent::Load(path)) => {
                     self.load_path(path)
                 }
-                (EngineState::Ready { samples, position, start, end, channels, gain, speed }, EngineEvent::Play) => {
-                    EngineState::Playing { samples, position, start, end, channels, gain, speed }
+                (EngineState::Ready (track), EngineEvent::Play) => {
+                    EngineState::Playing (track)
                 }
 
                 // ─── Playing ───
-                (EngineState::Playing { samples, position, start, end, channels, gain, speed }, EngineEvent::Pause) => {
-                    EngineState::Paused { samples, position, start, end, channels, gain, speed }
+                (EngineState::Playing (track), EngineEvent::Pause) => {
+                    EngineState::Paused (track)
                 }
-                (EngineState::Playing { samples, position, start, end, channels, gain, speed }, EngineEvent::Stop) => {
-                    EngineState::Ready { samples, position, start, end, channels, gain, speed }
+                (EngineState::Playing (track), EngineEvent::Stop) => {
+                    EngineState::Ready (track)
                 }
-                (EngineState::Playing { samples, position, start, end, channels, mut gain, speed }, EngineEvent::SetGain(g)) => {
-                    gain = g;
-                    EngineState::Playing { samples, position, start, end, channels, gain, speed }
+                (EngineState::Playing (track), EngineEvent::SetGain(g)) => {
+                    let mut t = track;
+                    t.gain = g;
+                    EngineState::Playing (t)
                 }
-                (EngineState::Playing { samples, position, start, end, channels, gain, mut speed }, EngineEvent::SetSpeed(s)) => {
-                    speed = s;
-                    EngineState::Playing { samples, position, start, end, channels, gain, speed }
+                (EngineState::Playing (track), EngineEvent::SetSpeed(s)) => {
+                    let mut t = track;
+                    t.speed = s;
+                    EngineState::Playing (t)
                 }
-                (EngineState::Playing { samples, position, start, end, channels, gain, speed }, EngineEvent::Play) => {
-                    EngineState::Playing { samples, position, start, end, channels, gain, speed }
-                }
-                
-                (EngineState::Paused { samples, position, start, end, channels, gain, speed }, EngineEvent::Play) => {
-                    EngineState::Playing { samples, position, start, end, channels, gain, speed }
+                (EngineState::Playing (track), EngineEvent::Play) => {
+                    EngineState::Playing (track)
                 }
                 
-                (EngineState::Paused { samples, position, start, end, channels, gain, speed }, EngineEvent::Stop) => {
-                    EngineState::Ready { samples, position, start, end, channels, gain, speed }
-                }
-                (EngineState::Paused { samples, position, start, end, channels, mut gain, speed }, EngineEvent::SetGain(g)) => {
-                    gain = g;
-                    EngineState::Paused { samples, position, start, end, channels, gain, speed }
+                (EngineState::Paused (track), EngineEvent::Play) => {
+                    EngineState::Playing (track)
                 }
                 
-                (EngineState::Paused { samples, position, start, end, channels, gain, mut speed }, EngineEvent::SetSpeed(s)) => {
-                    speed = s;
-                    EngineState::Paused { samples, position, start, end, channels, gain, speed }
+                (EngineState::Paused (track), EngineEvent::Stop) => {
+                    EngineState::Ready (track)
+                }
+                (EngineState::Paused (track), EngineEvent::SetGain(g)) => {
+                    let mut t = track;
+                    t.gain = g;
+                    EngineState::Playing (t)
+                }
+                
+                (EngineState::Paused (track), EngineEvent::SetSpeed(s)) => {
+                    let mut t = track;
+                    t.speed = s;
+                    EngineState::Playing (t)
                 }
 
                 // no state change
