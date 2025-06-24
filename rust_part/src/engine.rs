@@ -6,22 +6,31 @@
     pub enum EngineState {
         Idle,
         Ready {
-            samples: SamplesBuffer<f32>,
-            position: usize,
-            gain: f32,
-            speed: f32,
+            samples:    Vec<f32>,
+            position:   f32,
+            start:      usize, 
+            end:        usize,
+            channels:   usize,
+            gain:       f32,
+            speed:      f32,
         },
         Playing {
-            samples: SamplesBuffer<f32>,
-            position: usize,
-            gain: f32,
-            speed: f32, 
+            samples:    Vec<f32>,
+            position:   f32,
+            start:      usize,
+            end:        usize,
+            channels:   usize,
+            gain:       f32,
+            speed:      f32,
         },
         Paused {
-            samples: SamplesBuffer<f32>,
-            position: usize,
-            gain: f32,
-            speed: f32,
+            samples:    Vec<f32>,
+            position:   f32,
+            start:      usize,
+            end:        usize,
+            channels:   usize,
+            gain:       f32,
+            speed:      f32,
         },
     }
     #[derive(Debug)]
@@ -60,19 +69,37 @@
                 EngineState::Idle => {
                     Self::fill_silence(buffer);
                 }
-                
-                EngineState::Ready {samples, position, gain, speed } => {
+
+                EngineState::Ready { samples, position, start, end, channels, gain, speed } => {
                     Self::fill_silence(buffer);
                 }
 
-                EngineState::Playing {samples, position, gain, speed } => {
-                    for outputSample in buffer.iter_mut() {
-                        let s = samples.next().unwrap_or(0.0); 
-                        *outputSample = s * *gain;
+                EngineState::Playing { samples, position, start, end, channels, gain, speed } => {
+                    let total_frames = samples.len() / *channels;
+                    let block = buffer.len() / *channels;
+
+                    for frame in 0..block {
+                        if (*position as usize) >= *end {
+                            *position = *start as f32;
+                        }
+
+                        let index = *position as usize;
+                        let base = index * *channels;
+                        let next = ((index + 1) % total_frames) * *channels;
+
+                        for ch in 0..*channels {
+                            let s0 = samples[base + ch];
+                            let s1 = samples[next + ch];
+                            let s = s0 + (s1 - s0) * position.fract();
+                            buffer[frame * *channels + ch] = s * *gain;
+                        }
+
+                        *position += *speed;
                     }
                 }
+            
 
-                EngineState::Paused {samples, position, gain, speed } => {
+            EngineState::Paused { samples, position, start, end, channels, gain, speed } => {
                     Self::fill_silence(buffer);
                 }
             }
@@ -84,8 +111,10 @@
         {
             let file   = BufReader::new(File::open(&path).unwrap());
             let source = Decoder::new(file).unwrap();
-            let buffer= SamplesBuffer::new(source.channels(), source.sample_rate(), source.convert_samples().collect::<Vec<f32>>());
-            EngineState::Ready { samples: buffer, position: 0, gain: 1.0, speed: 1.0 }
+            let channels = source.channels() as usize;
+            let samples: Vec<f32> = source.convert_samples().collect();
+            let end = samples.len();
+            EngineState::Ready { samples, position: 0.0, start: 0, end, channels, gain: 1.0, speed: 1.0 }
         }
         
 
@@ -98,44 +127,44 @@
                 (EngineState::Idle, EngineEvent::Load(path)) => {
                     self.load_path(path)
                 }
-                (EngineState::Ready { samples, position, gain, speed }, EngineEvent::Play) => {
-                    EngineState::Playing { samples, position, gain, speed }
+                (EngineState::Ready { samples, position, start, end, channels, gain, speed }, EngineEvent::Play) => {
+                    EngineState::Playing { samples, position, start, end, channels, gain, speed }
                 }
 
                 // ─── Playing ───
-                (EngineState::Playing { samples, position, gain, speed }, EngineEvent::Pause) => {
-                    EngineState::Paused { samples, position, gain, speed }
+                (EngineState::Playing { samples, position, start, end, channels, gain, speed }, EngineEvent::Pause) => {
+                    EngineState::Paused { samples, position, start, end, channels, gain, speed }
                 }
-                (EngineState::Playing { samples, position, gain, speed }, EngineEvent::Stop) => {
-                    EngineState::Ready { samples, position, gain, speed }
+                (EngineState::Playing { samples, position, start, end, channels, gain, speed }, EngineEvent::Stop) => {
+                    EngineState::Ready { samples, position, start, end, channels, gain, speed }
                 }
-                (EngineState::Playing { samples, position, mut gain, speed }, EngineEvent::SetGain(g)) => {
+                (EngineState::Playing { samples, position, start, end, channels, mut gain, speed }, EngineEvent::SetGain(g)) => {
                     gain = g;
-                    EngineState::Playing { samples, position, gain, speed }
+                    EngineState::Playing { samples, position, start, end, channels, gain, speed }
                 }
-                (EngineState::Playing { samples, position, gain, mut speed }, EngineEvent::SetSpeed(s)) => {
+                (EngineState::Playing { samples, position, start, end, channels, gain, mut speed }, EngineEvent::SetSpeed(s)) => {
                     speed = s;
-                    EngineState::Playing { samples, position, gain, speed }
+                    EngineState::Playing { samples, position, start, end, channels, gain, speed }
                 }
-                (EngineState::Playing { samples, position, gain, speed }, EngineEvent::Play) => {
-                    EngineState::Playing { samples, position, gain, speed }
-                }
-                
-                (EngineState::Paused { samples, position, gain, speed }, EngineEvent::Play) => {
-                    EngineState::Playing { samples, position, gain, speed }
+                (EngineState::Playing { samples, position, start, end, channels, gain, speed }, EngineEvent::Play) => {
+                    EngineState::Playing { samples, position, start, end, channels, gain, speed }
                 }
                 
-                (EngineState::Paused { samples, position, gain, speed }, EngineEvent::Stop) => {
-                    EngineState::Ready { samples, position, gain, speed }
+                (EngineState::Paused { samples, position, start, end, channels, gain, speed }, EngineEvent::Play) => {
+                    EngineState::Playing { samples, position, start, end, channels, gain, speed }
                 }
-                (EngineState::Paused { samples, position, mut gain, speed }, EngineEvent::SetGain(g)) => {
+                
+                (EngineState::Paused { samples, position, start, end, channels, gain, speed }, EngineEvent::Stop) => {
+                    EngineState::Ready { samples, position, start, end, channels, gain, speed }
+                }
+                (EngineState::Paused { samples, position, start, end, channels, mut gain, speed }, EngineEvent::SetGain(g)) => {
                     gain = g;
-                    EngineState::Paused { samples, position, gain, speed }
+                    EngineState::Paused { samples, position, start, end, channels, gain, speed }
                 }
                 
-                (EngineState::Paused { samples, position, gain, mut speed }, EngineEvent::SetSpeed(s)) => {
+                (EngineState::Paused { samples, position, start, end, channels, gain, mut speed }, EngineEvent::SetSpeed(s)) => {
                     speed = s;
-                    EngineState::Paused { samples, position, gain, speed }
+                    EngineState::Paused { samples, position, start, end, channels, gain, speed }
                 }
 
                 // no state change
