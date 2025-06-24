@@ -79,8 +79,10 @@
                     let block = buffer.len() / *channels;
 
                     for frame in 0..block {
-                        if (*position as usize) >= *end {
-                            *position = *start as f32;
+                        if *position < *start as f32 {
+                            *position = (*end - 1) as f32 + (*position - *start as f32);
+                        } else if *position >= *end as f32 {
+                            *position = *start as f32 + (*position - *end as f32);
                         }
 
                         let index = *position as usize;
@@ -113,7 +115,7 @@
             let source = Decoder::new(file).unwrap();
             let channels = source.channels() as usize;
             let samples: Vec<f32> = source.convert_samples().collect();
-            let end = samples.len();
+            let end = samples.len() / channels;
             EngineState::Ready { samples, position: 0.0, start: 0, end, channels, gain: 1.0, speed: 1.0 }
         }
         

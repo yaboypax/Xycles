@@ -17,7 +17,7 @@ XyclesAudioProcessorEditor::XyclesAudioProcessorEditor(
 
     addAndMakeVisible(speedSlider);
     speedSlider.setSliderStyle(juce::Slider::LinearHorizontal);
-    speedSlider.setRange(0.0, 2.0, 0.01);
+    speedSlider.setRange(-2.0, 2.0, 0.01);
     speedSlider.setValue(1.0);
     speedSlider.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
     speedSlider.onValueChange = [&]() {
