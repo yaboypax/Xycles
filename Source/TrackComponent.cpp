@@ -31,6 +31,9 @@ TrackComponent::TrackComponent(XyclesAudioProcessor &p) :
     m_startTime.setRange(0.0, 1.0, 0.001);
     m_startTime.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
     m_startTime.onValueChange = [&]() {
+        if (m_startTime.getValue() >= m_endTime.getValue()) {
+            m_startTime.setValue(m_endTime.getValue()-0.01);
+        }
         m_processorRef.setStart(static_cast<float>(m_startTime.getValue()));
         repaint();
     };
@@ -41,6 +44,9 @@ TrackComponent::TrackComponent(XyclesAudioProcessor &p) :
     m_endTime.setValue(1.0);
     m_endTime.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
     m_endTime.onValueChange = [&]() {
+        if (m_endTime.getValue() <= m_startTime.getValue()) {
+            m_endTime.setValue(m_startTime.getValue()+0.01);
+        }
         m_processorRef.setEnd(static_cast<float>(m_endTime.getValue()));
         repaint();
     };

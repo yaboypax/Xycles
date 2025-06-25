@@ -63,28 +63,30 @@
                 }
 
                 EngineState::Playing (track) => {
-                    let total_frames = track.samples.len() / track.channels;
-                    let block = buffer.len() / track.channels;
+                    let channels = track.channels;
+                    let block = buffer.len() / channels;
+                    let loop_length = (track.end - track.start) as f32;
 
                     for frame in 0..block {
-                        if track.position < track.start as f32 {
-                            track.position = (track.end - 1) as f32 + (track.position - track.start as f32);
-                        } else if track.position >= track.end as f32 {
-                            track.position = track.start as f32 + (track.position - track.end as f32);
+                        let absolute_position = track.start as f32 + track.position;
+                        let index = absolute_position as usize;
+                        let fraction = absolute_position.fract();
+
+                        let relative_position = (track.position + 1.0).rem_euclid(loop_length);
+                        let absolute_next = track.start as f32 + relative_position;
+                        let next_index = absolute_next as usize;
+
+                        let base = index * channels;
+                        let next_offset = next_index * channels;
+
+                        for channel in 0..channels {
+                            let current = track.samples[base + channel];
+                            let next = track.samples[next_offset + channel];
+                            let value = current + (next - current) * fraction;
+                            buffer[frame * channels + channel] = value * track.gain;
                         }
 
-                        let index = track.position as usize;
-                        let base = index * track.channels;
-                        let next = ((index + 1) % total_frames) * track.channels;
-
-                        for ch in 0..track.channels {
-                            let s0 = track.samples[base + ch];
-                            let s1 = track.samples[next + ch];
-                            let s = s0 + (s1 - s0) * track.position.fract();
-                            buffer[frame * track.channels + ch] = s * track.gain;
-                        }
-
-                        track.position += track.speed;
+                        track.position = (track.position + track.speed).rem_euclid(loop_length);
                     }
                 }
             
@@ -120,6 +122,22 @@
                 }
                 (EngineState::Ready (track), EngineEvent::Play) => {
                     EngineState::Playing (track)
+                }
+
+                (EngineState::Ready (track), EngineEvent::SetStart(start)) => {
+                    let mut t = track;
+                    let start_samples = start * (t.samples.len() / t.channels) as f32;
+                    t.start = start_samples as usize;
+                    t.position = start_samples;
+                    EngineState::Ready (t)
+                }
+                (EngineState::Ready (track), EngineEvent::SetEnd(end)) => {
+                    let mut t = track;
+                    let end_samples = (end * (t.samples.len() / t.channels) as f32) as usize;
+                    if (end_samples > t.start) {
+                        t.end = end_samples;
+                    }
+                    EngineState::Ready (t)
                 }
 
                 // ─── Playing ───
