@@ -10,7 +10,7 @@ TrackComponent::TrackComponent(XyclesAudioProcessor &p) :
                                                     m_thumbnail (512, m_formatManager, m_thumbnailCache)
 {
     addAndMakeVisible(m_gainSlider);
-    m_gainSlider.setSliderStyle(juce::Slider::LinearHorizontal);
+    m_gainSlider.setSliderStyle(juce::Slider::Rotary);
     m_gainSlider.setRange(0.01, 1.00, 0.01);
     m_gainSlider.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
     m_gainSlider.onValueChange = [&]() {
@@ -18,7 +18,7 @@ TrackComponent::TrackComponent(XyclesAudioProcessor &p) :
     };
 
     addAndMakeVisible(m_speedSlider);
-    m_speedSlider.setSliderStyle(juce::Slider::LinearHorizontal);
+    m_speedSlider.setSliderStyle(juce::Slider::Rotary);
     m_speedSlider.setRange(-2.0, 2.0, 0.01);
     m_speedSlider.setValue(1.0);
     m_speedSlider.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
@@ -27,7 +27,7 @@ TrackComponent::TrackComponent(XyclesAudioProcessor &p) :
     };
 
     addAndMakeVisible(m_startTime);
-    m_startTime.setSliderStyle(juce::Slider::LinearHorizontal);
+    m_startTime.setSliderStyle(juce::Slider::Rotary);
     m_startTime.setRange(0.0, 1.0, 0.01);
     m_startTime.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
     m_startTime.onValueChange = [&]() {
@@ -35,7 +35,7 @@ TrackComponent::TrackComponent(XyclesAudioProcessor &p) :
     };
 
     addAndMakeVisible(m_endTime);
-    m_endTime.setSliderStyle(juce::Slider::LinearHorizontal);
+    m_endTime.setSliderStyle(juce::Slider::Rotary);
     m_endTime.setRange(0.0, 1.0, 0.01);
     m_endTime.setValue(1.0);
     m_endTime.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
@@ -59,20 +59,29 @@ TrackComponent::TrackComponent(XyclesAudioProcessor &p) :
 
 void TrackComponent::paint(juce::Graphics &g) {
     g.setColour(juce::Colours::white);
-    const auto thumbnailBounds = juce::Rectangle<int>(m_speedSlider.getX(), m_speedSlider.getBottom() + 20,m_speedSlider.getWidth(), m_speedSlider.getHeight());
     if (m_thumbnail.getNumChannels() != 0) {
-        m_thumbnail.drawChannels (g, thumbnailBounds,0.0, m_thumbnail.getTotalLength(), 1.0f);
+        m_thumbnail.drawChannels (g, m_thumbnailBounds,0.0, m_thumbnail.getTotalLength(), 1.0f);
+    } else {
+        g.setColour (juce::Colours::darkgrey);
+        g.fillRect (m_thumbnailBounds);
+        g.setColour (juce::Colours::white);
+        g.drawFittedText ("No File Loaded", m_thumbnailBounds, juce::Justification::centred, 1);
+
     }
 }
 
 void TrackComponent::resized() {
 
-    m_gainSlider.setBounds(50, 50, getWidth()-100, 30);
-    m_speedSlider.setBounds(m_gainSlider.getX(), m_gainSlider.getBottom() + 20,m_gainSlider.getWidth(), m_gainSlider.getHeight());
-    m_playButton.setBounds(m_speedSlider.getX(), m_speedSlider.getBottom() + m_speedSlider.getHeight() + 20,m_speedSlider.getWidth()/2-10, m_speedSlider.getHeight());
+    m_thumbnailBounds = juce::Rectangle<int>(50, 50, getWidth()- 100, 200);
+    const auto sliderY = m_thumbnailBounds.getBottom() + 20;
+    const auto sliderSize = 100;
+    m_gainSlider.setBounds(50, sliderY, sliderSize, sliderSize);
+    m_speedSlider.setBounds(m_gainSlider.getRight() + 20, sliderY, sliderSize, sliderSize);
+    m_startTime.setBounds(m_speedSlider.getRight() + 20, sliderY, sliderSize, sliderSize);
+    m_endTime.setBounds(m_startTime.getRight() + 20, sliderY, sliderSize, sliderSize);
+    m_playButton.setBounds(m_gainSlider.getX(), m_speedSlider.getBottom() + 20,m_thumbnailBounds.getWidth()/2-10, m_speedSlider.getHeight());
     m_stopButton.setBounds(m_playButton.getRight() + 10, m_playButton.getY(),m_playButton.getWidth(), m_speedSlider.getHeight());
-    m_startTime.setBounds(m_playButton.getX(), m_playButton.getBottom() + 20, m_playButton.getWidth(), 30);
-    m_endTime.setBounds(m_stopButton.getX(), m_stopButton.getBottom() + 20, m_playButton.getWidth(), 30);
+
 }
 
 void TrackComponent::filesDropped(const StringArray &files, int x, int y) {
@@ -91,8 +100,7 @@ bool TrackComponent::isInterestedInFileDrag(const StringArray &files) {
 
 void TrackComponent::loadFileThumbnail(const String &fileName) {
     const auto file = juce::File(fileName);
-    auto* reader = m_formatManager.createReaderFor(file);
-    if (reader != nullptr)
+    if (auto* reader = m_formatManager.createReaderFor(file); reader != nullptr)
     {
         auto newSource = std::make_unique<juce::AudioFormatReaderSource> (reader, true);
         //transportSource.setSource (newSource.get(), 0, nullptr, reader->sampleRate);

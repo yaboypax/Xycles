@@ -28,5 +28,6 @@ private:
     juce::AudioFormatManager m_formatManager;
     juce::AudioThumbnailCache m_thumbnailCache;
     juce::AudioThumbnail m_thumbnail;
+    juce::Rectangle<int> m_thumbnailBounds;
 };
 
