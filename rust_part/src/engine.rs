@@ -175,7 +175,7 @@
                     EngineState::Paused (t)
                 }
 
-                (EngineState::Paused (track), EngineEvent::SetStart(start)) => {
+                (EngineState::Paused (track), EngineEvent::SetStart(start)) => {    
                     let mut t = track;
                     let start_samples = start * (t.samples.len() / t.channels) as f32;
                     t.start = start_samples as usize;

@@ -81,3 +81,14 @@ void XyclesAudioProcessorEditor::resized() {
     startTime.setBounds(playButton.getX(), playButton.getBottom() + 20, playButton.getWidth(), 30);
     endTime.setBounds(stopButton.getX(), stopButton.getBottom() + 20, playButton.getWidth(), 30);
 }
+
+void XyclesAudioProcessorEditor::filesDropped(	const StringArray &	files, int	x, int	y ) {
+    if (isInterestedInFileDrag(files))
+        processorRef.loadFile(files.begin()->toStdString());
+}
+
+bool XyclesAudioProcessorEditor::isInterestedInFileDrag(const StringArray &files) {
+    if (files.begin()->contains(".wav")) {
+        return true;
+    } else return false;
+}

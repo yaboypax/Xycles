@@ -2,9 +2,13 @@
 
 #include "PluginProcessor.h"
 
+
+
+
 //==============================================================================
 class XyclesAudioProcessorEditor final
-    : public juce::AudioProcessorEditor {
+    : public juce::AudioProcessorEditor, public juce::FileDragAndDropTarget
+{
 public:
   explicit XyclesAudioProcessorEditor(XyclesAudioProcessor &);
   ~XyclesAudioProcessorEditor() override;
@@ -12,6 +16,8 @@ public:
   //==============================================================================
   void paint(juce::Graphics &) override;
   void resized() override;
+  void filesDropped(	const StringArray &	files, int	x, int	y ) override;
+  bool isInterestedInFileDrag(const StringArray &files) override;
 
 private:
   // This reference is provided as a quick way for your editor to
