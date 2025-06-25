@@ -59,7 +59,7 @@ XyclesAudioProcessorEditor::XyclesAudioProcessorEditor(
         processorRef.stop();
     };
 
-  setSize(400, 300);
+  setSize(1200, 800);
 }
 
 XyclesAudioProcessorEditor::~XyclesAudioProcessorEditor() {}
