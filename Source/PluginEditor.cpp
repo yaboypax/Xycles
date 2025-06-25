@@ -24,6 +24,23 @@ XyclesAudioProcessorEditor::XyclesAudioProcessorEditor(
         processorRef.setSpeed(static_cast<float>(speedSlider.getValue()));
     };
 
+    addAndMakeVisible(startTime);
+    startTime.setSliderStyle(juce::Slider::LinearHorizontal);
+    startTime.setRange(0.0, 1.0, 0.01);
+    startTime.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
+    startTime.onValueChange = [&]() {
+        processorRef.setStart(static_cast<float>(startTime.getValue()));
+    };
+
+    addAndMakeVisible(endTime);
+    endTime.setSliderStyle(juce::Slider::LinearHorizontal);
+    endTime.setRange(0.0, 1.0, 0.01);
+    endTime.setValue(1.0);
+    endTime.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
+    endTime.onValueChange = [&]() {
+        processorRef.setEnd(static_cast<float>(endTime.getValue()));
+    };
+
 
     addAndMakeVisible(textEditor);
     textEditor.onReturnKey = [&]() {
@@ -61,4 +78,6 @@ void XyclesAudioProcessorEditor::resized() {
     textEditor.setBounds(speedSlider.getX(), speedSlider.getBottom() + 20,speedSlider.getWidth(), speedSlider.getHeight());
     playButton.setBounds(textEditor.getX(), textEditor.getBottom() + 20,textEditor.getWidth()/2-10, textEditor.getHeight());
     stopButton.setBounds(playButton.getRight() + 10, textEditor.getBottom() + 20,playButton.getWidth(), textEditor.getHeight());
+    startTime.setBounds(playButton.getX(), playButton.getBottom() + 20, playButton.getWidth(), 30);
+    endTime.setBounds(stopButton.getX(), stopButton.getBottom() + 20, playButton.getWidth(), 30);
 }

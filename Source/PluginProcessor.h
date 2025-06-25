@@ -44,8 +44,10 @@ public:
 
   void setGain(float gain);
   void setSpeed(float speed);
+  void setStart(float start);
+  void setEnd(float end);
+  
   void loadFile(const std::string& path);
-
   void play();
   void stop();
 

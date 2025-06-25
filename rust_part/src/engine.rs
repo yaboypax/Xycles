@@ -25,6 +25,8 @@
         Stop,          
         SetGain(f32),
         SetSpeed(f32),
+        SetStart(f32),
+        SetEnd(f32),
     }
 
     pub struct Engine {
@@ -40,6 +42,8 @@
         pub fn stop(&mut self)                     { self.transition(EngineEvent::Stop) }
         pub fn set_gain(&mut self, g: f32)         { self.transition(EngineEvent::SetGain(g)) }
         pub fn set_speed(&mut self, s: f32)        { self.transition(EngineEvent::SetSpeed(s)) }
+        pub fn set_start(&mut self, start: f32)    { self.transition(EngineEvent::SetStart(start)) }
+        pub fn set_end(&mut self, end: f32)        { self.transition(EngineEvent::SetEnd(end)) }
 
         pub fn new() -> Self {
             Engine { state: EngineState::Idle }
@@ -135,8 +139,21 @@
                     t.speed = s;
                     EngineState::Playing (t)
                 }
-                (EngineState::Playing (track), EngineEvent::Play) => {
-                    EngineState::Playing (track)
+
+                (EngineState::Playing (track), EngineEvent::SetStart(start)) => {
+                    let mut t = track;
+                    let start_samples = start * t.samples.len() as f32;
+                    t.start = start_samples as usize;
+                    t.position = start_samples;
+                    EngineState::Playing (t)
+                }
+                (EngineState::Playing (track), EngineEvent::SetEnd(end)) => {
+                    let mut t = track;
+                    let end_samples = (end * t.samples.len() as f32) as usize;
+                    if (end_samples > t.start) {
+                        t.end = end_samples;
+                    }
+                    EngineState::Playing (t)
                 }
                 
                 (EngineState::Paused (track), EngineEvent::Play) => {
@@ -149,13 +166,29 @@
                 (EngineState::Paused (track), EngineEvent::SetGain(g)) => {
                     let mut t = track;
                     t.gain = g;
-                    EngineState::Playing (t)
+                    EngineState::Paused (t)
                 }
                 
                 (EngineState::Paused (track), EngineEvent::SetSpeed(s)) => {
                     let mut t = track;
                     t.speed = s;
-                    EngineState::Playing (t)
+                    EngineState::Paused (t)
+                }
+
+                (EngineState::Paused (track), EngineEvent::SetStart(start)) => {
+                    let mut t = track;
+                    let start_samples = start * (t.samples.len() / t.channels) as f32;
+                    t.start = start_samples as usize;
+                    t.position = start_samples;
+                    EngineState::Paused (t)
+                }
+                (EngineState::Paused (track), EngineEvent::SetEnd(end)) => {
+                    let mut t = track;
+                    let end_samples = (end * (t.samples.len() / t.channels) as f32) as usize;
+                    if (end_samples > t.start) {
+                        t.end = end_samples;
+                    }
+                    EngineState::Paused (t)
                 }
 
                 // no state change

@@ -157,8 +157,6 @@ void XyclesAudioProcessor::setStateInformation(const void *data,
   juce::ignoreUnused(data, sizeInBytes);
 }
 
-//==============================================================================
-// This creates new instances of the plugin..
 juce::AudioProcessor *JUCE_CALLTYPE createPluginFilter() {
   return new XyclesAudioProcessor();
 }
@@ -171,6 +169,14 @@ void XyclesAudioProcessor::setGain(float gain)
 void XyclesAudioProcessor::setSpeed(float speed)
 {
   m_rustEngine->set_speed(speed);
+}
+
+void XyclesAudioProcessor::setStart(float start) {
+  m_rustEngine->set_start(start);
+}
+
+void XyclesAudioProcessor::setEnd(float end) {
+  m_rustEngine->set_end(end);
 }
 
 void XyclesAudioProcessor::loadFile(const std::string& path) {

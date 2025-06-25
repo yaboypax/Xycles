@@ -15,10 +15,15 @@ mod ffi {
         
         fn process_block(self: &mut Engine, buffer: &mut Vec<f32>);
         fn load_audio(self: &mut Engine, path: &str);
+        
         fn play(self: &mut Engine);
         fn pause(self: &mut Engine);
         fn stop(self: &mut Engine);
+        
         fn set_gain(self: &mut Engine, gain: f32);
         fn set_speed(self: &mut Engine, speed: f32);
+
+        fn set_start(self: &mut Engine, start: f32);
+        fn set_end(self: &mut Engine, end: f32);
     }
 }
