@@ -4,7 +4,8 @@
 //==============================================================================
 XyclesAudioProcessorEditor::XyclesAudioProcessorEditor(
     XyclesAudioProcessor &p)
-    : AudioProcessorEditor(&p), processorRef(p)//,gainAttachment(p.state, "gain", gainSlider)
+: AudioProcessorEditor(&p), processorRef(p),      thumbnailCache (5),
+                                                  thumbnail (512, formatManager, thumbnailCache)
 {
 
   addAndMakeVisible(gainSlider);
@@ -42,10 +43,11 @@ XyclesAudioProcessorEditor::XyclesAudioProcessorEditor(
     };
 
 
-    addAndMakeVisible(textEditor);
-    textEditor.onReturnKey = [&]() {
-        processorRef.loadFile(textEditor.getText().toStdString());
-    };
+    formatManager.registerBasicFormats();
+    //addAndMakeVisible(textEditor);
+    // textEditor.onReturnKey = [&]() {
+    //     processorRef.loadFile(textEditor.getText().toStdString());
+    // };
 
     addAndMakeVisible(playButton);
     playButton.onClick = [&]() {
@@ -64,9 +66,13 @@ XyclesAudioProcessorEditor::~XyclesAudioProcessorEditor() {}
 
 //==============================================================================
 void XyclesAudioProcessorEditor::paint(juce::Graphics &g) {
-  g.fillAll(
-      getLookAndFeel().findColour(juce::ResizableWindow::backgroundColourId));
+    g.fillAll(getLookAndFeel().findColour(juce::ResizableWindow::backgroundColourId));
 
+    g.setColour(juce::Colours::white);
+    const auto thumbnailBounds = juce::Rectangle<int>(speedSlider.getX(), speedSlider.getBottom() + 20,speedSlider.getWidth(), speedSlider.getHeight());
+    if (thumbnail.getNumChannels() != 0) {
+        thumbnail.drawChannels (g, thumbnailBounds,0.0, thumbnail.getTotalLength(), 1.0f);
+    }
 
 
 }
@@ -75,20 +81,34 @@ void XyclesAudioProcessorEditor::resized() {
 
     gainSlider.setBounds(50, 50, getWidth()-100, 30);
     speedSlider.setBounds(gainSlider.getX(), gainSlider.getBottom() + 20,gainSlider.getWidth(), gainSlider.getHeight());
-    textEditor.setBounds(speedSlider.getX(), speedSlider.getBottom() + 20,speedSlider.getWidth(), speedSlider.getHeight());
-    playButton.setBounds(textEditor.getX(), textEditor.getBottom() + 20,textEditor.getWidth()/2-10, textEditor.getHeight());
-    stopButton.setBounds(playButton.getRight() + 10, textEditor.getBottom() + 20,playButton.getWidth(), textEditor.getHeight());
+    playButton.setBounds(speedSlider.getX(), speedSlider.getBottom() + speedSlider.getHeight() + 20,speedSlider.getWidth()/2-10, speedSlider.getHeight());
+    stopButton.setBounds(playButton.getRight() + 10, playButton.getY(),playButton.getWidth(), speedSlider.getHeight());
     startTime.setBounds(playButton.getX(), playButton.getBottom() + 20, playButton.getWidth(), 30);
     endTime.setBounds(stopButton.getX(), stopButton.getBottom() + 20, playButton.getWidth(), 30);
 }
 
 void XyclesAudioProcessorEditor::filesDropped(	const StringArray &	files, int	x, int	y ) {
-    if (isInterestedInFileDrag(files))
+    if (isInterestedInFileDrag(files)) {
+        loadFileThumbnail(*files.begin());
         processorRef.loadFile(files.begin()->toStdString());
+    }
+    repaint();
 }
 
 bool XyclesAudioProcessorEditor::isInterestedInFileDrag(const StringArray &files) {
     if (files.begin()->contains(".wav")) {
         return true;
     } else return false;
+}
+
+void XyclesAudioProcessorEditor::loadFileThumbnail(const juce::String& fileName) {
+    const auto file = juce::File(fileName);
+    auto* reader = formatManager.createReaderFor(file);
+    if (reader != nullptr)
+    {
+        auto newSource = std::make_unique<juce::AudioFormatReaderSource> (reader, true);
+        //transportSource.setSource (newSource.get(), 0, nullptr, reader->sampleRate);
+        thumbnail.setSource (new juce::FileInputSource (file));
+        //readerSource.reset (newSource.release());
+    }
 }
