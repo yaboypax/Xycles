@@ -121,7 +121,9 @@
                     self.load_path(path)
                 }
                 (EngineState::Ready (track), EngineEvent::Play) => {
-                    EngineState::Playing (track)
+                    let mut t = track;
+                    t.position = t.start as f32;
+                    EngineState::Playing (t)
                 }
 
                 (EngineState::Ready (track), EngineEvent::SetStart(start)) => {
@@ -134,9 +136,7 @@
                 (EngineState::Ready (track), EngineEvent::SetEnd(end)) => {
                     let mut t = track;
                     let end_samples = (end * (t.samples.len() / t.channels) as f32) as usize;
-                    if (end_samples > t.start) {
-                        t.end = end_samples;
-                    }
+                    t.position = t.start as f32;
                     EngineState::Ready (t)
                 }
 
@@ -168,14 +168,14 @@
                 (EngineState::Playing (track), EngineEvent::SetEnd(end)) => {
                     let mut t = track;
                     let end_samples = (end * t.samples.len() as f32) as usize;
-                    if (end_samples > t.start) {
-                        t.end = end_samples;
-                    }
+                    t.position = t.start as f32;
                     EngineState::Playing (t)
                 }
                 
                 (EngineState::Paused (track), EngineEvent::Play) => {
-                    EngineState::Playing (track)
+                    let mut t = track;
+                    t.position = t.start as f32;
+                    EngineState::Playing (t)
                 }
                 
                 (EngineState::Paused (track), EngineEvent::Stop) => {
@@ -203,9 +203,7 @@
                 (EngineState::Paused (track), EngineEvent::SetEnd(end)) => {
                     let mut t = track;
                     let end_samples = (end * (t.samples.len() / t.channels) as f32) as usize;
-                    if (end_samples > t.start) {
-                        t.end = end_samples;
-                    }
+                    t.position = t.start as f32;
                     EngineState::Paused (t)
                 }
 
