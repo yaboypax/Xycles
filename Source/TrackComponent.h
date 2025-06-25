@@ -18,6 +18,7 @@ public:
     void filesDropped(	const StringArray &	files, int	x, int	y ) override;
     bool isInterestedInFileDrag(const StringArray &files) override;
     void loadFileThumbnail(const String& fileName);
+    void drawTrack(juce::Graphics &g);
 
 private:
     XyclesAudioProcessor &m_processorRef;
