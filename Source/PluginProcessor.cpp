@@ -121,11 +121,17 @@ void XyclesAudioProcessor::processBlock(juce::AudioBuffer<float> &buffer,
   juce::ignoreUnused(midiMessages);
   juce::ScopedNoDenormals noDenormals;
 
+  if (m_trackEngines.empty())
+    return;
+
   using Format = AudioData::Format<AudioData::Float32, AudioData::NativeEndian>;
   juce::AudioData::interleaveSamples (AudioData::NonInterleavedSource<Format> { buffer.getArrayOfReadPointers(), buffer.getNumChannels() },
                                       AudioData::InterleavedDest<Format>      { &m_interleavedBuffer[0],   buffer.getNumChannels() }, buffer.getNumSamples());
 
-  m_rustEngine->process_block(m_interleavedBuffer);
+  for (auto& track: m_trackEngines) {
+    track->process_block(m_interleavedBuffer);
+  }
+
 
   juce::AudioData::deinterleaveSamples(AudioData::InterleavedSource<Format>{&m_interleavedBuffer[0], buffer.getNumChannels()},
                                         AudioData::NonInterleavedDest<Format>{buffer.getArrayOfWritePointers(), buffer.getNumChannels()}, buffer.getNumSamples());
@@ -161,33 +167,37 @@ juce::AudioProcessor *JUCE_CALLTYPE createPluginFilter() {
   return new XyclesAudioProcessor();
 }
 
-void XyclesAudioProcessor::setGain(float gain)
+void XyclesAudioProcessor::addTrack() {
+  m_trackEngines.push_back(rust_part::new_engine());
+}
+
+void XyclesAudioProcessor::setGain(size_t index, float gain)
 {
-  m_rustEngine->set_gain(gain);
+  m_trackEngines[index]->set_gain(gain);
 }
 
-void XyclesAudioProcessor::setSpeed(float speed)
+void XyclesAudioProcessor::setSpeed(size_t index, float speed)
 {
-  m_rustEngine->set_speed(speed);
+  m_trackEngines[index]->set_speed(speed);
 }
 
-void XyclesAudioProcessor::setStart(float start) {
-  m_rustEngine->set_start(start);
+void XyclesAudioProcessor::setStart(size_t index, float start) {
+  m_trackEngines[index]->set_start(start);
 }
 
-void XyclesAudioProcessor::setEnd(float end) {
-  m_rustEngine->set_end(end);
+void XyclesAudioProcessor::setEnd(size_t index, float end) {
+  m_trackEngines[index]->set_end(end);
 }
 
-void XyclesAudioProcessor::loadFile(const std::string& path) {
+void XyclesAudioProcessor::loadFile(size_t index, const std::string& path) {
   rust::Str string = path;
-  m_rustEngine->load_audio(path);
+  m_trackEngines[index]->load_audio(path);
 }
 
-void XyclesAudioProcessor::play() {
-  m_rustEngine->play();
+void XyclesAudioProcessor::play(size_t index) {
+  m_trackEngines[index]->play();
 }
 
-void XyclesAudioProcessor::stop() {
-  m_rustEngine->stop();
+void XyclesAudioProcessor::stop(size_t index) {
+  m_trackEngines[index]->stop();
 }

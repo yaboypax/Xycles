@@ -16,6 +16,8 @@ public:
 
 private:
   XyclesAudioProcessor &processorRef;
-    TrackComponent m_trackComponent;
+    std::vector<std::unique_ptr<TrackComponent>> m_tracks;
+  std::size_t m_trackCount = 0;
+  juce::TextButton m_plusButton;
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(XyclesAudioProcessorEditor)
 };
