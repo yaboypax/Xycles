@@ -5,7 +5,7 @@
 #include "TrackComponent.h"
 
 TrackComponent::TrackComponent(XyclesAudioProcessor &p, const size_t id) :
-                                                    m_processorRef(p), id(id),
+                                                    m_id(id), m_processorRef(p),
                                                     m_thumbnailCache (5),
                                                     m_thumbnail (512, m_formatManager, m_thumbnailCache)
 {
@@ -16,7 +16,7 @@ TrackComponent::TrackComponent(XyclesAudioProcessor &p, const size_t id) :
     m_gainSlider.setRange(0.01, 1.00, 0.01);
     m_gainSlider.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
     m_gainSlider.onValueChange = [&]() {
-        m_processorRef.setGain(id, static_cast<float>(m_gainSlider.getValue()));
+        m_processorRef.setGain(m_id, static_cast<float>(m_gainSlider.getValue()));
     };
 
     addAndMakeVisible(m_speedSlider);
@@ -25,7 +25,7 @@ TrackComponent::TrackComponent(XyclesAudioProcessor &p, const size_t id) :
     m_speedSlider.setValue(1.0);
     m_speedSlider.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
     m_speedSlider.onValueChange = [&]() {
-        m_processorRef.setSpeed(id, static_cast<float>(m_speedSlider.getValue()));
+        m_processorRef.setSpeed(m_id, static_cast<float>(m_speedSlider.getValue()));
     };
 
     addAndMakeVisible(m_startTime);
@@ -36,7 +36,7 @@ TrackComponent::TrackComponent(XyclesAudioProcessor &p, const size_t id) :
         if (m_startTime.getValue() >= m_endTime.getValue()) {
             m_startTime.setValue(m_endTime.getValue()-0.01);
         }
-        m_processorRef.setStart(id, static_cast<float>(m_startTime.getValue()));
+        m_processorRef.setStart(m_id, static_cast<float>(m_startTime.getValue()));
         repaint();
     };
 
@@ -49,7 +49,7 @@ TrackComponent::TrackComponent(XyclesAudioProcessor &p, const size_t id) :
         if (m_endTime.getValue() <= m_startTime.getValue()) {
             m_endTime.setValue(m_startTime.getValue()+0.01);
         }
-        m_processorRef.setEnd(id, static_cast<float>(m_endTime.getValue()));
+        m_processorRef.setEnd(m_id, static_cast<float>(m_endTime.getValue()));
         repaint();
     };
 
@@ -58,18 +58,18 @@ TrackComponent::TrackComponent(XyclesAudioProcessor &p, const size_t id) :
 
     addAndMakeVisible(m_playButton);
     m_playButton.onClick = [&]() {
-        m_processorRef.play(id);
+        m_processorRef.play(m_id);
     };
 
     addAndMakeVisible(m_stopButton);
     m_stopButton.onClick = [&]() {
-        m_processorRef.stop(id);
+        m_processorRef.stop(m_id);
     };
 }
 
 void TrackComponent::update()
 {
-    repaint();
+ //   repaint();
 }
 
 
@@ -86,15 +86,7 @@ void TrackComponent::drawTrack(juce::Graphics &g) {
         g.setColour (juce::Colours::darkgrey);
         g.fillRect (m_thumbnailBounds);
 
-        g.setColour(juce::Colours::white);
-        float animationProgress = static_cast<float>(getFrameCounter() % 100) / 100.0f;
-        float maxRadius = static_cast<float>(m_thumbnailBounds.getWidth()) * 0.4f;
-        float currentRadius = animationProgress * maxRadius;
-        float alpha = 1.0f - animationProgress;
-        g.setOpacity(alpha);
-
-        juce::Point<int> center(m_thumbnailBounds.getCentreX(), m_thumbnailBounds.getCentreY());
-        g.fillEllipse(center.toFloat().x - currentRadius, center.toFloat().y - currentRadius, 2.0f * currentRadius, 2.0f * currentRadius);
+        //animate(g);
 
         g.setColour(juce::Colours::black);
         g.setFont (32.0f);
@@ -104,25 +96,40 @@ void TrackComponent::drawTrack(juce::Graphics &g) {
     }
 }
 
+void TrackComponent::animate(juce::Graphics &g)
+{
+    g.setColour(juce::Colours::white);
+    float animationProgress = static_cast<float>(getFrameCounter() % 100) / 100.0f;
+    float maxRadius = static_cast<float>(m_thumbnailBounds.getWidth()) * 0.4f;
+    float currentRadius = animationProgress * maxRadius;
+    float alpha = 1.0f - animationProgress;
+    g.setOpacity(alpha);
+
+    juce::Point<int> center(m_thumbnailBounds.getCentreX(), m_thumbnailBounds.getCentreY());
+    g.fillEllipse(center.toFloat().x - currentRadius, center.toFloat().y - currentRadius, 2.0f * currentRadius, 2.0f * currentRadius);
+}
+
 
 void TrackComponent::resized() {
 
     m_thumbnailBounds = juce::Rectangle<int>(50, 50, getWidth()- 100, 200);
     const auto sliderY = m_thumbnailBounds.getBottom() + 20;
-    const auto sliderSize = 100;
+    const auto sliderSize = 75;
+    const auto buttonSize = 50;
+    const auto margin = 5;
     m_gainSlider.setBounds(50, sliderY, sliderSize, sliderSize);
     m_speedSlider.setBounds(m_gainSlider.getRight() + 20, sliderY, sliderSize, sliderSize);
     m_startTime.setBounds(m_speedSlider.getRight() + 20, sliderY, sliderSize, sliderSize);
     m_endTime.setBounds(m_startTime.getRight() + 20, sliderY, sliderSize, sliderSize);
-    m_playButton.setBounds(m_gainSlider.getX(), m_speedSlider.getBottom() + 20,m_thumbnailBounds.getWidth()/2-10, m_speedSlider.getHeight());
-    m_stopButton.setBounds(m_playButton.getRight() + 10, m_playButton.getY(),m_playButton.getWidth(), m_speedSlider.getHeight());
-
+    m_playButton.setBounds(m_thumbnailBounds.getRight() - buttonSize - margin, m_thumbnailBounds.getY() + margin, buttonSize, buttonSize);
+    m_stopButton.setBounds(m_thumbnailBounds.getRight() - buttonSize - margin, m_thumbnailBounds.getBottom() - buttonSize - margin, buttonSize, buttonSize);
+    DBG("RESIZED");
 }
 
 void TrackComponent::filesDropped(const StringArray &files, int x, int y) {
     if (isInterestedInFileDrag(files)) {
         loadFileThumbnail(*files.begin());
-        m_processorRef.loadFile(id, files.begin()->toStdString());
+        m_processorRef.loadFile(m_id, files.begin()->toStdString());
     }
     repaint();
 }

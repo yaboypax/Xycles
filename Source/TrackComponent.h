@@ -19,10 +19,11 @@ public:
     bool isInterestedInFileDrag(const StringArray &files) override;
     void loadFileThumbnail(const String& fileName);
     void drawTrack(juce::Graphics &g);
+    void animate(juce::Graphics &g);
     void update() override;
 
 private:
-    const size_t id;
+    const size_t m_id;
     XyclesAudioProcessor &m_processorRef;
     juce::Slider m_gainSlider, m_speedSlider;
     juce::TextButton m_playButton{"Play"}, m_stopButton{"Stop"};
