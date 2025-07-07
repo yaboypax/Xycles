@@ -54,15 +54,7 @@
         pub fn process_block(&mut self, buffer: &mut Vec<f32>)
         {
             match &mut self.state {
-                EngineState::Idle => {
-                    Self::fill_silence(buffer);
-                }
-
-                EngineState::Ready (_track) => {
-                    Self::fill_silence(buffer);
-                }
-
-                EngineState::Playing (track) => {
+                EngineState::Playing (track) => {                    
                     let channels = track.channels;
                     let block = buffer.len() / channels;
                     let loop_length = (track.end - track.start) as f32;
@@ -83,18 +75,22 @@
                             let current = track.samples[base + channel];
                             let next = track.samples[next_offset + channel];
                             let value = current + (next - current) * fraction;
-                            buffer[frame * channels + channel] = value * track.gain;
+                            buffer[frame * channels + channel] += value * track.gain;
                         }
 
                         track.position = (track.position + track.speed).rem_euclid(loop_length);
+                        
+                        // 
+                        // // Clip
+                        // for s in buffer.iter_mut() {
+                        //     *s = (*s).clamp(-1.0, 1.0);
+                        // }
                     }
                 }
-            
-
-            EngineState::Paused (_track) => {
-                    Self::fill_silence(buffer);
+                _ => {
+                    return
                 }
-            };
+            }
             
         }
         

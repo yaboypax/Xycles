@@ -123,7 +123,7 @@ void XyclesAudioProcessor::processBlock(juce::AudioBuffer<float> &buffer,
 
   if (m_trackEngines.empty())
     return;
-
+  buffer.clear();
   using Format = AudioData::Format<AudioData::Float32, AudioData::NativeEndian>;
   juce::AudioData::interleaveSamples (AudioData::NonInterleavedSource<Format> { buffer.getArrayOfReadPointers(), buffer.getNumChannels() },
                                       AudioData::InterleavedDest<Format>      { &m_interleavedBuffer[0],   buffer.getNumChannels() }, buffer.getNumSamples());
