@@ -8,6 +8,8 @@ namespace {
   const int kButtonHeight = 50;
 }
 
+
+
 class TrackEditor : public juce::Component {
   public:
   TrackEditor(XyclesAudioProcessor &p) : processorRef(p) {
@@ -22,12 +24,9 @@ class TrackEditor : public juce::Component {
 
       const int totalHeight = m_trackCount * kTrackHeight + kButtonHeight;
       setSize(getWidth(), totalHeight);
-      resized();
     };
   }
-  void paint(juce::Graphics &) override {
-
-  }
+  void paint(juce::Graphics &g) override {}
   void resized() override
   {
     int Y = 0;
@@ -44,6 +43,7 @@ class TrackEditor : public juce::Component {
     }
 
   }
+
   private:
   XyclesAudioProcessor &processorRef;
   std::vector<std::unique_ptr<TrackComponent>> m_tracks;
