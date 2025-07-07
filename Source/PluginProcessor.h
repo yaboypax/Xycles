@@ -49,6 +49,8 @@ public:
   void setSpeed(size_t index, float speed);
   void setStart(size_t index, float start);
   void setEnd(size_t index, float end);
+
+  float getTrackPlayhead(size_t index);
   
   void loadFile(size_t index, const std::string& path);
   void play(size_t index);

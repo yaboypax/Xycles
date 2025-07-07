@@ -44,6 +44,18 @@
         pub fn set_speed(&mut self, s: f32)        { self.transition(EngineEvent::SetSpeed(s)) }
         pub fn set_start(&mut self, start: f32)    { self.transition(EngineEvent::SetStart(start)) }
         pub fn set_end(&mut self, end: f32)        { self.transition(EngineEvent::SetEnd(end)) }
+        
+        pub fn get_playhead(&self) -> f32
+        {
+            match &self.state {
+                EngineState::Playing(track) | EngineState::Paused(track)
+                | EngineState::Ready(track) => {
+                    let loop_length = (track.end - track.start) as f32;
+                    (track.position.clamp(0.0, loop_length) / loop_length)
+                }
+                EngineState::Idle => 0.0,
+            }
+        }
 
         pub fn new() -> Self {
             Engine { state: EngineState::Idle }

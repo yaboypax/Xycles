@@ -69,7 +69,7 @@ TrackComponent::TrackComponent(XyclesAudioProcessor &p, const size_t id) :
 
 void TrackComponent::update()
 {
- //   repaint();
+    repaint();
 }
 
 
@@ -83,6 +83,9 @@ void TrackComponent::drawTrack(juce::Graphics &g) {
     if (m_thumbnail.getNumChannels() != 0) {
         g.setColour(juce::Colours::black);
         m_thumbnail.drawChannels (g, m_thumbnailBounds,m_thumbnail.getTotalLength() * m_startTime.getValue(), m_thumbnail.getTotalLength() * m_endTime.getValue(), 1.0f);
+        g.setColour(juce::Colours::blue);
+        auto playhead = m_processorRef.getTrackPlayhead(m_id);
+        g.drawLine( playhead * m_thumbnailBounds.toFloat().getWidth() + m_thumbnailBounds.getX(), m_thumbnailBounds.getY(), playhead * m_thumbnailBounds.toFloat().getWidth()+ m_thumbnailBounds.getX()+4, m_thumbnailBounds.getHeight());
     } else {
         g.setColour (juce::Colours::darkgrey);
         g.fillRect (m_thumbnailBounds);

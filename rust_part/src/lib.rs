@@ -25,5 +25,7 @@ mod ffi {
 
         fn set_start(self: &mut Engine, start: f32);
         fn set_end(self: &mut Engine, end: f32);
+        
+        fn get_playhead(self: &Engine) -> f32;
     }
 }

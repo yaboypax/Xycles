@@ -206,3 +206,7 @@ void XyclesAudioProcessor::play(size_t index) {
 void XyclesAudioProcessor::stop(size_t index) {
   m_trackEngines[index]->stop();
 }
+
+float XyclesAudioProcessor::getTrackPlayhead(size_t index) {
+  return m_trackEngines[index]->get_playhead();
+}
