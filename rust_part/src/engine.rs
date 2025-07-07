@@ -54,33 +54,32 @@
         pub fn process_block(&mut self, buffer: &mut Vec<f32>)
         {
             match &mut self.state {
-                EngineState::Playing (track) => {                    
-                    let channels = track.channels;
-                    let block = buffer.len() / channels;
+                EngineState::Playing (track) => {
+                    let output_block = buffer.len() / track.channels;
                     let loop_length = (track.end - track.start) as f32;
 
-                    for frame in 0..block {
+                    for frame in 0..output_block {
                         let absolute_position = track.start as f32 + track.position;
-                        let index = absolute_position as usize;
+                        let index = (absolute_position as usize).max(track.start).min(track.end.saturating_sub(1));
                         let fraction = absolute_position.fract();
 
                         let relative_position = (track.position + 1.0).rem_euclid(loop_length);
                         let absolute_next = track.start as f32 + relative_position;
-                        let next_index = absolute_next as usize;
+                        let next_index = (absolute_next as usize).max(track.start).min(track.end.saturating_sub(1));;
 
-                        let base = index * channels;
-                        let next_offset = next_index * channels;
+                        let base = index * track.channels;
+                        let next_offset = next_index * track.channels;
 
-                        for channel in 0..channels {
+                        for channel in 0..track.channels {
                             let current = track.samples[base + channel];
                             let next = track.samples[next_offset + channel];
                             let value = current + (next - current) * fraction;
-                            buffer[frame * channels + channel] += value * track.gain;
+                            buffer[frame * track.channels + channel] += value * track.gain;
                         }
 
                         track.position = (track.position + track.speed).rem_euclid(loop_length);
-                        
-                        // 
+
+                        //
                         // // Clip
                         // for s in buffer.iter_mut() {
                         //     *s = (*s).clamp(-1.0, 1.0);
@@ -88,7 +87,6 @@
                     }
                 }
                 _ => {
-                    return
                 }
             }
             
