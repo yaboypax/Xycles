@@ -22,6 +22,8 @@ public:
     void animate(juce::Graphics &g);
     void update() override;
 
+    size_t getID() const {return m_id;}
+
 private:
     const size_t m_id;
     XyclesAudioProcessor &m_processorRef;

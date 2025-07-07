@@ -43,6 +43,7 @@ public:
   void setStateInformation(const void *data, int sizeInBytes) override;
 
   void addTrack();
+  void removeTrack();
 
   void setGain(size_t index, float gain);
   void setSpeed(size_t index, float speed);

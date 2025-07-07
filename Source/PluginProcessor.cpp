@@ -171,6 +171,11 @@ void XyclesAudioProcessor::addTrack() {
   m_trackEngines.push_back(rust_part::new_engine());
 }
 
+void XyclesAudioProcessor::removeTrack() {
+  m_trackEngines.pop_back();
+}
+
+
 void XyclesAudioProcessor::setGain(size_t index, float gain)
 {
   m_trackEngines[index]->set_gain(gain);
