@@ -129,7 +129,7 @@
                 }
                 (EngineState::Ready (track), EngineEvent::SetEnd(end)) => {
                     let mut t = track;
-                    let end_samples = (end * (t.samples.len() / t.channels) as f32) as usize;
+                    t.end = (end * (t.samples.len() / t.channels) as f32) as usize;
                     t.position = t.start as f32;
                     EngineState::Ready (t)
                 }
@@ -161,7 +161,7 @@
                 }
                 (EngineState::Playing (track), EngineEvent::SetEnd(end)) => {
                     let mut t = track;
-                    let end_samples = (end * t.samples.len() as f32) as usize;
+                    t.end = (end * (t.samples.len() / t.channels) as f32) as usize;
                     t.position = t.start as f32;
                     EngineState::Playing (t)
                 }
@@ -196,7 +196,7 @@
                 }
                 (EngineState::Paused (track), EngineEvent::SetEnd(end)) => {
                     let mut t = track;
-                    let end_samples = (end * (t.samples.len() / t.channels) as f32) as usize;
+                    t.end = (end * (t.samples.len() / t.channels) as f32) as usize;
                     t.position = t.start as f32;
                     EngineState::Paused (t)
                 }
