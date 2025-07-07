@@ -74,6 +74,7 @@ void TrackComponent::update()
 
 
 void TrackComponent::paint(juce::Graphics &g) {
+    g.fillAll(juce::Colours::white);
     drawTrack(g);
 }
 
