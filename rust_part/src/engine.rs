@@ -73,12 +73,13 @@
                 EngineState::Playing (track) => {
                     let output_block = buffer.len() / track.channels;
                     let loop_length = (track.end - track.start) as f32;
-
                     for frame in 0..output_block {
-                        let absolute_position = (track.start as f32 + track.position).max(track.start as f32)
-                                                                                          .min((track.end.saturating_sub(1)) as f32);;
-                        let index    =  absolute_position.floor() as usize;
-                        let fraction = (absolute_position - (index as f32)).clamp(0.0, 1.0);
+                        let mut relative_position = (track.position + track.speed)
+                            .rem_euclid(loop_length);
+                        if relative_position.is_nan() { relative_position = 0.0; }
+                        
+                        let index    =  relative_position.floor() as usize;
+                        let fraction = (relative_position - (index as f32)).clamp(0.0, 1.0);
 
                         let next_index = if index + 1 < track.end {
                             index + 1
@@ -86,17 +87,23 @@
                             track.start
                         };
 
-                        let base_offset = index * track.channels;
-                        let next_offset = next_index * track.channels;
+                        let base_offset = (track.start + index) * track.channels;
+                        let next_offset = (track.start + next_index) * track.channels;
 
                         for channel in 0..track.channels {
-                            let s0 = track.samples[base_offset + channel];
-                            let s1 = track.samples[next_offset + channel];
+                            let s0 = *track
+                                .samples
+                                .get(base_offset + channel)
+                                .unwrap_or(&0.0);
+                            let s1 = *track
+                                .samples
+                                .get(next_offset + channel)
+                                .unwrap_or(&0.0);
                             let sample = s0 + (s1 - s0) * fraction;
                             buffer[frame*track.channels + channel] += sample * track.gain;
                         }
 
-                        track.position = (track.position + track.speed).rem_euclid(loop_length );
+                        track.position = relative_position;
 
                         //
                         // // Clip
