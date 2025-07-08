@@ -50,8 +50,12 @@
             match &self.state {
                 EngineState::Playing(track) | EngineState::Paused(track)
                 | EngineState::Ready(track) => {
-                    let loop_length = (track.end - track.start) as f32;
-                    (track.position.clamp(0.0, loop_length) / loop_length)
+                    if (track.start < track.end) {
+                        let loop_length = (track.end - track.start) as f32;
+                        track.position.clamp(0.0, loop_length) / loop_length
+                    } else {
+                         0.0
+                    }
                 }
                 EngineState::Idle => 0.0,
             }
@@ -71,25 +75,28 @@
                     let loop_length = (track.end - track.start) as f32;
 
                     for frame in 0..output_block {
-                        let absolute_position = track.start as f32 + track.position;
-                        let index = (absolute_position as usize).max(track.start).min(track.end.saturating_sub(1));
-                        let fraction = absolute_position.fract();
+                        let absolute_position = (track.start as f32 + track.position).max(track.start as f32)
+                                                                                          .min((track.end.saturating_sub(1)) as f32);;
+                        let index    =  absolute_position.floor() as usize;
+                        let fraction = (absolute_position - (index as f32)).clamp(0.0, 1.0);
 
-                        let relative_position = (track.position + 1.0).rem_euclid(loop_length);
-                        let absolute_next = track.start as f32 + relative_position;
-                        let next_index = (absolute_next as usize).max(track.start).min(track.end.saturating_sub(1));;
+                        let next_index = if index + 1 < track.end {
+                            index + 1
+                        } else {
+                            track.start
+                        };
 
-                        let base = index * track.channels;
+                        let base_offset = index * track.channels;
                         let next_offset = next_index * track.channels;
 
                         for channel in 0..track.channels {
-                            let current = track.samples[base + channel];
-                            let next = track.samples[next_offset + channel];
-                            let value = current + (next - current) * fraction;
-                            buffer[frame * track.channels + channel] += value * track.gain;
+                            let s0 = track.samples[base_offset + channel];
+                            let s1 = track.samples[next_offset + channel];
+                            let sample = s0 + (s1 - s0) * fraction;
+                            buffer[frame*track.channels + channel] += sample * track.gain;
                         }
 
-                        track.position = (track.position + track.speed).rem_euclid(loop_length);
+                        track.position = (track.position + track.speed).rem_euclid(loop_length );
 
                         //
                         // // Clip
@@ -169,13 +176,13 @@
                     let start_samples = start * t.samples.len() as f32;
                     t.start = start_samples as usize;
                     t.position = start_samples;
-                    EngineState::Playing (t)
+                    EngineState::Paused (t)
                 }
                 (EngineState::Playing (track), EngineEvent::SetEnd(end)) => {
                     let mut t = track;
                     t.end = (end * (t.samples.len() / t.channels) as f32) as usize;
                     t.position = t.start as f32;
-                    EngineState::Playing (t)
+                    EngineState::Paused (t)
                 }
                 
                 (EngineState::Paused (track), EngineEvent::Play) => {
