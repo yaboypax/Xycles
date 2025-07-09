@@ -1,15 +1,17 @@
 
-    use dasp::{Frame};
+    use std::sync::atomic::{AtomicU32, Ordering};
     use rodio::{Decoder, OutputStream, Sink, source::Source, buffer::SamplesBuffer};
     use std::{fs::File, io::BufReader, mem};
+    use crossbeam_queue::ArrayQueue;
+    use std::sync::Arc;
     pub struct Track {
         samples:    Vec<f32>,
         position:   f32,
         start:      usize,
         end:        usize,
         channels:   usize,
-        gain:       f32,
-        speed:      f32,
+        gain:       AtomicU32,
+        speed:      AtomicU32,
     }
     pub enum EngineState {
         Idle,
@@ -31,19 +33,29 @@
 
     pub struct Engine {
         state: EngineState,
+        commands: Arc<ArrayQueue<EngineEvent>>,
     }
 
     impl Engine {
+        fn push_event(&self, event: EngineEvent) {
+            let _ = self.commands.push(event);
+        }
+
+        fn apply_pending(&mut self) {
+            while let Some(event) = self.commands.pop() {
+                self.transition(event);
+            }
+        }
 
         // FFI Bridge
-        pub fn load_audio(&mut self, path: &str)   { self.transition(EngineEvent::Load(path.into())) }
-        pub fn play(&mut self)                     { self.transition(EngineEvent::Play) }
-        pub fn pause(&mut self)                    { self.transition(EngineEvent::Pause) }
-        pub fn stop(&mut self)                     { self.transition(EngineEvent::Stop) }
-        pub fn set_gain(&mut self, g: f32)         { self.transition(EngineEvent::SetGain(g)) }
-        pub fn set_speed(&mut self, s: f32)        { self.transition(EngineEvent::SetSpeed(s)) }
-        pub fn set_start(&mut self, start: f32)    { self.transition(EngineEvent::SetStart(start)) }
-        pub fn set_end(&mut self, end: f32)        { self.transition(EngineEvent::SetEnd(end)) }
+        pub fn load_audio(&mut self, path: &str)   { self.push_event(EngineEvent::Load(path.into())) }
+        pub fn play(&mut self)                     { self.push_event(EngineEvent::Play) }
+        pub fn pause(&mut self)                    { self.push_event(EngineEvent::Pause) }
+        pub fn stop(&mut self)                     { self.push_event(EngineEvent::Stop) }
+        pub fn set_gain(&mut self, g: f32)         { self.push_event(EngineEvent::SetGain(g)) }
+        pub fn set_speed(&mut self, s: f32)        { self.push_event(EngineEvent::SetSpeed(s)) }
+        pub fn set_start(&mut self, start: f32)    { self.push_event(EngineEvent::SetStart(start)) }
+        pub fn set_end(&mut self, end: f32)        { self.push_event(EngineEvent::SetEnd(end)) }
         
         pub fn get_playhead(&self) -> f32
         {
@@ -62,19 +74,25 @@
         }
 
         pub fn new() -> Self {
-            Engine { state: EngineState::Idle }
+            Engine { state: EngineState::Idle, commands: Arc::new(ArrayQueue::new(32))}
         }
         
         pub fn fill_silence(buffer: &mut Vec<f32>) {for sample in buffer.iter_mut() {*sample = 0.0}; }
+        
 
         pub fn process_block(&mut self, buffer: &mut Vec<f32>)
         {
+            self.apply_pending();
             match &mut self.state {
                 EngineState::Playing (track) => {
+
+                    let gain  = f32::from_bits(track.gain.load(Ordering::Relaxed));
+                    let speed = f32::from_bits(track.speed.load(Ordering::Relaxed));
+                    
                     let output_block = buffer.len() / track.channels;
                     let loop_length = (track.end - track.start) as f32;
                     for frame in 0..output_block {
-                        let mut relative_position = (track.position + track.speed)
+                        let mut relative_position = (track.position + speed)
                             .rem_euclid(loop_length);
                         if relative_position.is_nan() { relative_position = 0.0; }
                         
@@ -87,8 +105,23 @@
                             track.start
                         };
 
-                        let base_offset = (track.start + index) * track.channels;
-                        let next_offset = (track.start + next_index) * track.channels;
+                        let base_offset = (track.start + index)
+                            .checked_mul(track.channels)
+                            .unwrap_or_else(|| {
+                                panic!(
+                                    "overflow: {} * {} too big for usize",
+                                    (track.start + index), track.channels
+                                )
+                            });
+                        
+                        let next_offset = (track.start + next_index)
+                            .checked_mul(track.channels)
+                            .unwrap_or_else(|| {
+                                panic!(
+                                    "overflow: {} * {} too big for usize",
+                                    (track.start + next_index), track.channels
+                                )
+                            });
 
                         for channel in 0..track.channels {
                             let s0 = *track
@@ -100,7 +133,7 @@
                                 .get(next_offset + channel)
                                 .unwrap_or(&0.0);
                             let sample = s0 + (s1 - s0) * fraction;
-                            buffer[frame*track.channels + channel] += sample * track.gain;
+                            buffer[frame*track.channels + channel] += sample * gain;
                         }
 
                         track.position = relative_position;
@@ -126,7 +159,7 @@
             let channels = source.channels() as usize;
             let samples: Vec<f32> = source.convert_samples().collect();
             let end = samples.len() / channels;
-            let track = Track{ samples, position: 0.0, start: 0, end, channels, gain: 1.0, speed: 1.0 };
+            let track = Track{ samples, position: 0.0, start: 0, end, channels, gain: AtomicU32::new(1u32), speed: AtomicU32::new(1u32) };
             EngineState::Ready(track)
         }
         
@@ -168,13 +201,13 @@
                     EngineState::Ready (track)
                 }
                 (EngineState::Playing (track), EngineEvent::SetGain(g)) => {
-                    let mut t = track;
-                    t.gain = g;
+                    let t = track;
+                    t.gain.store(g.to_bits(), Ordering::Relaxed);
                     EngineState::Playing (t)
                 }
                 (EngineState::Playing (track), EngineEvent::SetSpeed(s)) => {
-                    let mut t = track;
-                    t.speed = s;
+                    let t = track;
+                    t.speed.store(s.to_bits(), Ordering::Relaxed);
                     EngineState::Playing (t)
                 }
 
@@ -202,14 +235,14 @@
                     EngineState::Ready (track)
                 }
                 (EngineState::Paused (track), EngineEvent::SetGain(g)) => {
-                    let mut t = track;
-                    t.gain = g;
+                    let t = track;
+                    t.gain.store(g.to_bits(), Ordering::Relaxed);
                     EngineState::Paused (t)
                 }
                 
                 (EngineState::Paused (track), EngineEvent::SetSpeed(s)) => {
-                    let mut t = track;
-                    t.speed = s;
+                    let t = track;
+                    t.speed.store(s.to_bits(), Ordering::Relaxed);
                     EngineState::Paused (t)
                 }
 

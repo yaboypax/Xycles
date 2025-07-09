@@ -7,10 +7,9 @@ edition = "2021"
 crate-type = ["staticlib"]
 
 [dependencies]
+crossbeam-queue = "0.3.12"
 cxx = "1.0.158"
-dasp = "0.11.0"
 rodio = "0.20.1"
-cpal = "0.15.3"
 
 [build-dependencies]
 cxx-build = "1.0.158"
