@@ -130,16 +130,20 @@ target_compile_definitions(Xycles
 # linked automatically. If we'd generated a binary data target above, we would need to link to it
 # here too. This is a standard CMake command.
 
+if (MSVC)
+    target_link_libraries(Xycles PRIVATE
+            userenv ntdll
+            OleAut32
+            Propsys
+            runtimeobject
+    )
+endif ()
 
 target_link_libraries(Xycles
         PRIVATE
         # AudioPluginData           # If we'd created a binary data target, we'd link to it here
         juce::juce_audio_utils
-        userenv ntdll
         rust_part
-        OleAut32              # for PropVariantToBSTR, VariantToPropVariant, etc.
-        Propsys               # for PropVariantCompareEx, PropVariantToUInt16, etc.
-        runtimeobject
         ${RUST_PART_LIB}
         PUBLIC
         juce::juce_recommended_config_flags

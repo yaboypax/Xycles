@@ -1,2 +1,2 @@
-[env]
+[target.'cfg(windows)'.env]
 CXXFLAGS = "/MDd /D_ITERATOR_DEBUG_LEVEL=2"
