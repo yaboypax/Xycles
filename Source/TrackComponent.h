@@ -26,6 +26,7 @@ public:
 
 private:
     const size_t m_id;
+    juce::Colour m_color;
     XyclesAudioProcessor &m_processorRef;
     juce::Slider m_gainSlider, m_speedSlider;
     juce::TextButton m_playButton{"Play"}, m_stopButton{"Stop"};
