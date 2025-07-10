@@ -16,6 +16,22 @@ TrackComponent::TrackComponent(XyclesAudioProcessor &p, const size_t id) :
             random.nextInt (256));
     m_color = colour;
 
+    m_formatManager.registerBasicFormats();
+
+    addAndMakeVisible(m_playButton);
+    m_playButton.onClick = [&]() {
+        m_processorRef.play(m_id);
+    };
+
+    addAndMakeVisible(m_stopButton);
+    m_stopButton.onClick = [&]() {
+        m_processorRef.stop(m_id);
+    };
+}
+
+void TrackComponent::layoutSliders()
+{
+
 
     addAndMakeVisible(m_gainSlider);
     m_gainSlider.setSliderStyle(juce::Slider::Rotary);
@@ -61,19 +77,6 @@ TrackComponent::TrackComponent(XyclesAudioProcessor &p, const size_t id) :
         }
         m_processorRef.setEnd(m_id, static_cast<float>(m_endTime.getValue()));
         repaint();
-    };
-
-
-    m_formatManager.registerBasicFormats();
-
-    addAndMakeVisible(m_playButton);
-    m_playButton.onClick = [&]() {
-        m_processorRef.play(m_id);
-    };
-
-    addAndMakeVisible(m_stopButton);
-    m_stopButton.onClick = [&]() {
-        m_processorRef.stop(m_id);
     };
 }
 

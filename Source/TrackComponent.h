@@ -25,6 +25,7 @@ public:
     size_t getID() const {return m_id;}
 
 private:
+    void layoutSliders();
     const size_t m_id;
     juce::Colour m_color;
     XyclesAudioProcessor &m_processorRef;
