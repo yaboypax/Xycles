@@ -139,8 +139,8 @@ target_link_libraries(Xycles
         rust_part
         OleAut32              # for PropVariantToBSTR, VariantToPropVariant, etc.
         Propsys               # for PropVariantCompareEx, PropVariantToUInt16, etc.
-        runtimeobject         # for RoGetActivationFactory
-        ${RUST_PART_LIB}      # Link the Rust library
+        runtimeobject
+        ${RUST_PART_LIB}
         PUBLIC
         juce::juce_recommended_config_flags
         juce::juce_recommended_lto_flags
