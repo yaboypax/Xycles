@@ -1,8 +1,7 @@
 
-    use std::sync::atomic::{AtomicU32, Ordering};
     use rodio::{Decoder, source::Source};
-    use std::{fs::File, io::BufReader, mem};
     use crossbeam_queue::ArrayQueue;
+    use std::{fs::File, io::BufReader, mem};
     use std::sync::Arc;
     pub struct Track {
         samples:    Vec<f32>,
@@ -10,8 +9,8 @@
         start:      usize,
         end:        usize,
         channels:   usize,
-        gain:       AtomicU32,
-        speed:      AtomicU32,
+        gain:       f32,
+        speed:      f32,
     }
     pub enum EngineState {
         Idle,
@@ -85,16 +84,13 @@
             self.apply_pending();
             match &mut self.state {
                 EngineState::Playing (track) => {
-
-                    let gain  = f32::from_bits(track.gain.load(Ordering::Relaxed));
-                    let speed = f32::from_bits(track.speed.load(Ordering::Relaxed));
                     
                     let output_block = buffer.len() / track.channels;
                     let loop_length = (track.end - track.start);
                     let crossfade_samples = 250;
                     
                     for frame in 0..output_block {
-                        let mut relative_position = (track.position + speed)
+                        let mut relative_position = (track.position + track.speed)
                             .rem_euclid(loop_length as f32);
                         if relative_position.is_nan() { relative_position = 0.0; }
                         
@@ -145,7 +141,7 @@
                             }
                             
                             
-                            buffer[frame*track.channels + channel] += sample * gain;
+                            buffer[frame*track.channels + channel] += sample * track.gain;
                         }
 
                         track.position = relative_position;
@@ -171,7 +167,7 @@
             let channels = source.channels() as usize;
             let samples: Vec<f32> = source.convert_samples().collect();
             let end = samples.len() / channels;
-            let track = Track{ samples, position: 0.0, start: 0, end, channels, gain: AtomicU32::new(1u32), speed: AtomicU32::new(1u32) };
+            let track = Track{ samples, position: 0.0, start: 0, end, channels, gain: 1.0, speed: 1.0 };
             EngineState::Ready(track)
         }
         
@@ -213,13 +209,13 @@
                     EngineState::Ready (track)
                 }
                 (EngineState::Playing (track), EngineEvent::SetGain(g)) => {
-                    let t = track;
-                    t.gain.store(g.to_bits(), Ordering::Relaxed);
+                    let mut t = track;
+                    t.gain = g;
                     EngineState::Playing (t)
                 }
                 (EngineState::Playing (track), EngineEvent::SetSpeed(s)) => {
-                    let t = track;
-                    t.speed.store(s.to_bits(), Ordering::Relaxed);
+                    let mut t = track;
+                    t.speed = s;
                     EngineState::Playing (t)
                 }
 
@@ -247,14 +243,14 @@
                     EngineState::Ready (track)
                 }
                 (EngineState::Paused (track), EngineEvent::SetGain(g)) => {
-                    let t = track;
-                    t.gain.store(g.to_bits(), Ordering::Relaxed);
+                    let mut t = track;
+                    t.gain = g;
                     EngineState::Paused (t)
                 }
                 
                 (EngineState::Paused (track), EngineEvent::SetSpeed(s)) => {
-                    let t = track;
-                    t.speed.store(s.to_bits(), Ordering::Relaxed);
+                    let mut t = track;
+                    t.speed = s;
                     EngineState::Paused (t)
                 }
 
