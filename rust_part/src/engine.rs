@@ -90,21 +90,22 @@
                     let speed = f32::from_bits(track.speed.load(Ordering::Relaxed));
                     
                     let output_block = buffer.len() / track.channels;
-                    let loop_length = (track.end - track.start) as f32;
+                    let loop_length = (track.end - track.start);
+                    let crossfade_samples = 250;
+                    
                     for frame in 0..output_block {
                         let mut relative_position = (track.position + speed)
-                            .rem_euclid(loop_length);
+                            .rem_euclid(loop_length as f32);
                         if relative_position.is_nan() { relative_position = 0.0; }
                         
                         let index    =  relative_position.floor() as usize;
                         let fraction = (relative_position - (index as f32)).clamp(0.0, 1.0);
-
-                        let next_index = if index + 1 < track.end {
-                            index + 1
+                        let next_index = if index + 1 >= loop_length {
+                            0
                         } else {
-                            track.start
+                            index + 1
                         };
-
+                        
                         let base_offset = (track.start + index)
                             .checked_mul(track.channels)
                             .unwrap_or_else(|| {
@@ -132,7 +133,18 @@
                                 .samples
                                 .get(next_offset + channel)
                                 .unwrap_or(&0.0);
-                            let sample = s0 + (s1 - s0) * fraction;
+                            let mut sample = s0 + (s1 - s0) * fraction;
+
+
+                            if index >= loop_length - crossfade_samples {
+                                let fade_pos = (index + 1 + crossfade_samples - loop_length) as f32 / crossfade_samples as f32;
+                                let fade_pos = fade_pos.clamp(0.0, 1.0);
+
+                                let start_sample = *track.samples.get(track.start * track.channels + channel).unwrap_or(&0.0);
+                                sample = sample * (1.0 - fade_pos) + start_sample * fade_pos;
+                            }
+                            
+                            
                             buffer[frame*track.channels + channel] += sample * gain;
                         }
 
