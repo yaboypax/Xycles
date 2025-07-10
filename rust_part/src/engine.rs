@@ -1,6 +1,6 @@
 
     use std::sync::atomic::{AtomicU32, Ordering};
-    use rodio::{Decoder, OutputStream, Sink, source::Source, buffer::SamplesBuffer};
+    use rodio::{Decoder, source::Source};
     use std::{fs::File, io::BufReader, mem};
     use crossbeam_queue::ArrayQueue;
     use std::sync::Arc;
@@ -62,7 +62,7 @@
             match &self.state {
                 EngineState::Playing(track) | EngineState::Paused(track)
                 | EngineState::Ready(track) => {
-                    if (track.start < track.end) {
+                    if track.start < track.end {
                         let loop_length = (track.end - track.start) as f32;
                         track.position.clamp(0.0, loop_length) / loop_length
                     } else {
