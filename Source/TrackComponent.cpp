@@ -29,25 +29,25 @@ TrackComponent::TrackComponent(XyclesAudioProcessor &p, const size_t id) :
     };
 
     addAndMakeVisible(m_startTime);
-    m_startTime.setSliderStyle(juce::Slider::Rotary);
+    m_startTime.setSliderStyle(juce::Slider::LinearHorizontal);
     m_startTime.setRange(0.0, 1.0, 0.001);
     m_startTime.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
     m_startTime.onValueChange = [&]() {
         if (m_startTime.getValue() >= m_endTime.getValue()) {
-            m_startTime.setValue(m_endTime.getValue()-0.01);
+            m_startTime.setValue(m_endTime.getValue()-0.001);
         }
         m_processorRef.setStart(m_id, static_cast<float>(m_startTime.getValue()));
         repaint();
     };
 
     addAndMakeVisible(m_endTime);
-    m_endTime.setSliderStyle(juce::Slider::Rotary);
+    m_endTime.setSliderStyle(juce::Slider::LinearHorizontal);
     m_endTime.setRange(0.0, 1.0, 0.001);
     m_endTime.setValue(1.0);
     m_endTime.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
     m_endTime.onValueChange = [&]() {
         if (m_endTime.getValue() <= m_startTime.getValue()) {
-            m_endTime.setValue(m_startTime.getValue()+0.01);
+            m_endTime.setValue(m_startTime.getValue()+0.001);
         }
         m_processorRef.setEnd(m_id, static_cast<float>(m_endTime.getValue()));
         repaint();
@@ -117,14 +117,14 @@ void TrackComponent::animate(juce::Graphics &g)
 void TrackComponent::resized() {
 
     m_thumbnailBounds = juce::Rectangle<int>(50, 50, getWidth()- 100, 200);
-    const auto sliderY = m_thumbnailBounds.getBottom() + 20;
+    const auto sliderY = m_thumbnailBounds.getBottom() + 10;
     const auto sliderSize = 75;
     const auto buttonSize = 50;
     const auto margin = 5;
     m_gainSlider.setBounds(50, sliderY, sliderSize, sliderSize);
     m_speedSlider.setBounds(m_gainSlider.getRight() + 20, sliderY, sliderSize, sliderSize);
-    m_startTime.setBounds(m_speedSlider.getRight() + 20, sliderY, sliderSize, sliderSize);
-    m_endTime.setBounds(m_startTime.getRight() + 20, sliderY, sliderSize, sliderSize);
+    m_startTime.setBounds(m_thumbnailBounds.getX(), m_gainSlider.getBottom() + 5, m_thumbnailBounds.getWidth(), 20);
+    m_endTime.setBounds(m_thumbnailBounds.getX(), m_startTime.getBottom() + 5, m_thumbnailBounds.getWidth(), 20);
     m_playButton.setBounds(m_thumbnailBounds.getRight() - buttonSize - margin, m_thumbnailBounds.getY() + margin, buttonSize, buttonSize);
     m_stopButton.setBounds(m_thumbnailBounds.getRight() - buttonSize - margin, m_thumbnailBounds.getBottom() - buttonSize - margin, buttonSize, buttonSize);
     DBG("RESIZED");
