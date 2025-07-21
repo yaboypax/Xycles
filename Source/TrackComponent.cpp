@@ -50,28 +50,31 @@ void TrackComponent::layoutSliders()
     };
 
     addAndMakeVisible(m_startTime);
+    m_endTime.setTrackDirection(Start);
     m_startTime.setSliderStyle(juce::Slider::LinearHorizontal);
     m_startTime.setRange(0.0, 1.0, 0.001);
     m_startTime.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
-    //m_startTime.setColour(juce::Slider::ColourIds::trackColourId, m_color);
+    m_startTime.setTrackColor(m_color);
     m_startTime.onValueChange = [&]() {
         if (m_startTime.getValue() >= m_endTime.getValue()) {
             m_startTime.setValue(m_endTime.getValue()-0.001);
         }
+        m_endTime.setStartPosition(m_startTime.getValue());
         m_processorRef.setStart(m_id, static_cast<float>(m_startTime.getValue()));
         repaint();
     };
 
     addAndMakeVisible(m_endTime);
-    m_endTime.setSliderStyle(juce::Slider::LinearHorizontal);
+    m_endTime.setTrackDirection(End);
     m_endTime.setRange(0.0, 1.0, 0.001);
     m_endTime.setValue(1.0);
     m_endTime.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
-    //m_endTime.setColour(juce::Slider::ColourIds::trackColourId, m_color);
+    m_endTime.setTrackColor(m_color);
     m_endTime.onValueChange = [&]() {
         if (m_endTime.getValue() <= m_startTime.getValue()) {
             m_endTime.setValue(m_startTime.getValue()+0.001);
         }
+        m_startTime.setEndPosition(m_endTime.getValue());
         m_processorRef.setEnd(m_id, static_cast<float>(m_endTime.getValue()));
         repaint();
     };
