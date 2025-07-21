@@ -24,23 +24,33 @@ void TrackComponent::layoutSliders()
 
 
     addAndMakeVisible(m_gainSlider);
-    m_gainSlider.setSliderStyle(juce::Slider::Rotary);
     m_gainSlider.setRange(0.01, 1.00, 0.01);
-    m_gainSlider.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
     m_gainSlider.setTrackColor( m_color);
     m_gainSlider.onValueChange = [&]() {
         m_processorRef.setGain(m_id, static_cast<float>(m_gainSlider.getValue()));
     };
 
+    addAndMakeVisible(m_gainLabel);
+    m_gainLabel.attachToComponent(&m_gainSlider, false);
+    m_gainLabel.setColour(juce::Label::textColourId, juce::Colours::black);
+    m_gainLabel.setText("Gain", juce::dontSendNotification);
+    m_gainLabel.setJustificationType(juce::Justification::centredTop);
+
+
+
     addAndMakeVisible(m_speedSlider);
-    m_speedSlider.setSliderStyle(juce::Slider::Rotary);
     m_speedSlider.setRange(-2.0, 2.0, 0.01);
     m_speedSlider.setValue(1.0);
-    m_speedSlider.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
     m_speedSlider.setTrackColor( m_color);
     m_speedSlider.onValueChange = [&]() {
         m_processorRef.setSpeed(m_id, static_cast<float>(m_speedSlider.getValue()));
     };
+
+    addAndMakeVisible(m_speedLabel);
+    m_speedLabel.attachToComponent(&m_speedSlider, false);
+    m_speedLabel.setColour(juce::Label::textColourId, juce::Colours::black);
+    m_speedLabel.setText("Speed", juce::dontSendNotification);
+    m_speedLabel.setJustificationType(juce::Justification::centredTop);
 
     addAndMakeVisible(m_startTime);
     m_endTime.setTrackDirection(Start);
@@ -142,15 +152,20 @@ void TrackComponent::animate(juce::Graphics &g)
 
 void TrackComponent::resized() {
 
-    m_thumbnailBounds = juce::Rectangle<int>(50, 50, getWidth()- 100, 200);
+    m_thumbnailBounds = juce::Rectangle<int>(50, 25, getWidth()- 100, 200);
     const auto sliderY = m_thumbnailBounds.getBottom() + 10;
     const auto buttonY = sliderY + 10;
     constexpr auto sliderSize = 75;
     constexpr auto buttonSize = 50;
     constexpr auto margin = 5;
+    constexpr auto spacer = 25;
+
     m_gainSlider.setBounds(50, sliderY, sliderSize, sliderSize);
     m_speedSlider.setBounds(m_gainSlider.getRight() + 20, sliderY, sliderSize, sliderSize);
-    m_startTime.setBounds(m_thumbnailBounds.getX(), m_gainSlider.getBottom() + 5, m_thumbnailBounds.getWidth(), 20);
+    m_gainLabel.setBounds(50, m_gainSlider.getBottom(), sliderSize, spacer);
+    m_speedLabel.setBounds(m_gainSlider.getRight() + 20, m_gainSlider.getBottom(), sliderSize, spacer);
+
+    m_startTime.setBounds(m_thumbnailBounds.getX(), m_gainSlider.getBottom() + spacer, m_thumbnailBounds.getWidth(), 20);
     m_endTime.setBounds(m_thumbnailBounds.getX(), m_startTime.getBottom() + 5, m_thumbnailBounds.getWidth(), 20);
     m_playButton.setBounds(m_thumbnailBounds.getRight() - buttonSize*2 - margin*2, buttonY, buttonSize, buttonSize);
     m_stopButton.setBounds(m_thumbnailBounds.getRight() - buttonSize - margin, buttonY, buttonSize, buttonSize);
@@ -170,6 +185,7 @@ void TrackComponent::filesDropped(const StringArray &files, int x, int y) {
     layoutSliders();
     layoutButtons();
     repaint();
+    resized();
 }
 
 bool TrackComponent::isInterestedInFileDrag(const StringArray &files) {

@@ -33,6 +33,7 @@ private:
 
     XyclesAudioProcessor &m_processorRef;
     TrackKnob m_gainSlider, m_speedSlider;
+    juce::Label m_gainLabel, m_speedLabel;
     TrackSlider m_startTime, m_endTime;
     juce::TextButton m_playButton{"Play"}, m_stopButton{"Stop"};
 
