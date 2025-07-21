@@ -99,7 +99,7 @@ void TrackComponent::drawTrack(juce::Graphics &g) {
 
         g.setColour(juce::Colours::black);
         const auto playPosition =  m_processorRef.getTrackPlayhead(m_id) * m_thumbnailBounds.toFloat().getWidth() + m_thumbnailBounds.toFloat().getX();
-        g.drawLine( playPosition, m_thumbnailBounds.toFloat().getY(),playPosition, m_thumbnailBounds.toFloat().getHeight());
+        g.drawLine( playPosition, m_thumbnailBounds.toFloat().getY(),playPosition, m_thumbnailBounds.toFloat().getHeight()*1.25f);
     } else {
         g.setColour (juce::Colours::darkgrey);
         g.fillRect (m_thumbnailBounds);
@@ -132,15 +132,16 @@ void TrackComponent::resized() {
 
     m_thumbnailBounds = juce::Rectangle<int>(50, 50, getWidth()- 100, 200);
     const auto sliderY = m_thumbnailBounds.getBottom() + 10;
-    const auto sliderSize = 75;
-    const auto buttonSize = 50;
-    const auto margin = 5;
+    const auto buttonY = sliderY + 10;
+    constexpr auto sliderSize = 75;
+    constexpr auto buttonSize = 50;
+    constexpr auto margin = 5;
     m_gainSlider.setBounds(50, sliderY, sliderSize, sliderSize);
     m_speedSlider.setBounds(m_gainSlider.getRight() + 20, sliderY, sliderSize, sliderSize);
     m_startTime.setBounds(m_thumbnailBounds.getX(), m_gainSlider.getBottom() + 5, m_thumbnailBounds.getWidth(), 20);
     m_endTime.setBounds(m_thumbnailBounds.getX(), m_startTime.getBottom() + 5, m_thumbnailBounds.getWidth(), 20);
-    m_playButton.setBounds(m_thumbnailBounds.getRight() - buttonSize - margin, m_thumbnailBounds.getY() + margin, buttonSize, buttonSize);
-    m_stopButton.setBounds(m_thumbnailBounds.getRight() - buttonSize - margin, m_thumbnailBounds.getBottom() - buttonSize - margin, buttonSize, buttonSize);
+    m_playButton.setBounds(m_thumbnailBounds.getRight() - buttonSize*2 - margin*2, buttonY, buttonSize, buttonSize);
+    m_stopButton.setBounds(m_thumbnailBounds.getRight() - buttonSize - margin, buttonY, buttonSize, buttonSize);
     //DBG("RESIZED");
 }
 
