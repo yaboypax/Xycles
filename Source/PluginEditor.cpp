@@ -2,6 +2,11 @@
 #include "PluginProcessor.h"
 
 //==============================================================================
+
+namespace
+{
+    constexpr int kTopBarHeight = 50;
+}
 XyclesAudioProcessorEditor::XyclesAudioProcessorEditor(
     XyclesAudioProcessor &p)
 : AudioProcessorEditor(&p), m_trackEditor(p), processorRef(p)
@@ -11,6 +16,8 @@ XyclesAudioProcessorEditor::XyclesAudioProcessorEditor(
     addAndMakeVisible(m_trackViewport);
     m_trackEditor.setSize(1200, 1000);
     m_trackViewport.setViewedComponent(&m_trackEditor, false);
+
+    addAndMakeVisible(m_topBar);
 
 }
 
@@ -22,7 +29,9 @@ void XyclesAudioProcessorEditor::paint(juce::Graphics &g) {
     }
 
 void XyclesAudioProcessorEditor::resized() {
-    m_trackViewport.setBounds(getLocalBounds());
+
+    m_topBar.setBounds(0, 0, getWidth(), kTopBarHeight);
+    m_trackViewport.setBounds(getLocalBounds().withTrimmedTop(kTopBarHeight));
     m_trackEditor.setSize(getWidth(), m_trackEditor.getHeight());
 
 
