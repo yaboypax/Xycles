@@ -10,12 +10,9 @@ TrackComponent::TrackComponent(XyclesAudioProcessor &p, const size_t id) :
                                                     m_thumbnail (512, m_formatManager, m_thumbnailCache)
 {
     setFramesPerSecond (30);
-    auto& random = juce::Random::getSystemRandom();
-    juce::Colour colour (random.nextInt (256),
-            random.nextInt (256),
-            random.nextInt (256));
-    m_color = colour;
+    m_color = juce::Colours::black;
 
+    layoutSliders();
     m_formatManager.registerBasicFormats();
 
     addAndMakeVisible(m_playButton);
@@ -56,7 +53,7 @@ void TrackComponent::layoutSliders()
     m_startTime.setSliderStyle(juce::Slider::LinearHorizontal);
     m_startTime.setRange(0.0, 1.0, 0.001);
     m_startTime.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
-    m_startTime.setColour(juce::Slider::ColourIds::trackColourId, m_color);
+    //m_startTime.setColour(juce::Slider::ColourIds::trackColourId, m_color);
     m_startTime.onValueChange = [&]() {
         if (m_startTime.getValue() >= m_endTime.getValue()) {
             m_startTime.setValue(m_endTime.getValue()-0.001);
@@ -70,7 +67,7 @@ void TrackComponent::layoutSliders()
     m_endTime.setRange(0.0, 1.0, 0.001);
     m_endTime.setValue(1.0);
     m_endTime.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
-    m_endTime.setColour(juce::Slider::ColourIds::trackColourId, m_color);
+    //m_endTime.setColour(juce::Slider::ColourIds::trackColourId, m_color);
     m_endTime.onValueChange = [&]() {
         if (m_endTime.getValue() <= m_startTime.getValue()) {
             m_endTime.setValue(m_startTime.getValue()+0.001);
@@ -94,11 +91,12 @@ void TrackComponent::paint(juce::Graphics &g) {
 void TrackComponent::drawTrack(juce::Graphics &g) {
 
     if (m_thumbnail.getNumChannels() != 0) {
-        g.setColour(juce::Colours::black);
-        m_thumbnail.drawChannels (g, m_thumbnailBounds,m_thumbnail.getTotalLength() * m_startTime.getValue(), m_thumbnail.getTotalLength() * m_endTime.getValue(), 1.0f);
         g.setColour(m_color);
-        auto playhead = m_processorRef.getTrackPlayhead(m_id);
-        g.drawLine( playhead * m_thumbnailBounds.toFloat().getWidth() + m_thumbnailBounds.getX(), m_thumbnailBounds.getY(), playhead * m_thumbnailBounds.toFloat().getWidth()+ m_thumbnailBounds.getX()+4, m_thumbnailBounds.getHeight());
+        m_thumbnail.drawChannels (g, m_thumbnailBounds,m_thumbnail.getTotalLength() * m_startTime.getValue(), m_thumbnail.getTotalLength() * m_endTime.getValue(), 1.0f);
+
+        g.setColour(juce::Colours::black);
+        const auto playPosition =  m_processorRef.getTrackPlayhead(m_id) * m_thumbnailBounds.toFloat().getWidth() + m_thumbnailBounds.toFloat().getX();
+        g.drawLine( playPosition, m_thumbnailBounds.toFloat().getY(),playPosition, m_thumbnailBounds.toFloat().getHeight());
     } else {
         g.setColour (juce::Colours::darkgrey);
         g.fillRect (m_thumbnailBounds);
@@ -140,7 +138,7 @@ void TrackComponent::resized() {
     m_endTime.setBounds(m_thumbnailBounds.getX(), m_startTime.getBottom() + 5, m_thumbnailBounds.getWidth(), 20);
     m_playButton.setBounds(m_thumbnailBounds.getRight() - buttonSize - margin, m_thumbnailBounds.getY() + margin, buttonSize, buttonSize);
     m_stopButton.setBounds(m_thumbnailBounds.getRight() - buttonSize - margin, m_thumbnailBounds.getBottom() - buttonSize - margin, buttonSize, buttonSize);
-    DBG("RESIZED");
+    //DBG("RESIZED");
 }
 
 void TrackComponent::filesDropped(const StringArray &files, int x, int y) {
@@ -148,6 +146,12 @@ void TrackComponent::filesDropped(const StringArray &files, int x, int y) {
         loadFileThumbnail(*files.begin());
         m_processorRef.loadFile(m_id, files.begin()->toStdString());
     }
+    auto& random = juce::Random::getSystemRandom();
+    const juce::Colour color (random.nextInt (256),
+            random.nextInt (256),
+            random.nextInt (256));
+    m_color = color;
+    layoutSliders();
     repaint();
 }
 
