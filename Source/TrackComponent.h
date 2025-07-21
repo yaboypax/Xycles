@@ -4,7 +4,7 @@
 
 #pragma once
 #include <JuceHeader.h>
-
+#include "TrackSlider.h"
 #include "PluginProcessor.h"
 
 
@@ -31,7 +31,7 @@ private:
     XyclesAudioProcessor &m_processorRef;
     juce::Slider m_gainSlider, m_speedSlider;
     juce::TextButton m_playButton{"Play"}, m_stopButton{"Stop"};
-    juce::Slider m_startTime, m_endTime;
+    TrackSlider m_startTime, m_endTime;
 
     juce::AudioFormatManager m_formatManager;
     juce::AudioThumbnailCache m_thumbnailCache;
