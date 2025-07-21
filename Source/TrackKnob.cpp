@@ -13,7 +13,7 @@
         m_trackColor = color;
         repaint();
     }
-    void TrackKnob::paint(juce::Graphics& g) override
+    void TrackKnob::paint(juce::Graphics& g)
     {
         const auto outline = juce::Colours::black;
         const auto fill = m_trackColor;

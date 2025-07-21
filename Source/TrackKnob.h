@@ -9,7 +9,7 @@
 class TrackKnob : public juce::Slider
 {
 public:
-    TrackKnob() {}
+    TrackKnob();
     void setTrackColor(juce::Colour color);
     void paint(juce::Graphics& g) override;
 private:
