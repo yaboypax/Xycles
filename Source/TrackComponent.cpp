@@ -27,7 +27,7 @@ void TrackComponent::layoutSliders()
     m_gainSlider.setSliderStyle(juce::Slider::Rotary);
     m_gainSlider.setRange(0.01, 1.00, 0.01);
     m_gainSlider.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
-    m_gainSlider.setColour(juce::Slider::ColourIds::rotarySliderFillColourId, m_color);
+    m_gainSlider.setTrackColor( m_color);
     m_gainSlider.onValueChange = [&]() {
         m_processorRef.setGain(m_id, static_cast<float>(m_gainSlider.getValue()));
     };
@@ -37,7 +37,7 @@ void TrackComponent::layoutSliders()
     m_speedSlider.setRange(-2.0, 2.0, 0.01);
     m_speedSlider.setValue(1.0);
     m_speedSlider.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
-    m_speedSlider.setColour(juce::Slider::ColourIds::rotarySliderFillColourId, m_color);
+    m_speedSlider.setTrackColor( m_color);
     m_speedSlider.onValueChange = [&]() {
         m_processorRef.setSpeed(m_id, static_cast<float>(m_speedSlider.getValue()));
     };

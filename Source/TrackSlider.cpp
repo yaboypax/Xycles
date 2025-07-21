@@ -28,7 +28,7 @@
         m_startPosition = startValue;
     }
 
-    void TrackSlider::paint (juce::Graphics& g) override
+    void TrackSlider::paint (juce::Graphics& g)
     {
         //g.fillAll (juce::Colours::black);
         auto trackWidth = jmin (2.0f, (float) getHeight() * 0.25f);

@@ -5,6 +5,7 @@
 #pragma once
 #include <JuceHeader.h>
 #include "TrackSlider.h"
+#include "TrackKnob.h"
 #include "PluginProcessor.h"
 
 
@@ -29,10 +30,11 @@ private:
     void layoutButtons();
     const size_t m_id;
     juce::Colour m_color;
+
     XyclesAudioProcessor &m_processorRef;
-    juce::Slider m_gainSlider, m_speedSlider;
-    juce::TextButton m_playButton{"Play"}, m_stopButton{"Stop"};
+    TrackKnob m_gainSlider, m_speedSlider;
     TrackSlider m_startTime, m_endTime;
+    juce::TextButton m_playButton{"Play"}, m_stopButton{"Stop"};
 
     juce::AudioFormatManager m_formatManager;
     juce::AudioThumbnailCache m_thumbnailCache;
