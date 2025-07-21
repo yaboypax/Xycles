@@ -13,17 +13,10 @@ TrackComponent::TrackComponent(XyclesAudioProcessor &p, const size_t id) :
     m_color = juce::Colours::black;
 
     layoutSliders();
+    layoutButtons();
+
     m_formatManager.registerBasicFormats();
 
-    addAndMakeVisible(m_playButton);
-    m_playButton.onClick = [&]() {
-        m_processorRef.play(m_id);
-    };
-
-    addAndMakeVisible(m_stopButton);
-    m_stopButton.onClick = [&]() {
-        m_processorRef.stop(m_id);
-    };
 }
 
 void TrackComponent::layoutSliders()
@@ -77,6 +70,25 @@ void TrackComponent::layoutSliders()
         m_startTime.setEndPosition(m_endTime.getValue());
         m_processorRef.setEnd(m_id, static_cast<float>(m_endTime.getValue()));
         repaint();
+    };
+}
+
+void TrackComponent::layoutButtons()
+{
+    addAndMakeVisible(m_playButton);
+    m_playButton.setColour(juce::ComboBox::outlineColourId, m_color);
+    m_playButton.setColour(juce::TextButton::textColourOffId, juce::Colours::black);
+    m_playButton.setColour(juce::TextButton::buttonColourId, juce::Colours::white);
+    m_playButton.onClick = [&]() {
+        m_processorRef.play(m_id);
+    };
+
+    addAndMakeVisible(m_stopButton);
+    m_stopButton.setColour(juce::ComboBox::outlineColourId, m_color);
+    m_stopButton.setColour(juce::TextButton::textColourOffId, juce::Colours::black);
+    m_stopButton.setColour(juce::TextButton::buttonColourId, juce::Colours::white);
+    m_stopButton.onClick = [&]() {
+        m_processorRef.stop(m_id);
     };
 }
 
@@ -156,6 +168,7 @@ void TrackComponent::filesDropped(const StringArray &files, int x, int y) {
             random.nextInt (256));
     m_color = color;
     layoutSliders();
+    layoutButtons();
     repaint();
 }
 

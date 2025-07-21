@@ -26,6 +26,7 @@ public:
 
 private:
     void layoutSliders();
+    void layoutButtons();
     const size_t m_id;
     juce::Colour m_color;
     XyclesAudioProcessor &m_processorRef;
