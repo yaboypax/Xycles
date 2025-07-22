@@ -56,6 +56,9 @@ public:
   void play(size_t index);
   void stop(size_t index);
 
+  void playAll();
+  void stopAll();
+
   juce::AudioProcessorValueTreeState state;
 private:
   rust::Vec<float> m_interleavedBuffer;

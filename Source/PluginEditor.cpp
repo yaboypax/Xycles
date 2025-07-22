@@ -18,6 +18,12 @@ XyclesAudioProcessorEditor::XyclesAudioProcessorEditor(
     m_trackViewport.setViewedComponent(&m_trackEditor, false);
 
     addAndMakeVisible(m_topBar);
+    m_topBar.onGlobalPlay = [&]{
+        p.playAll();
+    };
+    m_topBar.onGlobalStop = [&]{
+        p.stopAll();
+    };
 
 }
 
