@@ -3,14 +3,19 @@
     use crossbeam_queue::ArrayQueue;
     use std::{fs::File, io::BufReader, mem};
     use std::sync::Arc;
+    
+    
+    pub struct PlayHead {
+        position: f32,
+        gain: f32,
+        speed: f32,
+    }
     pub struct Track {
         samples:    Vec<f32>,
-        position:   f32,
         start:      usize,
         end:        usize,
         channels:   usize,
-        gain:       f32,
-        speed:      f32,
+        play_heads: Vec<PlayHead>
     }
     pub enum EngineState {
         Idle,
@@ -63,7 +68,7 @@
                 | EngineState::Ready(track) => {
                     if track.start < track.end {
                         let loop_length = (track.end - track.start) as f32;
-                        track.position.clamp(0.0, loop_length) / loop_length
+                        track.play_heads[0].position.clamp(0.0, loop_length) / loop_length
                     } else {
                          0.0
                     }
@@ -90,7 +95,7 @@
                     let crossfade_samples = 250;
                     
                     for frame in 0..output_block {
-                        let mut relative_position = (track.position + track.speed)
+                        let mut relative_position = (track.play_heads[0].position + track.play_heads[0].speed)
                             .rem_euclid(loop_length as f32);
                         if relative_position.is_nan() { relative_position = 0.0; }
                         
@@ -141,10 +146,10 @@
                             }
                             
                             
-                            buffer[frame*track.channels + channel] += sample * track.gain;
+                            buffer[frame*track.channels + channel] += sample * track.play_heads[0].gain;
                         }
 
-                        track.position = relative_position;
+                        track.play_heads[0].position = relative_position;
 
                         //
                         // // Clip
@@ -167,7 +172,11 @@
             let channels = source.channels() as usize;
             let samples: Vec<f32> = source.convert_samples().collect();
             let end = samples.len() / channels;
-            let track = Track{ samples, position: 0.0, start: 0, end, channels, gain: 1.0, speed: 1.0 };
+            
+            let mut play_heads = Vec::new(); 
+            play_heads.push(PlayHead {position: 0.0, gain: 1.0, speed: 1.0 });
+            
+            let track = Track{ samples, start: 0, end, channels, play_heads};
             EngineState::Ready(track)
         }
         
@@ -183,7 +192,7 @@
                 }
                 (EngineState::Ready (track), EngineEvent::Play) => {
                     let mut t = track;
-                    t.position = t.start as f32;
+                    t.play_heads[0].position = t.start as f32;
                     EngineState::Playing (t)
                 }
 
@@ -191,13 +200,13 @@
                     let mut t = track;
                     let start_samples = start * (t.samples.len() / t.channels) as f32;
                     t.start = start_samples as usize;
-                    t.position = start_samples;
+                    t.play_heads[0].position = start_samples;
                     EngineState::Ready (t)
                 }
                 (EngineState::Ready (track), EngineEvent::SetEnd(end)) => {
                     let mut t = track;
                     t.end = (end * (t.samples.len() / t.channels) as f32) as usize;
-                    t.position = t.start as f32;
+                    t.play_heads[0].position = t.start as f32;
                     EngineState::Ready (t)
                 }
 
@@ -210,12 +219,12 @@
                 }
                 (EngineState::Playing (track), EngineEvent::SetGain(g)) => {
                     let mut t = track;
-                    t.gain = g;
+                    t.play_heads[0].gain = g;
                     EngineState::Playing (t)
                 }
                 (EngineState::Playing (track), EngineEvent::SetSpeed(s)) => {
                     let mut t = track;
-                    t.speed = s;
+                    t.play_heads[0].speed = s;
                     EngineState::Playing (t)
                 }
 
@@ -223,19 +232,19 @@
                     let mut t = track;
                     let start_samples = start * t.samples.len() as f32;
                     t.start = start_samples as usize;
-                    t.position = start_samples;
+                    t.play_heads[0].position = start_samples;
                     EngineState::Paused (t)
                 }
                 (EngineState::Playing (track), EngineEvent::SetEnd(end)) => {
                     let mut t = track;
                     t.end = (end * (t.samples.len() / t.channels) as f32) as usize;
-                    t.position = t.start as f32;
+                    t.play_heads[0].position = t.start as f32;
                     EngineState::Paused (t)
                 }
                 
                 (EngineState::Paused (track), EngineEvent::Play) => {
                     let mut t = track;
-                    t.position = t.start as f32;
+                    t.play_heads[0].position = t.start as f32;
                     EngineState::Playing (t)
                 }
                 
@@ -244,13 +253,13 @@
                 }
                 (EngineState::Paused (track), EngineEvent::SetGain(g)) => {
                     let mut t = track;
-                    t.gain = g;
+                    t.play_heads[0].gain = g;
                     EngineState::Paused (t)
                 }
                 
                 (EngineState::Paused (track), EngineEvent::SetSpeed(s)) => {
                     let mut t = track;
-                    t.speed = s;
+                    t.play_heads[0].speed = s;
                     EngineState::Paused (t)
                 }
 
@@ -258,13 +267,13 @@
                     let mut t = track;
                     let start_samples = start * (t.samples.len() / t.channels) as f32;
                     t.start = start_samples as usize;
-                    t.position = start_samples;
+                    t.play_heads[0].position = start_samples;
                     EngineState::Paused (t)
                 }
                 (EngineState::Paused (track), EngineEvent::SetEnd(end)) => {
                     let mut t = track;
                     t.end = (end * (t.samples.len() / t.channels) as f32) as usize;
-                    t.position = t.start as f32;
+                    t.play_heads[0].position = t.start as f32;
                     EngineState::Paused (t)
                 }
 
