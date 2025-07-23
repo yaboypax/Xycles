@@ -14,11 +14,14 @@ public:
     TopBarComponent()
     {
         addAndMakeVisible(m_globalPlay);
+        m_globalPlay.setColour(juce::ComboBox::outlineColourId, juce::Colours::black);
         m_globalPlay.onClick = [&]{
             if (onGlobalPlay)
                 onGlobalPlay();
         };
+
         addAndMakeVisible(m_globalStop);
+        m_globalPlay.setColour(juce::ComboBox::outlineColourId, juce::Colours::black);
         m_globalStop.onClick = [&]{
             if (onGlobalStop)
                 onGlobalStop();
@@ -43,7 +46,8 @@ public:
         m_globalStop.setBounds(getWidth() - buttonSize - margin, margin, buttonSize, buttonSize);
     }
 private:
-    juce::TextButton m_globalStop{"Stop"}, m_globalPlay{"Play"};
+    Xycles::StopButton m_globalStop;
+    Xycles::PlayButton m_globalPlay;
 };
 class XyclesAudioProcessorEditor final
     : public juce::AudioProcessorEditor

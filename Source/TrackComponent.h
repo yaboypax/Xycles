@@ -6,6 +6,8 @@
 #include <JuceHeader.h>
 #include "TrackSlider.h"
 #include "TrackKnob.h"
+#include "PlayButton.h"
+#include "StopButton.h"
 #include "PluginProcessor.h"
 
 
@@ -35,7 +37,8 @@ private:
     TrackKnob m_gainSlider, m_speedSlider;
     juce::Label m_gainLabel, m_speedLabel;
     TrackSlider m_startTime, m_endTime;
-    juce::TextButton m_playButton{"Play"}, m_stopButton{"Stop"};
+    Xycles::PlayButton m_playButton;
+    Xycles::StopButton m_stopButton;
 
     juce::AudioFormatManager m_formatManager;
     juce::AudioThumbnailCache m_thumbnailCache;
