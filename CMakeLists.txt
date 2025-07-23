@@ -97,10 +97,11 @@ target_sources(Xycles
         PRIVATE
         Source/PluginEditor.cpp
         Source/PluginProcessor.cpp
-        Source/TrackComponent.cpp
-        Source/TrackEditor.cpp
-        Source/TrackKnob.cpp
-        Source/TrackSlider.cpp)
+        Source/TopBarComponent.cpp
+        Source/track/TrackComponent.cpp
+        Source/track/TrackEditor.cpp
+        Source/track/TrackKnob.cpp
+        Source/track/TrackSlider.cpp)
 
 # `target_compile_definitions` adds some preprocessor definitions to our target. In a Projucer
 # project, these might be passed in the 'Preprocessor Definitions' field. JUCE modules also make use
@@ -124,7 +125,13 @@ target_compile_definitions(Xycles
 # static library. These source files can be of any kind (wav data, images, fonts, icons etc.).
 # Conversion to binary-data will happen when your target is built.
 
-# juce_add_binary_data(AudioPluginData SOURCES ...)
+
+juce_add_binary_data(XyclesBinaryData
+        SOURCES
+        Resource/background.png
+        NAMESPACE BinaryData
+)
+
 
 # `target_link_libraries` links libraries and JUCE modules to other libraries or executables. Here,
 # we're linking our executable target to the `juce::juce_audio_utils` module. Inter-module
@@ -143,7 +150,7 @@ endif ()
 
 target_link_libraries(Xycles
         PRIVATE
-        # AudioPluginData           # If we'd created a binary data target, we'd link to it here
+        XyclesBinaryData
         juce::juce_audio_utils
         rust_part
         ${RUST_PART_LIB}

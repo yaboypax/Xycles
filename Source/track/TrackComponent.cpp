@@ -57,16 +57,12 @@ void TrackComponent::layoutButtons()
 {
     addAndMakeVisible(m_playButton);
     m_playButton.setColour(juce::ComboBox::outlineColourId, m_color);
-    m_playButton.setColour(juce::TextButton::textColourOffId, juce::Colours::black);
-    m_playButton.setColour(juce::TextButton::buttonColourId, juce::Colours::white);
     m_playButton.onClick = [&]() {
         m_processorRef.play(m_id);
     };
 
     addAndMakeVisible(m_stopButton);
     m_stopButton.setColour(juce::ComboBox::outlineColourId, m_color);
-    m_stopButton.setColour(juce::TextButton::textColourOffId, juce::Colours::black);
-    m_stopButton.setColour(juce::TextButton::buttonColourId, juce::Colours::white);
     m_stopButton.onClick = [&]() {
         m_processorRef.stop(m_id);
     };

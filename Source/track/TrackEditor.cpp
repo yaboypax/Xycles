@@ -12,6 +12,9 @@ namespace {
 TrackEditor::TrackEditor(XyclesAudioProcessor &p) : processorRef(p) {
     addAndMakeVisible(&m_plusButton);
     m_plusButton.setButtonText("+");
+
+    m_plusButton.setColour(juce::TextButton::textColourOffId, juce::Colours::black);
+    m_plusButton.setColour(juce::TextButton::buttonColourId, juce::Colours::transparentWhite);
     m_plusButton.onClick = [&] {
         processorRef.addTrack();
         std::unique_ptr<TrackComponent> track = std::make_unique<TrackComponent>(processorRef, m_trackCount);
@@ -25,6 +28,8 @@ TrackEditor::TrackEditor(XyclesAudioProcessor &p) : processorRef(p) {
 
     addAndMakeVisible(&m_removeButton);
     m_removeButton.setButtonText("-");
+    m_removeButton.setColour(juce::TextButton::textColourOffId, juce::Colours::black);
+    m_removeButton.setColour(juce::TextButton::buttonColourId, juce::Colours::transparentWhite);
     m_removeButton.onClick = [&] {
         processorRef.removeTrack();
         m_tracks.pop_back();

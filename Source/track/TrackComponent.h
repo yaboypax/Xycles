@@ -6,7 +6,9 @@
 #include <JuceHeader.h>
 #include "TrackSlider.h"
 #include "TrackKnob.h"
-#include "PluginProcessor.h"
+#include "../subcomponents/PlayButton.h"
+#include "../subcomponents/StopButton.h"
+#include "../PluginProcessor.h"
 
 
 class PlayHead : public juce::Component {
@@ -93,7 +95,8 @@ private:
 
     XyclesAudioProcessor &m_processorRef;
     TrackSlider m_startTime, m_endTime;
-    juce::TextButton m_playButton{"Play"}, m_stopButton{"Stop"};
+    Xycles::PlayButton m_playButton;
+    Xycles::StopButton m_stopButton;
 
     std::vector<std::unique_ptr<PlayHead>> m_playHeads;
 
