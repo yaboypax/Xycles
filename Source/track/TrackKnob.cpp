@@ -5,7 +5,7 @@
 #include "TrackKnob.h"
 
 
-    TrackKnob::TrackKnob()
+TrackKnob::TrackKnob()
     {
         setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
     }

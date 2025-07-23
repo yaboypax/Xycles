@@ -5,7 +5,7 @@
 #include "TrackSlider.h"
 
 
-    TrackSlider::TrackSlider()
+TrackSlider::TrackSlider()
     {
 
     }

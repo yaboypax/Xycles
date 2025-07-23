@@ -97,10 +97,11 @@ target_sources(Xycles
         PRIVATE
         Source/PluginEditor.cpp
         Source/PluginProcessor.cpp
-        Source/TrackComponent.cpp
-        Source/TrackEditor.cpp
-        Source/TrackKnob.cpp
-        Source/TrackSlider.cpp)
+        Source/TopBarComponent.cpp
+        Source/track/TrackComponent.cpp
+        Source/track/TrackEditor.cpp
+        Source/track/TrackKnob.cpp
+        Source/track/TrackSlider.cpp)
 
 # `target_compile_definitions` adds some preprocessor definitions to our target. In a Projucer
 # project, these might be passed in the 'Preprocessor Definitions' field. JUCE modules also make use

@@ -6,9 +6,9 @@
 #include <JuceHeader.h>
 #include "TrackSlider.h"
 #include "TrackKnob.h"
-#include "PlayButton.h"
-#include "StopButton.h"
-#include "PluginProcessor.h"
+#include "../subcomponents/PlayButton.h"
+#include "../subcomponents/StopButton.h"
+#include "../PluginProcessor.h"
 
 
 class TrackComponent: public juce::AnimatedAppComponent, public juce::FileDragAndDropTarget
