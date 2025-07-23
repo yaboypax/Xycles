@@ -21,5 +21,7 @@ private:
   TrackEditor m_trackEditor;
   TopBarComponent m_topBar;
 
+    juce::Image m_backgroundImage;
+
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(XyclesAudioProcessorEditor)
 };

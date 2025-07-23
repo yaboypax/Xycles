@@ -2,7 +2,7 @@
 #include "PluginProcessor.h"
 
 //==============================================================================
-
+#include "BinaryData.h"
 namespace
 {
     constexpr int kTopBarHeight = 50;
@@ -25,13 +25,15 @@ XyclesAudioProcessorEditor::XyclesAudioProcessorEditor(
         p.stopAll();
     };
 
+    m_backgroundImage = juce::Image(juce::ImageCache::getFromMemory(BinaryData::background_png, BinaryData::background_pngSize));
 }
 
 XyclesAudioProcessorEditor::~XyclesAudioProcessorEditor() {}
 
 //==============================================================================
 void XyclesAudioProcessorEditor::paint(juce::Graphics &g) {
-    g.fillAll(getLookAndFeel().findColour(juce::ResizableWindow::backgroundColourId));
+    g.fillAll(juce::Colours::white);
+    g.drawImage(m_backgroundImage, getLocalBounds().toFloat() );
     }
 
 void XyclesAudioProcessorEditor::resized() {
