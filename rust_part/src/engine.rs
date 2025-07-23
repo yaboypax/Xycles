@@ -178,7 +178,7 @@
             self.state = match (old, event) {
 
                 // ─── Idle ───
-                (EngineState::Idle, EngineEvent::Load(path)) => {
+                (_, EngineEvent::Load(path)) => {
                     self.load_path(path)
                 }
                 (EngineState::Ready (track), EngineEvent::Play) => {
