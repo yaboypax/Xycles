@@ -22,36 +22,6 @@ TrackComponent::TrackComponent(XyclesAudioProcessor &p, const size_t id) :
 void TrackComponent::layoutSliders()
 {
 
-
-    addAndMakeVisible(m_gainSlider);
-    m_gainSlider.setRange(0.01, 1.00, 0.01);
-    m_gainSlider.setTrackColor( m_color);
-    m_gainSlider.onValueChange = [&]() {
-        m_processorRef.setGain(m_id, static_cast<float>(m_gainSlider.getValue()));
-    };
-
-    addAndMakeVisible(m_gainLabel);
-    m_gainLabel.attachToComponent(&m_gainSlider, false);
-    m_gainLabel.setColour(juce::Label::textColourId, juce::Colours::black);
-    m_gainLabel.setText("Gain", juce::dontSendNotification);
-    m_gainLabel.setJustificationType(juce::Justification::centredTop);
-
-
-
-    addAndMakeVisible(m_speedSlider);
-    m_speedSlider.setRange(-2.0, 2.0, 0.01);
-    m_speedSlider.setValue(1.0);
-    m_speedSlider.setTrackColor( m_color);
-    m_speedSlider.onValueChange = [&]() {
-        m_processorRef.setSpeed(m_id, static_cast<float>(m_speedSlider.getValue()));
-    };
-
-    addAndMakeVisible(m_speedLabel);
-    m_speedLabel.attachToComponent(&m_speedSlider, false);
-    m_speedLabel.setColour(juce::Label::textColourId, juce::Colours::black);
-    m_speedLabel.setText("Speed", juce::dontSendNotification);
-    m_speedLabel.setJustificationType(juce::Justification::centredTop);
-
     addAndMakeVisible(m_startTime);
     m_endTime.setTrackDirection(Start);
     m_startTime.setSliderStyle(juce::Slider::LinearHorizontal);
@@ -160,15 +130,22 @@ void TrackComponent::resized() {
     constexpr auto margin = 5;
     constexpr auto spacer = 25;
 
-    m_gainSlider.setBounds(50, sliderY, sliderSize, sliderSize);
-    m_speedSlider.setBounds(m_gainSlider.getRight() + 20, sliderY, sliderSize, sliderSize);
-    m_gainLabel.setBounds(50, m_gainSlider.getBottom(), sliderSize, spacer);
-    m_speedLabel.setBounds(m_gainSlider.getRight() + 20, m_gainSlider.getBottom(), sliderSize, spacer);
 
-    m_startTime.setBounds(m_thumbnailBounds.getX(), m_gainSlider.getBottom() + spacer, m_thumbnailBounds.getWidth(), 20);
+    m_startTime.setBounds(m_thumbnailBounds.getX(), sliderY + sliderSize + spacer, m_thumbnailBounds.getWidth(), 20);
     m_endTime.setBounds(m_thumbnailBounds.getX(), m_startTime.getBottom() + 5, m_thumbnailBounds.getWidth(), 20);
     m_playButton.setBounds(m_thumbnailBounds.getRight() - buttonSize*2 - margin*2, buttonY, buttonSize, buttonSize);
     m_stopButton.setBounds(m_thumbnailBounds.getRight() - buttonSize - margin, buttonY, buttonSize, buttonSize);
+
+
+    if (m_playHeads.empty())
+        return;
+
+    auto start = 50;
+    for (const auto& head : m_playHeads) {
+        head->setBounds(start, sliderY, sliderSize*2 + spacer, sliderSize + spacer);
+        start += head->getWidth();
+    }
+
     //DBG("RESIZED");
 }
 
@@ -182,6 +159,7 @@ void TrackComponent::filesDropped(const StringArray &files, int x, int y) {
             random.nextInt (256),
             random.nextInt (256));
     m_color = color;
+    addPlayhead();
     layoutSliders();
     layoutButtons();
     repaint();
@@ -199,8 +177,21 @@ void TrackComponent::loadFileThumbnail(const String &fileName) {
     if (auto* reader = m_formatManager.createReaderFor(file); reader != nullptr)
     {
         auto newSource = std::make_unique<juce::AudioFormatReaderSource> (reader, true);
-        //transportSource.setSource (newSource.get(), 0, nullptr, reader->sampleRate);
         m_thumbnail.setSource (new juce::FileInputSource (file));
-        //readerSource.reset (newSource.release());
     }
+}
+
+void TrackComponent::addPlayhead()
+{
+    auto playHead = std::make_unique<PlayHead>(0, m_color);
+    playHead->onGainCallback = [&] (const float value){
+        m_processorRef.setGain(m_id, value);
+    };
+
+    playHead->onSpeedCallback = [&] (const float value){
+        m_processorRef.setSpeed(m_id, value);
+    };
+
+    addAndMakeVisible(playHead.get());
+    m_playHeads.push_back(std::move(playHead));
 }
