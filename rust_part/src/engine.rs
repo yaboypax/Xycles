@@ -38,11 +38,12 @@
         Idle,
         Ready (Track),
         Playing (Track),
+        Granulating (Track),
         Paused (Track),
     }
     #[derive(Debug)]
     pub enum EngineEvent {
-        Load(String),   
+        Load(String),
         Play,           
         Pause,          
         Stop,          
@@ -91,6 +92,7 @@
                     }
                 }
                 EngineState::Idle => 0.0,
+                EngineState::Granulating(track) =>0.0
             }
         }
 
@@ -105,10 +107,49 @@
         {
             self.apply_pending();
             match &mut self.state {
+
+                EngineState::Granulating(track ) => {
+                    let frames = buffer.len() / track.channels;
+                    for frame in 0..frames {
+                        // every hop_size frames spawn a new grain at read_pos=0
+                        if frame % track.grain_head.hop_size == 0 {
+                            track.grain_head.grains.push(Grain {
+                                read_position:   0.0,
+                                window_position: 0,
+                                velocity:   1.0,   // or randomize for time‑stretch
+                                grain_speed: 1.0
+                            });
+
+                            if track.grain_head.grains.len() > 64 { track.grain_head.grains.remove(0); }
+                        }
+
+                        for c in 0..track.channels {
+                            buffer[frame * track.channels + c] = 0.0;
+                        }
+
+                        // advance each grain, summing into output
+                        track.grain_head.grains.retain_mut(|g| {
+                            if g.window_position < track.grain_head.grain_size {
+                                let idx = (g.read_position as usize) * track.channels;
+                                for c in 0..track.channels {
+                                    let sample = track.samples.get(idx + c).copied().unwrap_or(0.0);
+                                    let w      = track.grain_head.window[g.window_position];
+                                    buffer[frame * track.channels + c] += sample * w * track.grain_head.gain;
+                                }
+                                g.read_position   += g.velocity;
+                                g.window_position += 1;
+                                true
+                            } else {
+                                false
+                            }
+                        });
+                    }
+                }
+
                 EngineState::Playing (track) => {
                     
                     let output_block = buffer.len() / track.channels;
-                    let loop_length = (track.end - track.start);
+                    let loop_length = track.end - track.start;
                     let crossfade_samples = 250;
                     
                     for frame in 0..output_block {
@@ -185,6 +226,7 @@
         {
             let file   = BufReader::new(File::open(&path).unwrap());
             let source = Decoder::new(file).unwrap();
+            let sample_rate = source.sample_rate();
             let channels = source.channels() as usize;
             let samples: Vec<f32> = source.convert_samples().collect();
             let end = samples.len() / channels;
@@ -194,14 +236,15 @@
             let play_head = PlayHead {position: 0.0, gain: 1.0, speed: 1.0 };
 
             // add grain head
-            let grain_size = 1024;
+            let grain_size = 200 * (sample_rate/ 1000) as usize; // ms to samples
+            let hop_size = (grain_size as f32 / 0.25) as usize;
             let window = (0..grain_size)
                 .map(|i| {
                     let x = i as f32 / (grain_size - 1) as f32;
                     0.5 * (1.0 - (2.0 * std::f32::consts::PI * x).cos())
                 })
                 .collect();
-            let grain_head = GrainHead { grain_size, hop_size: 256, window, grains: Vec::new(), gain: 1.0, speed: 1.0};
+            let grain_head = GrainHead { grain_size, hop_size, window, grains: Vec::new(), gain: 1.0, speed: 1.0};
 
             let track = Track{ samples, start: 0, end, channels, play_head, grain_head};
             EngineState::Ready(track)
@@ -220,7 +263,7 @@
                 (EngineState::Ready (track), EngineEvent::Play) => {
                     let mut t = track;
                     t.play_head.position = t.start as f32;
-                    EngineState::Playing (t)
+                    EngineState::Granulating (t)
                 }
 
                 (EngineState::Ready (track), EngineEvent::SetStart(start)) => {
