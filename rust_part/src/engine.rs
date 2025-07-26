@@ -3,37 +3,12 @@
     use crossbeam_queue::ArrayQueue;
     use std::{fs::File, io::BufReader, mem};
     use std::sync::Arc;
-    
-    pub struct Grain {
-        read_position: f32,
-        window_position: usize,
-        grain_speed: f32,
-        velocity: f32
-    }
 
-    pub struct GrainHead {
-        grain_size:  usize,
-        hop_size:    usize,
-        window:      Vec<f32>,   // precomputed Hann window of length grain_size
-        grains:      Vec<Grain>,
-        gain:        f32,
-        speed:       f32,
-    }
-    pub struct PlayHead {
-        position: f32,
-        gain: f32,
-        speed: f32,
-    }
+    pub use crate::track::Track;
+    use crate::track::grain::Grain;
+    use crate::track::play_head::PlayHead;
+    use crate::track::grain::GrainHead;
 
-    pub struct Track {
-        samples:    Vec<f32>,
-        start:      usize,
-        end:        usize,
-        channels:   usize,
-        play_head:  PlayHead,
-        grain_head: GrainHead
-
-    }
     pub enum EngineState {
         Idle,
         Ready (Track),
@@ -59,6 +34,11 @@
     }
 
     impl Engine {
+
+        pub fn new() -> Self {
+            Engine { state: EngineState::Idle, commands: Arc::new(ArrayQueue::new(32))}
+        }
+
         fn push_event(&self, event: EngineEvent) {
             let _ = self.commands.push(event);
         }
@@ -86,18 +66,15 @@
                 | EngineState::Ready(track) => {
                     if track.start < track.end {
                         let loop_length = (track.end - track.start) as f32;
-                        track.play_head.position.clamp(0.0, loop_length) / loop_length
+                        let play_head = track.play_head();
+                        play_head.position.clamp(0.0, loop_length) / loop_length
                     } else {
                          0.0
                     }
                 }
                 EngineState::Idle => 0.0,
-                EngineState::Granulating(track) =>0.0
+                EngineState::Granulating(_track) => 0.0
             }
-        }
-
-        pub fn new() -> Self {
-            Engine { state: EngineState::Idle, commands: Arc::new(ArrayQueue::new(32))}
         }
         
         pub fn fill_silence(buffer: &mut Vec<f32>) {for sample in buffer.iter_mut() {*sample = 0.0}; }
@@ -112,15 +89,15 @@
                     let frames = buffer.len() / track.channels;
                     for frame in 0..frames {
                         // every hop_size frames spawn a new grain at read_pos=0
-                        if frame % track.grain_head.hop_size == 0 {
-                            track.grain_head.grains.push(Grain {
+                        if frame % track.grain_head_mut().hop_size == 0 {
+                            track.grain_head_mut().grains().push(Grain {
                                 read_position:   0.0,
                                 window_position: 0,
                                 velocity:   1.0,   // or randomize for time‑stretch
                                 grain_speed: 1.0
                             });
 
-                            if track.grain_head.grains.len() > 64 { track.grain_head.grains.remove(0); }
+                            if track.grain_head_mut().grains().len() > 64 { track.grain_head_mut().grains().remove(0); }
                         }
 
                         for c in 0..track.channels {
@@ -128,13 +105,20 @@
                         }
 
                         // advance each grain, summing into output
-                        track.grain_head.grains.retain_mut(|g| {
-                            if g.window_position < track.grain_head.grain_size {
-                                let idx = (g.read_position as usize) * track.channels;
-                                for c in 0..track.channels {
-                                    let sample = track.samples.get(idx + c).copied().unwrap_or(0.0);
-                                    let w      = track.grain_head.window[g.window_position];
-                                    buffer[frame * track.channels + c] += sample * w * track.grain_head.gain;
+                        let channels = track.channels;
+                        let samples  = track.samples.clone();
+
+                        let grain_size = track.grain_head().grain_size;
+                        let gain       = track.grain_head().gain;
+                        let window     = track.grain_head().window.clone();
+
+                        track.grain_head_mut().grains().retain_mut(|g| {
+                            if g.window_position < grain_size {
+                                let idx = (g.read_position as usize) * channels;
+                                for c in 0..channels {
+                                    let sample = samples.get(idx + c).copied().unwrap_or(0.0);
+                                    let w      = window[g.window_position];
+                                    buffer[frame * channels + c] += sample * w * gain;
                                 }
                                 g.read_position   += g.velocity;
                                 g.window_position += 1;
@@ -153,7 +137,7 @@
                     let crossfade_samples = 250;
                     
                     for frame in 0..output_block {
-                        let mut relative_position = (track.play_head.position + track.play_head.speed)
+                        let mut relative_position = (track.play_head_mut().position + track.play_head_mut().speed)
                             .rem_euclid(loop_length as f32);
                         if relative_position.is_nan() { relative_position = 0.0; }
                         
@@ -204,10 +188,10 @@
                             }
                             
                             
-                            buffer[frame*track.channels + channel] += sample * track.play_head.gain;
+                            buffer[frame*track.channels + channel] += sample * track.play_head_mut().gain;
                         }
 
-                        track.play_head.position = relative_position;
+                        track.play_head_mut().position = relative_position;
 
                         //
                         // // Clip
@@ -226,27 +210,12 @@
         {
             let file   = BufReader::new(File::open(&path).unwrap());
             let source = Decoder::new(file).unwrap();
-            let sample_rate = source.sample_rate();
+            let sample_rate = source.sample_rate() as usize;
             let channels = source.channels() as usize;
             let samples: Vec<f32> = source.convert_samples().collect();
             let end = samples.len() / channels;
 
-
-            // add play head
-            let play_head = PlayHead {position: 0.0, gain: 1.0, speed: 1.0 };
-
-            // add grain head
-            let grain_size = 200 * (sample_rate/ 1000) as usize; // ms to samples
-            let hop_size = (grain_size as f32 / 0.25) as usize;
-            let window = (0..grain_size)
-                .map(|i| {
-                    let x = i as f32 / (grain_size - 1) as f32;
-                    0.5 * (1.0 - (2.0 * std::f32::consts::PI * x).cos())
-                })
-                .collect();
-            let grain_head = GrainHead { grain_size, hop_size, window, grains: Vec::new(), gain: 1.0, speed: 1.0};
-
-            let track = Track{ samples, start: 0, end, channels, play_head, grain_head};
+            let track = Track{ samples, start: 0, end, channels, play_head: PlayHead::new(), grain_head: GrainHead::new(sample_rate)};
             EngineState::Ready(track)
         }
         
@@ -262,7 +231,7 @@
                 }
                 (EngineState::Ready (track), EngineEvent::Play) => {
                     let mut t = track;
-                    t.play_head.position = t.start as f32;
+                    t.play_head_mut().position = t.start as f32;
                     EngineState::Granulating (t)
                 }
 
@@ -270,13 +239,13 @@
                     let mut t = track;
                     let start_samples = start * (t.samples.len() / t.channels) as f32;
                     t.start = start_samples as usize;
-                    t.play_head.position = start_samples;
+                    t.play_head_mut().position = start_samples;
                     EngineState::Ready (t)
                 }
                 (EngineState::Ready (track), EngineEvent::SetEnd(end)) => {
                     let mut t = track;
                     t.end = (end * (t.samples.len() / t.channels) as f32) as usize;
-                    t.play_head.position = t.start as f32;
+                    t.play_head_mut().position = t.start as f32;
                     EngineState::Ready (t)
                 }
 
@@ -289,12 +258,12 @@
                 }
                 (EngineState::Playing (track), EngineEvent::SetGain(g)) => {
                     let mut t = track;
-                    t.play_head.gain = g;
+                    t.play_head_mut().gain = g;
                     EngineState::Playing (t)
                 }
                 (EngineState::Playing (track), EngineEvent::SetSpeed(s)) => {
                     let mut t = track;
-                    t.play_head.speed = s;
+                    t.play_head_mut().speed = s;
                     EngineState::Playing (t)
                 }
 
@@ -302,19 +271,19 @@
                     let mut t = track;
                     let start_samples = start * t.samples.len() as f32;
                     t.start = start_samples as usize;
-                    t.play_head.position = start_samples;
+                    t.play_head_mut().position = start_samples;
                     EngineState::Paused (t)
                 }
                 (EngineState::Playing (track), EngineEvent::SetEnd(end)) => {
                     let mut t = track;
                     t.end = (end * (t.samples.len() / t.channels) as f32) as usize;
-                    t.play_head.position = t.start as f32;
+                    t.play_head_mut().position = t.start as f32;
                     EngineState::Paused (t)
                 }
                 
                 (EngineState::Paused (track), EngineEvent::Play) => {
                     let mut t = track;
-                    t.play_head.position = t.start as f32;
+                    t.play_head_mut().position = t.start as f32;
                     EngineState::Playing (t)
                 }
                 
@@ -323,13 +292,13 @@
                 }
                 (EngineState::Paused (track), EngineEvent::SetGain(g)) => {
                     let mut t = track;
-                    t.play_head.gain = g;
+                    t.play_head_mut().gain = g;
                     EngineState::Paused (t)
                 }
                 
                 (EngineState::Paused (track), EngineEvent::SetSpeed(s)) => {
                     let mut t = track;
-                    t.play_head.speed = s;
+                    t.play_head_mut().speed = s;
                     EngineState::Paused (t)
                 }
 
@@ -337,13 +306,13 @@
                     let mut t = track;
                     let start_samples = start * (t.samples.len() / t.channels) as f32;
                     t.start = start_samples as usize;
-                    t.play_head.position = start_samples;
+                    t.play_head_mut().position = start_samples;
                     EngineState::Paused (t)
                 }
                 (EngineState::Paused (track), EngineEvent::SetEnd(end)) => {
                     let mut t = track;
                     t.end = (end * (t.samples.len() / t.channels) as f32) as usize;
-                    t.play_head.position = t.start as f32;
+                    t.play_head_mut().position = t.start as f32;
                     EngineState::Paused (t)
                 }
 
