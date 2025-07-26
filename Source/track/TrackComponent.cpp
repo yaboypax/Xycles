@@ -22,6 +22,11 @@ TrackComponent::TrackComponent(XyclesAudioProcessor &p, const size_t id) :
 void TrackComponent::layoutSliders()
 {
 
+    addAndMakeVisible(m_playHeadLabel);
+    m_playHeadLabel.setText("PlayHead", juce::dontSendNotification);
+    m_playHeadLabel.setColour(juce::Label::textColourId, juce::Colours::black);
+    m_playHeadLabel.setJustificationType(juce::Justification::centred);
+
 
     addAndMakeVisible(m_gainSlider);
     m_gainSlider.setRange(0.01, 1.00, 0.01);
@@ -148,13 +153,15 @@ void TrackComponent::animate(juce::Graphics &g)
 
 void TrackComponent::resized() {
 
-    m_thumbnailBounds = juce::Rectangle<int>(50, 25, getWidth()- 100, 200);
-    const auto sliderY = m_thumbnailBounds.getBottom() + 10;
+    m_thumbnailBounds = juce::Rectangle<int>(50, 5, getWidth()- 100, 200);
+    const auto sliderY = m_thumbnailBounds.getBottom() + 20;
     const auto buttonY = sliderY + 10;
     constexpr auto sliderSize = 75;
     constexpr auto buttonSize = 50;
     constexpr auto margin = 5;
     constexpr auto spacer = 25;
+
+    m_playHeadLabel.setBounds(m_thumbnailBounds.getX(), m_thumbnailBounds.getBottom() , sliderSize + 98, spacer);
 
     m_gainSlider.setBounds(50, sliderY, sliderSize, sliderSize);
     m_speedSlider.setBounds(m_gainSlider.getRight() + 20, sliderY, sliderSize, sliderSize);
@@ -199,4 +206,9 @@ void TrackComponent::loadFileThumbnail(const String &fileName) {
         m_thumbnail.setSource (new juce::FileInputSource (file));
         //readerSource.reset (newSource.release());
     }
+}
+
+void TrackComponent::mouseEnter(const MouseEvent &e)
+{
+
 }

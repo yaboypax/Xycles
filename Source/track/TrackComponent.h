@@ -27,6 +27,8 @@ public:
 
     size_t getID() const {return m_id;}
 
+    void mouseEnter(const MouseEvent &e) override;
+
 private:
     void layoutSliders();
     void layoutButtons();
@@ -34,8 +36,11 @@ private:
     juce::Colour m_color;
 
     XyclesAudioProcessor &m_processorRef;
+
+    juce::Label m_playHeadLabel;
     TrackKnob m_gainSlider, m_speedSlider;
     juce::Label m_gainLabel, m_speedLabel;
+
     TrackSlider m_startTime, m_endTime;
     Xycles::PlayButton m_playButton;
     Xycles::StopButton m_stopButton;
