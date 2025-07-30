@@ -41,6 +41,10 @@ private:
     TrackKnob m_gainSlider, m_speedSlider;
     juce::Label m_gainLabel, m_speedLabel;
 
+    juce::Label m_granulatorLabel;
+    TrackKnob m_grainSpeed, m_grainLength, m_grainOverlap;
+    juce::Label m_grainSpeedLabel, m_grainLengthLabel, m_grainOverlapLabel;
+
     TrackSlider m_startTime, m_endTime;
     Xycles::PlayButton m_playButton;
     Xycles::StopButton m_stopButton;
