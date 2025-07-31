@@ -19,11 +19,13 @@ TopBarComponent::TopBarComponent()
         if (onGlobalStop)
             onGlobalStop();
     };
+
+    setOpaque(false);
+    setAlpha(0.8f);
 }
 
 void TopBarComponent::paint (juce::Graphics& g)
 {
-    g.fillAll (juce::Colours::white);
     g.setColour (juce::Colours::black);
     g.setFont (25.f);
     g.drawText("Xycles", getLocalBounds(), juce::Justification::centred, true);

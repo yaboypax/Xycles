@@ -10,8 +10,10 @@ TrackComponent::TrackComponent(XyclesAudioProcessor &p, const size_t id) :
                                                     m_thumbnail (512, m_formatManager, m_thumbnailCache)
 {
     setFramesPerSecond (30);
-    m_color = juce::Colours::black;
+    setAlpha(0.8f);
 
+    m_color = juce::Colours::black;
+    setOpaque (true);
     layoutSliders();
     layoutButtons();
 
@@ -158,7 +160,6 @@ void TrackComponent::update()
 
 
 void TrackComponent::paint(juce::Graphics &g) {
-    g.fillAll(juce::Colours::white);
     drawTrack(g);
 }
 
