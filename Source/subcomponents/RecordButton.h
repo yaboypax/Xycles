@@ -1,5 +1,5 @@
 //
-// Created by R&F Dev on 7/22/25.
+// Created by Audio on 8/5/2025.
 //
 
 #pragma once
@@ -7,9 +7,9 @@
 
 namespace Xycles {
 
-    struct StopButton : juce::TextButton
+    struct RecordButton : juce::TextButton
     {
-        StopButton() {
+        RecordButton() {
             setColour(juce::TextButton::textColourOffId, juce::Colours::black);
             setColour(juce::TextButton::buttonColourId, juce::Colours::white);
             setColour(juce::ComboBox::outlineColourId, juce::Colours::black);
@@ -17,10 +17,9 @@ namespace Xycles {
         void paintButton(juce::Graphics& g, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) override
         {
             juce::TextButton::paintButton(g, shouldDrawButtonAsHighlighted, shouldDrawButtonAsDown);
-            g.setColour (shouldDrawButtonAsDown ? juce::Colours::black.withMultipliedAlpha(0.8f): juce::Colours::black);
-            g.fillRect(getLocalBounds().reduced(getWidth() * 0.3f));
+            g.setColour (juce::Colours::red);
+            g.fillEllipse(getLocalBounds().reduced(getWidth() * 0.3f).toFloat());
         }
     };
 
 } // Xycles
-

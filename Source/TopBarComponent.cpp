@@ -7,17 +7,21 @@
 TopBarComponent::TopBarComponent()
 {
     addAndMakeVisible(m_globalPlay);
-    m_globalPlay.setColour(juce::ComboBox::outlineColourId, juce::Colours::black);
     m_globalPlay.onClick = [&]{
         if (onGlobalPlay)
             onGlobalPlay();
     };
 
     addAndMakeVisible(m_globalStop);
-    m_globalPlay.setColour(juce::ComboBox::outlineColourId, juce::Colours::black);
     m_globalStop.onClick = [&]{
         if (onGlobalStop)
             onGlobalStop();
+    };
+
+    addAndMakeVisible(m_globalRecord);
+    m_globalRecord.onClick = [&]{
+        if (onGlobalRecord)
+            onGlobalRecord();
     };
 
     setOpaque(false);
@@ -37,6 +41,8 @@ void TopBarComponent::resized()
 {
     constexpr int margin = 5;
     const int buttonSize = getHeight() - margin*2;
+
     m_globalPlay.setBounds(getWidth() - buttonSize*2 - margin*2, margin, buttonSize, buttonSize);
     m_globalStop.setBounds(getWidth() - buttonSize - margin, margin, buttonSize, buttonSize);
+    m_globalRecord.setBounds(getWidth() - buttonSize*3 - margin*3, margin, buttonSize, buttonSize);
 }

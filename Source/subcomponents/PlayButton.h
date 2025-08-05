@@ -12,6 +12,7 @@ struct PlayButton : juce::TextButton
     PlayButton() {
         setColour(juce::TextButton::textColourOffId, juce::Colours::black);
         setColour(juce::TextButton::buttonColourId, juce::Colours::white);
+        setColour(juce::ComboBox::outlineColourId, juce::Colours::black);
     }
     void paintButton(juce::Graphics& g, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) override
     {
