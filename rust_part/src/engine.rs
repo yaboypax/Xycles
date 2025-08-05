@@ -232,7 +232,7 @@
                 (EngineState::Ready (track), EngineEvent::Play) => {
                     let mut t = track;
                     t.play_head_mut().position = t.start as f32;
-                    EngineState::Granulating (t)
+                    EngineState::Playing (t)
                 }
 
                 (EngineState::Ready (track), EngineEvent::SetStart(start)) => {

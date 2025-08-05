@@ -98,6 +98,7 @@ target_sources(Xycles
         Source/PluginEditor.cpp
         Source/PluginProcessor.cpp
         Source/TopBarComponent.cpp
+        Source/AudioRecorder.cpp
         Source/track/TrackComponent.cpp
         Source/track/TrackEditor.cpp
         Source/track/TrackKnob.cpp
