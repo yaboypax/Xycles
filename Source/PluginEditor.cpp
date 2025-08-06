@@ -22,16 +22,9 @@ XyclesAudioProcessorEditor::XyclesAudioProcessorEditor(
     };
     m_topBar.onGlobalStop = [&] {
         p.stopAll();
-        m_recorderComponent.setVisible(false);
-        m_recorderComponent.stopRecording();
     };
 
-    addChildComponent(m_recorderComponent);
-    m_recorderComponent.setRecorder(processorRef.getRecorder());
-    m_topBar.onGlobalRecord = [&] {
-        m_recorderComponent.setVisible(true);
-        m_recorderComponent.startRecording();
-    };
+    m_topBar.setRecorder(processorRef.getRecorder());
 
     m_backgroundImage = juce::Image(
         juce::ImageCache::getFromMemory(BinaryData::background_png, BinaryData::background_pngSize));
@@ -51,8 +44,4 @@ void XyclesAudioProcessorEditor::resized() {
     m_topBar.setBounds(0, 0, getWidth(), kTopBarHeight);
     m_trackViewport.setBounds(getLocalBounds().withTrimmedTop(kTopBarHeight));
     m_trackEditor.setSize(getWidth(), m_trackEditor.getHeight());
-
-    m_recorderComponent.setBounds(m_trackViewport.getBounds());
-
-
 }

@@ -4,14 +4,11 @@
 //#include "../Assets/AudioLiveScrollingDisplay.h"
 
 //==============================================================================
-/** A simple class that acts as an AudioIODeviceCallback and writes the
-    incoming audio data to a WAV file.
-*/
+
 class AudioRecorder final
 {
 public:
-    explicit AudioRecorder ()
-    {
+    explicit AudioRecorder () {
         backgroundThread.startThread();
     }
 
@@ -39,7 +36,7 @@ public:
                     threadedWriter.reset (new AudioFormatWriter::ThreadedWriter (writer, backgroundThread, 32768));
 
                     // Reset our recording thumbnail
-                    //thumbnail.reset (writer->getNumChannels(), writer->getSampleRate());
+                    //m_thumbnail.reset (writer->getNumChannels(), writer->getSampleRate());
                     nextSampleNum = 0;
 
                     // And now, swap over our active writer pointer so that the audio callback will start using it..
@@ -88,7 +85,6 @@ public:
 
 
 private:
-    //AudioThumbnail& thumbnail;
     TimeSliceThread backgroundThread { "Audio Recorder Thread" }; // the thread that will write our audio data to disk
     std::unique_ptr<AudioFormatWriter::ThreadedWriter> threadedWriter; // the FIFO used to buffer the incoming data
     double m_sampleRate = 0.0;
@@ -96,115 +92,6 @@ private:
 
     CriticalSection writerLock;
     std::atomic<AudioFormatWriter::ThreadedWriter*> activeWriter { nullptr };
-};
-
-//==============================================================================
-class RecordingThumbnail final : public Component,
-                                 private ChangeListener
-{
-public:
-    RecordingThumbnail()
-    {
-        formatManager.registerBasicFormats();
-        thumbnail.addChangeListener (this);
-    }
-
-    ~RecordingThumbnail() override
-    {
-        thumbnail.removeChangeListener (this);
-    }
-
-    AudioThumbnail& getAudioThumbnail()     { return thumbnail; }
-
-    void setDisplayFullThumbnail (bool displayFull)
-    {
-        displayFullThumb = displayFull;
-        repaint();
-    }
-
-    void paint (Graphics& g) override
-    {
-        g.fillAll (Colours::darkgrey);
-        g.setColour (Colours::lightgrey);
-
-        if (thumbnail.getTotalLength() > 0.0)
-        {
-            auto endTime = displayFullThumb ? thumbnail.getTotalLength()
-                                            : jmax (30.0, thumbnail.getTotalLength());
-
-            auto thumbArea = getLocalBounds();
-            thumbnail.drawChannels (g, thumbArea.reduced (2), 0.0, endTime, 1.0f);
-        }
-        else
-        {
-            g.setFont (14.0f);
-            g.drawFittedText ("(No file recorded)", getLocalBounds(), Justification::centred, 2);
-        }
-    }
-
-private:
-    AudioFormatManager formatManager;
-    AudioThumbnailCache thumbnailCache  { 10 };
-    AudioThumbnail thumbnail            { 512, formatManager, thumbnailCache };
-
-    bool displayFullThumb = false;
-
-    void changeListenerCallback (ChangeBroadcaster* source) override
-    {
-        if (source == &thumbnail)
-            repaint();
-    }
-
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (RecordingThumbnail)
-};
-
-class LiveScrollingAudioDisplay final : public AudioVisualiserComponent,
-                                        public AudioIODeviceCallback
-{
-public:
-    LiveScrollingAudioDisplay()  : AudioVisualiserComponent (1)
-    {
-        setSamplesPerBlock (256);
-        setBufferSize (1024);
-    }
-
-    //==============================================================================
-    void audioDeviceAboutToStart (AudioIODevice*) override
-    {
-        clear();
-    }
-
-    void audioDeviceStopped() override
-    {
-        clear();
-    }
-
-    void audioDeviceIOCallbackWithContext (const float* const* inputChannelData, int numInputChannels,
-                                           float* const* outputChannelData, int numOutputChannels,
-                                           int numberOfSamples, const AudioIODeviceCallbackContext& context) override
-    {
-        ignoreUnused (context);
-
-        for (int i = 0; i < numberOfSamples; ++i)
-        {
-            float inputSample = 0;
-
-            for (int chan = 0; chan < numInputChannels; ++chan)
-                if (const float* inputChannel = inputChannelData[chan])
-                    inputSample += inputChannel[i];  // find the sum of all the channels
-
-            inputSample *= 10.0f; // boost the level to make it more easily visible.
-
-            pushSample (&inputSample, 1);
-        }
-
-        // We need to clear the output buffers before returning, in case they're full of junk..
-        for (int j = 0; j < numOutputChannels; ++j)
-            if (float* outputChannel = outputChannelData[j])
-                zeromem (outputChannel, (size_t) numberOfSamples * sizeof (float));
-    }
-
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (LiveScrollingAudioDisplay)
 };
 
 static std::unique_ptr<InputSource> makeInputSource (const URL& url)
@@ -239,23 +126,11 @@ public:
     AudioRecordingDemo()
     {
         setOpaque (false);
-        addAndMakeVisible (liveAudioScroller);
-
-        addAndMakeVisible (explanationLabel);
-        explanationLabel.setFont (FontOptions (15.0f, Font::plain));
-        explanationLabel.setJustificationType (Justification::topLeft);
-        explanationLabel.setEditable (false, false, false);
-        explanationLabel.setColour (TextEditor::textColourId, Colours::black);
-        explanationLabel.setColour (TextEditor::backgroundColourId, Colour (0x00000000));
-
-        addAndMakeVisible (recordButton);
-        recordButton.setColour (TextButton::buttonColourId, Colour (0xffff5c5c));
-        recordButton.setColour (TextButton::textColourOnId, Colours::black);
-
-
-        addAndMakeVisible (recordingThumbnail);
-
-        setSize (500, 500);
+        addAndMakeVisible (m_recordingLabel);
+        m_recordingLabel.setFont (FontOptions (32.0f, Font::plain));
+        m_recordingLabel.setJustificationType (Justification::centredTop);
+        m_recordingLabel.setEditable (false, false, false);
+        m_recordingLabel.setColour (Label::textColourId, Colours::red);
     }
 
     ~AudioRecordingDemo() override
@@ -264,16 +139,12 @@ public:
 
     void paint (Graphics& g) override
     {
+        g.fillAll (Colours::transparentWhite);
     }
 
     void resized() override
     {
-        auto area = getLocalBounds();
-
-        liveAudioScroller .setBounds (area.removeFromTop (80).reduced (8));
-        recordingThumbnail.setBounds (area.removeFromTop (80).reduced (8));
-        recordButton      .setBounds (area.removeFromTop (36).removeFromLeft (140).reduced (8));
-        explanationLabel  .setBounds (area.reduced (8));
+        m_recordingLabel.setBounds (getLocalBounds().reduced (8));
     }
 
     void startRecording()
@@ -297,29 +168,22 @@ public:
                 auto parentDir = File::getSpecialLocation (File::userDocumentsDirectory);
         #endif
 
-        lastRecording = parentDir.getNonexistentChildFile ("JUCE Demo Audio Recording", ".wav");
-
-        m_recorder->startRecording (lastRecording);
-
-        recordButton.setButtonText ("Stop");
-        recordingThumbnail.setDisplayFullThumbnail (false);
+        m_lastRecording = parentDir.getNonexistentChildFile ("JUCE Demo Audio Recording", ".wav");
+        m_recorder->startRecording (m_lastRecording);
     }
 
     void stopRecording()
     {
         m_recorder->stop();
 
-        chooser.launchAsync (  FileBrowserComponent::saveMode
+        m_chooser.launchAsync (  FileBrowserComponent::saveMode
                              | FileBrowserComponent::canSelectFiles
                              | FileBrowserComponent::warnAboutOverwriting,
                              [this] (const FileChooser& c)
                              {
-                                 if (FileInputStream inputStream (lastRecording); inputStream.openedOk())
+                                 if (FileInputStream inputStream (m_lastRecording); inputStream.openedOk())
                                      if (const auto outputStream = makeOutputStream (c.getURLResult()))
                                          outputStream->writeFromInputStream (inputStream, -1);
-
-                                  recordButton.setButtonText ("Record");
-                                  recordingThumbnail.setDisplayFullThumbnail (true);
                               });
     }
 
@@ -329,24 +193,12 @@ public:
 
 
 private:
-    // if this PIP is running inside the demo runner, we'll use the shared device manager instead
-   #ifndef JUCE_DEMO_RUNNER
-    AudioDeviceManager audioDeviceManager;
-   #else
-    AudioDeviceManager& audioDeviceManager { getSharedAudioDeviceManager (1, 0) };
-   #endif
-
+    AudioDeviceManager m_audioDeviceManager;
     std::shared_ptr<AudioRecorder> m_recorder;
-    LiveScrollingAudioDisplay liveAudioScroller;
-    RecordingThumbnail recordingThumbnail;
 
-    Label explanationLabel { {},
-                             "This page demonstrates how to record a wave file from the live audio input.\n\n"
-                             "After you are done with your recording you can choose where to save it." };
-    TextButton recordButton { "Record" };
-    File lastRecording;
-    FileChooser chooser { "Output file...", File::getCurrentWorkingDirectory().getChildFile ("recording.wav"), "*.wav" };
-
+    Label m_recordingLabel { {},"Recording..." };
+    File m_lastRecording;
+    FileChooser m_chooser { "Output file...", File::getCurrentWorkingDirectory().getChildFile ("recording.wav"), "*.wav" };
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AudioRecordingDemo)
 };
