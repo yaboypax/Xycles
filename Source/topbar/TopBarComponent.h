@@ -5,10 +5,11 @@
 #pragma once
 #include <JuceHeader.h>
 
-#include "AudioRecorder.h"
-#include "subcomponents/PlayButton.h"
-#include "subcomponents/RecordButton.h"
-#include "subcomponents/StopButton.h"
+#include "RecordingIndicator.h"
+#include "../AudioRecorder.h"
+#include "../subcomponents/PlayButton.h"
+#include "../subcomponents/RecordButton.h"
+#include "../subcomponents/StopButton.h"
 
 class TopBarComponent : public juce::Component
 {
@@ -25,6 +26,6 @@ private:
     Xycles::StopButton m_globalStop;
     Xycles::PlayButton m_globalPlay;
     Xycles::RecordButton m_globalRecord;
-    AudioRecordingDemo m_recorderComponent;
+    RecordingIndicator m_recorderComponent;
     bool m_isPlaying = false;
 };

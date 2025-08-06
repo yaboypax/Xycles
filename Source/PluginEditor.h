@@ -1,8 +1,7 @@
 #pragma once
 
 #include "PluginProcessor.h"
-#include "TopBarComponent.h"
-#include "AudioRecorder.h"
+#include "topbar/TopBarComponent.h"
 #include "track/TrackEditor.h"
 //==============================================================================
 
