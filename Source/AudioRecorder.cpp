@@ -4,6 +4,8 @@
 
 #include "AudioRecorder.h"
 
+#include <memory>
+
 
 AudioRecorder::AudioRecorder ()
 {
@@ -24,13 +26,9 @@ void AudioRecorder::startRecording (const File& file)
         if (auto fileStream = std::unique_ptr<FileOutputStream> (file.createOutputStream()))
         {
             WavAudioFormat wavFormat;
-            if (const auto writer = wavFormat.createWriterFor (fileStream.get(), m_sampleRate, 2, 16, {}, 0))
+            if (const auto writer = wavFormat.createWriterFor (fileStream.release(), m_sampleRate, 2, 16, {}, 0))
             {
-                fileStream.release();
-                threadedWriter.reset (new AudioFormatWriter::ThreadedWriter (writer, backgroundThread, 32768));
-
-                // Reset our recording thumbnail
-                //m_thumbnail.reset (writer->getNumChannels(), writer->getSampleRate());
+                threadedWriter = std::make_unique<AudioFormatWriter::ThreadedWriter> (writer, backgroundThread, 32768);
                 nextSampleNum = 0;
 
                 const ScopedLock sl (writerLock);
@@ -68,5 +66,5 @@ void AudioRecorder::processBlock (AudioSampleBuffer& buffer)
 {
     const ScopedLock sl (writerLock);
     if (activeWriter.load() != nullptr)
-        activeWriter.load()->write ((const float**)buffer.getArrayOfReadPointers(), buffer.getNumSamples());
+        activeWriter.load()->write (buffer.getArrayOfReadPointers(), buffer.getNumSamples());
 }
