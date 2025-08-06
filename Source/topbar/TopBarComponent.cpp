@@ -27,8 +27,19 @@ TopBarComponent::TopBarComponent()
 
     addAndMakeVisible(m_globalRecord);
     m_globalRecord.onClick = [&]{
-        if (onGlobalPlay && !m_isPlaying)
+        if (onGlobalPlay && !m_isPlaying) {
             onGlobalPlay();
+            m_isPlaying = true;
+        }
+
+        if (onGlobalStop && m_recorderComponent.isRecording()) {
+            onGlobalStop();
+            m_isPlaying = false;
+
+            m_recorderComponent.setVisible(false);
+            m_recorderComponent.stopRecording();
+            return;
+        }
 
         m_recorderComponent.setVisible(true);
         m_recorderComponent.startRecording();

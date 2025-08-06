@@ -17,6 +17,7 @@ public:
     void startRecording();
     void stopRecording();
     void setRecorder(std::shared_ptr<AudioRecorder> recorder);
+    bool isRecording() const;
 
 
 private:

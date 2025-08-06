@@ -81,3 +81,10 @@ void RecordingIndicator::setRecorder(std::shared_ptr<AudioRecorder> recorder)
 {
     m_recorder = std::move(recorder);
 }
+
+bool RecordingIndicator::isRecording() const{
+
+    if (m_recorder)
+        return m_recorder->isRecording();
+    else return false;
+}
