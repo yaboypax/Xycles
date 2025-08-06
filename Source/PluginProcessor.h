@@ -1,6 +1,8 @@
 #pragma once
 
 #include <JuceHeader.h>
+
+#include "AudioRecorder.h"
 #include "rust_part.h"
 
 //==============================================================================
@@ -60,9 +62,15 @@ public:
   void stopAll();
 
   juce::AudioProcessorValueTreeState state;
+
+  std::shared_ptr<AudioRecorder> getRecorder() {
+    return m_recorder;
+  }
+
 private:
   rust::Vec<float> m_interleavedBuffer;
   std::vector<rust::Box<rust_part::Engine>> m_trackEngines;
+  std::shared_ptr<AudioRecorder> m_recorder = std::make_shared<AudioRecorder>();
   //==============================================================================
 
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(XyclesAudioProcessor)

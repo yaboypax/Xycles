@@ -7,16 +7,15 @@
 /** A simple class that acts as an AudioIODeviceCallback and writes the
     incoming audio data to a WAV file.
 */
-class AudioRecorder final : public juce::AudioIODeviceCallback
+class AudioRecorder final
 {
 public:
-    AudioRecorder (juce::AudioThumbnail& thumbnailToUpdate)
-        : thumbnail (thumbnailToUpdate)
+    explicit AudioRecorder ()
     {
         backgroundThread.startThread();
     }
 
-    ~AudioRecorder() override
+    ~AudioRecorder()
     {
         stop();
     }
@@ -26,12 +25,12 @@ public:
     {
         stop();
 
-        if (sampleRate > 0 && file.deleteFile())
+        if (m_sampleRate > 0 && file.deleteFile())
         {
             if (auto fileStream = std::unique_ptr<FileOutputStream> (file.createOutputStream()))
             {
                 WavAudioFormat wavFormat;
-                if (const auto writer = wavFormat.createWriterFor (fileStream.get(), sampleRate, 2, 16, {}, 0))
+                if (const auto writer = wavFormat.createWriterFor (fileStream.get(), m_sampleRate, 2, 16, {}, 0))
                 {
                     fileStream.release(); // (passes responsibility for deleting the stream to the writer object that is now using it)
 
@@ -40,7 +39,7 @@ public:
                     threadedWriter.reset (new AudioFormatWriter::ThreadedWriter (writer, backgroundThread, 32768));
 
                     // Reset our recording thumbnail
-                    thumbnail.reset (writer->getNumChannels(), writer->getSampleRate());
+                    //thumbnail.reset (writer->getNumChannels(), writer->getSampleRate());
                     nextSampleNum = 0;
 
                     // And now, swap over our active writer pointer so that the audio callback will start using it..
@@ -65,51 +64,34 @@ public:
         threadedWriter.reset();
     }
 
-    bool isRecording() const
+
+    void prepareToPlay(const double sampleRate) {
+        m_sampleRate = sampleRate;
+    }
+
+    void releaseResources()
     {
+        m_sampleRate = 0;
+    }
+
+    bool isRecording() const {
         return activeWriter.load() != nullptr;
     }
 
-    //==============================================================================
-    void audioDeviceAboutToStart (AudioIODevice* device) override
+    void processBlock (AudioSampleBuffer& buffer)
     {
-        sampleRate = device->getCurrentSampleRate();
-    }
-
-    void audioDeviceStopped() override
-    {
-        sampleRate = 0;
-    }
-
-    void audioDeviceIOCallbackWithContext (const float* const* inputChannelData, int numInputChannels,
-                                           float* const* outputChannelData, int numOutputChannels,
-                                           int numSamples, const AudioIODeviceCallbackContext& context) override
-    {
-        ignoreUnused (context);
-
         const ScopedLock sl (writerLock);
+        if (activeWriter.load() != nullptr)
+            activeWriter.load()->write ((const float**)buffer.getArrayOfReadPointers(), buffer.getNumSamples());
 
-        if (activeWriter.load() != nullptr && numInputChannels >= thumbnail.getNumChannels())
-        {
-            activeWriter.load()->write (inputChannelData, numSamples);
-
-            // Create an AudioBuffer to wrap our incoming data, note that this does no allocations or copies, it simply references our input data
-            AudioBuffer<float> buffer (const_cast<float**> (inputChannelData), thumbnail.getNumChannels(), numSamples);
-            thumbnail.addBlock (nextSampleNum, buffer, 0, numSamples);
-            nextSampleNum += numSamples;
-        }
-
-        // We need to clear the output buffers, in case they're full of junk..
-        for (int i = 0; i < numOutputChannels; ++i)
-            if (outputChannelData[i] != nullptr)
-                FloatVectorOperations::clear (outputChannelData[i], numSamples);
     }
+
 
 private:
-    AudioThumbnail& thumbnail;
+    //AudioThumbnail& thumbnail;
     TimeSliceThread backgroundThread { "Audio Recorder Thread" }; // the thread that will write our audio data to disk
     std::unique_ptr<AudioFormatWriter::ThreadedWriter> threadedWriter; // the FIFO used to buffer the incoming data
-    double sampleRate = 0.0;
+    double m_sampleRate = 0.0;
     int64 nextSampleNum = 0;
 
     CriticalSection writerLock;
@@ -273,25 +255,11 @@ public:
 
         addAndMakeVisible (recordingThumbnail);
 
-       #ifndef JUCE_DEMO_RUNNER
-        RuntimePermissions::request (RuntimePermissions::recordAudio,
-                                     [this] (bool granted)
-                                     {
-                                         int numInputChannels = granted ? 2 : 0;
-                                         audioDeviceManager.initialise (numInputChannels, 2, nullptr, true, {}, nullptr);
-                                     });
-       #endif
-
-        audioDeviceManager.addAudioCallback (&liveAudioScroller);
-        audioDeviceManager.addAudioCallback (&recorder);
-
         setSize (500, 500);
     }
 
     ~AudioRecordingDemo() override
     {
-        audioDeviceManager.removeAudioCallback (&recorder);
-        audioDeviceManager.removeAudioCallback (&liveAudioScroller);
     }
 
     void paint (Graphics& g) override
@@ -308,32 +276,6 @@ public:
         explanationLabel  .setBounds (area.reduced (8));
     }
 
-    void record() {
-        if (recorder.isRecording())
-            stopRecording();
-        else
-            startRecording();
-    }
-
-private:
-    // if this PIP is running inside the demo runner, we'll use the shared device manager instead
-   #ifndef JUCE_DEMO_RUNNER
-    AudioDeviceManager audioDeviceManager;
-   #else
-    AudioDeviceManager& audioDeviceManager { getSharedAudioDeviceManager (1, 0) };
-   #endif
-
-    LiveScrollingAudioDisplay liveAudioScroller;
-    RecordingThumbnail recordingThumbnail;
-    AudioRecorder recorder { recordingThumbnail.getAudioThumbnail() };
-
-    Label explanationLabel { {},
-                             "This page demonstrates how to record a wave file from the live audio input.\n\n"
-                             "After you are done with your recording you can choose where to save it." };
-    TextButton recordButton { "Record" };
-    File lastRecording;
-    FileChooser chooser { "Output file...", File::getCurrentWorkingDirectory().getChildFile ("recording.wav"), "*.wav" };
-
     void startRecording()
     {
         if (! RuntimePermissions::isGranted (RuntimePermissions::writeExternalStorage))
@@ -349,15 +291,15 @@ private:
             return;
         }
 
-       #if (JUCE_ANDROID || JUCE_IOS)
-        auto parentDir = File::getSpecialLocation (File::tempDirectory);
-       #else
-        auto parentDir = File::getSpecialLocation (File::userDocumentsDirectory);
-       #endif
+        #if (JUCE_ANDROID || JUCE_IOS)
+                auto parentDir = File::getSpecialLocation (File::tempDirectory);
+        #else
+                auto parentDir = File::getSpecialLocation (File::userDocumentsDirectory);
+        #endif
 
         lastRecording = parentDir.getNonexistentChildFile ("JUCE Demo Audio Recording", ".wav");
 
-        recorder.startRecording (lastRecording);
+        m_recorder->startRecording (lastRecording);
 
         recordButton.setButtonText ("Stop");
         recordingThumbnail.setDisplayFullThumbnail (false);
@@ -365,7 +307,7 @@ private:
 
     void stopRecording()
     {
-        recorder.stop();
+        m_recorder->stop();
 
         chooser.launchAsync (  FileBrowserComponent::saveMode
                              | FileBrowserComponent::canSelectFiles
@@ -373,13 +315,38 @@ private:
                              [this] (const FileChooser& c)
                              {
                                  if (FileInputStream inputStream (lastRecording); inputStream.openedOk())
-                                    if (const auto outputStream = makeOutputStream (c.getURLResult()))
-                                        outputStream->writeFromInputStream (inputStream, -1);
+                                     if (const auto outputStream = makeOutputStream (c.getURLResult()))
+                                         outputStream->writeFromInputStream (inputStream, -1);
 
-                                 recordButton.setButtonText ("Record");
-                                 recordingThumbnail.setDisplayFullThumbnail (true);
-                             });
+                                  recordButton.setButtonText ("Record");
+                                  recordingThumbnail.setDisplayFullThumbnail (true);
+                              });
     }
+
+    void setRecorder(std::shared_ptr<AudioRecorder> recorder) {
+        m_recorder = std::move(recorder);
+    }
+
+
+private:
+    // if this PIP is running inside the demo runner, we'll use the shared device manager instead
+   #ifndef JUCE_DEMO_RUNNER
+    AudioDeviceManager audioDeviceManager;
+   #else
+    AudioDeviceManager& audioDeviceManager { getSharedAudioDeviceManager (1, 0) };
+   #endif
+
+    std::shared_ptr<AudioRecorder> m_recorder;
+    LiveScrollingAudioDisplay liveAudioScroller;
+    RecordingThumbnail recordingThumbnail;
+
+    Label explanationLabel { {},
+                             "This page demonstrates how to record a wave file from the live audio input.\n\n"
+                             "After you are done with your recording you can choose where to save it." };
+    TextButton recordButton { "Record" };
+    File lastRecording;
+    FileChooser chooser { "Output file...", File::getCurrentWorkingDirectory().getChildFile ("recording.wav"), "*.wav" };
+
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AudioRecordingDemo)
 };

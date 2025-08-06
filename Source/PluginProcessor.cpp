@@ -87,9 +87,11 @@ void XyclesAudioProcessor::prepareToPlay(double sampleRate,
   for (int i = 0; i < samplesPerBlock*2; i++) {
     m_interleavedBuffer.push_back(0.f);
   }
+  m_recorder->prepareToPlay(sampleRate);
 }
 
 void XyclesAudioProcessor::releaseResources() {
+  m_recorder->releaseResources();
 }
 
 bool XyclesAudioProcessor::isBusesLayoutSupported(
@@ -135,6 +137,9 @@ void XyclesAudioProcessor::processBlock(juce::AudioBuffer<float> &buffer,
 
   juce::AudioData::deinterleaveSamples(AudioData::InterleavedSource<Format>{&m_interleavedBuffer[0], buffer.getNumChannels()},
                                         AudioData::NonInterleavedDest<Format>{buffer.getArrayOfWritePointers(), buffer.getNumChannels()}, buffer.getNumSamples());
+
+  if (m_recorder->isRecording())
+      m_recorder->processBlock(buffer);
 }
 
 //==============================================================================
