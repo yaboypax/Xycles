@@ -7,7 +7,7 @@
 
 TrackSlider::TrackSlider()
     {
-
+        setScrollWheelEnabled(false);
     }
     void TrackSlider::setTrackColor(juce::Colour colour)
     {
