@@ -86,48 +86,87 @@
             match &mut self.state {
 
                 EngineState::Granulating(track ) => {
-                    let frames = buffer.len() / track.channels;
+                    let channels = track.channels;
+                    let frames = buffer.len() / channels;
+                    let start      = track.start;
+                    let end        = track.end;
+                    let loop_len   = end - start;
+
+                    // &mut borrow 
+                    let (mut grains, hop_size, speed, mut base_pos, mut spawn_ctr) = {
+                        let ghm = track.grain_head_mut();
+                        (
+                            std::mem::take(ghm.grains()),
+                            ghm.hop_size,
+                            ghm.speed,
+                            ghm.base_pos,
+                            std::mem::take(&mut ghm.spawn),
+                        )
+                    }; 
+                    
+                    // immutable refs AFTER &mut is dropped
+                    let samples: &[f32] = &track.samples;
+                    let (grain_size, gain, window): (usize, f32, &[f32]) = {
+                        let gh = track.grain_head();
+                        (gh.grain_size, gh.gain, &gh.window)
+                    }; 
+
                     for frame in 0..frames {
                         // every hop_size frames spawn a new grain at read_pos=0
-                        if frame % track.grain_head_mut().hop_size == 0 {
-                            track.grain_head_mut().grains().push(Grain {
-                                read_position:   0.0,
+                        if spawn_ctr == 0 {
+                            grains.push(Grain {
+                                // anchor the grain at current head position inside the loop
+                                read_position:   base_pos,    
                                 window_position: 0,
-                                velocity:   1.0,   // or randomize for time‑stretch
-                                grain_speed: 1.0
+                                velocity:        1.0,         
+                                grain_speed:     1.0,    
                             });
+                            spawn_ctr = hop_size;
+                            if grains.len() > 64 { grains.remove(0); }
+                        }
+                        spawn_ctr = spawn_ctr.saturating_sub(1);
 
-                            if track.grain_head_mut().grains().len() > 64 { track.grain_head_mut().grains().remove(0); }
+                        // clear output
+                        for c in 0..channels {
+                            buffer[frame * channels + c] = 0.0;
                         }
 
-                        for c in 0..track.channels {
-                            buffer[frame * track.channels + c] = 0.0;
-                        }
-
-                        // advance each grain, summing into output
-                        let channels = track.channels;
-                        let samples  = track.samples.clone();
-
-                        let grain_size = track.grain_head().grain_size;
-                        let gain       = track.grain_head().gain;
-                        let window     = track.grain_head().window.clone();
-
-                        track.grain_head_mut().grains().retain_mut(|g| {
+                        // advance each grain and sum into output
+                        grains.retain_mut(|g| {
                             if g.window_position < grain_size {
-                                let idx = (g.read_position as usize) * channels;
+                                
+                                let idx       = (g.read_position.floor() as usize) % loop_len;
+                                let next_idx  = (idx + 1) % loop_len;
+                                let frac      = (g.read_position - (idx as f32)).clamp(0.0, 1.0);
+                                let w         = window[g.window_position];
+
                                 for c in 0..channels {
-                                    let sample = samples.get(idx + c).copied().unwrap_or(0.0);
-                                    let w      = window[g.window_position];
+                                    let s0 = *samples.get((start + idx)      * channels + c).unwrap_or(&0.0);
+                                    let s1 = *samples.get((start + next_idx) * channels + c).unwrap_or(&0.0);
+                                    let sample = s0 + (s1 - s0) * frac; // linear interp
                                     buffer[frame * channels + c] += sample * w * gain;
                                 }
-                                g.read_position   += g.velocity;
+                                
+                                g.read_position += g.velocity * speed;
+                                if g.read_position >= loop_len as f32 { g.read_position -= loop_len as f32; }
+                                if g.read_position < 0.0               { g.read_position += loop_len as f32; }
+
                                 g.window_position += 1;
                                 true
                             } else {
                                 false
                             }
                         });
+
+                        base_pos += speed;
+                        if base_pos >= loop_len as f32 { base_pos -= loop_len as f32; }
+                        if base_pos < 0.0              { base_pos += loop_len as f32; }
                     }
+
+                    let ghm = track.grain_head_mut();
+                    ghm.base_pos       = base_pos;
+                    ghm.spawn          = spawn_ctr;
+                    *ghm.grains()      = grains;
                 }
 
                 EngineState::Playing (track) => {
