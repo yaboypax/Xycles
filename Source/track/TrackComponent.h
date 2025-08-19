@@ -10,7 +10,10 @@
 #include "../subcomponents/StopButton.h"
 #include "../PluginProcessor.h"
 
-
+enum PlayMode {
+    Regular,
+    Granular
+};
 class TrackComponent: public juce::AnimatedAppComponent, public juce::FileDragAndDropTarget
 {
 public:
@@ -32,6 +35,10 @@ public:
 private:
     void layoutSliders();
     void layoutButtons();
+
+    PlayMode m_playMode = PlayMode::Regular;
+    void togglePlayMode();
+
     const size_t m_id;
     juce::Colour m_color;
 
@@ -44,6 +51,7 @@ private:
     juce::Label m_granulatorLabel;
     TrackKnob m_grainSpeed, m_grainLength, m_grainOverlap;
     juce::Label m_grainSpeedLabel, m_grainLengthLabel, m_grainOverlapLabel;
+    juce::TextButton m_granulatorButton;
 
     TrackSlider m_startTime, m_endTime;
     Xycles::PlayButton m_playButton;

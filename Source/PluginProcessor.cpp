@@ -199,6 +199,18 @@ void XyclesAudioProcessor::setEnd(size_t index, float end) {
   m_trackEngines[index]->set_end(end);
 }
 
+void XyclesAudioProcessor::setGrainLength(size_t index, float grainLength) {
+  m_trackEngines[index]->set_grain_length(grainLength);
+}
+
+void XyclesAudioProcessor::setGrainSpeed(size_t index, float grainSpeed) {
+  m_trackEngines[index]->set_grain_speed(grainSpeed);
+}
+
+void XyclesAudioProcessor::setGrainOverlap(size_t index, float grainOverlap) {
+  m_trackEngines[index]->set_grain_overlap(grainOverlap);
+}
+
 void XyclesAudioProcessor::loadFile(size_t index, const std::string& path) {
   rust::Str string = path;
   m_trackEngines[index]->load_audio(path);

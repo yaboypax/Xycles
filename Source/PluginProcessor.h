@@ -52,6 +52,10 @@ public:
   void setStart(size_t index, float start);
   void setEnd(size_t index, float end);
 
+  void setGrainLength(size_t index, float grainLength);
+  void setGrainSpeed(size_t index, float grainSpeed);
+  void setGrainOverlap(size_t index, float grainOverlap);
+
   float getTrackPlayhead(size_t index);
   
   void loadFile(size_t index, const std::string& path);

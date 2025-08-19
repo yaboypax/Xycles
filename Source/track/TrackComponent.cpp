@@ -70,7 +70,7 @@ void TrackComponent::layoutSliders()
     m_grainSpeed.setValue(1.0);
     m_grainSpeed.setTrackColor( m_color);
     m_grainSpeed.onValueChange = [&]() {
-        //m_processorRef.setSpeed(m_id, static_cast<float>(m_speedSlider.getValue()));
+        m_processorRef.setGrainSpeed(m_id, static_cast<float>(m_grainSpeed.getValue()));
     };
 
     addAndMakeVisible(m_grainSpeedLabel);
@@ -80,10 +80,10 @@ void TrackComponent::layoutSliders()
     m_grainSpeedLabel.setJustificationType(juce::Justification::centredTop);
 
     addAndMakeVisible(m_grainLength);
-    m_grainLength.setRange(0.1, 10.0, 0.01);
+    m_grainLength.setRange(20, 10000, 1);
     m_grainLength.setTrackColor( m_color);
     m_grainLength.onValueChange = [&]() {
-        m_processorRef.setGain(m_id, static_cast<float>(m_gainSlider.getValue()));
+        m_processorRef.setGrainLength(m_id, static_cast<float>(m_grainLength.getValue()));
     };
 
     addAndMakeVisible(m_grainLengthLabel);
@@ -97,7 +97,7 @@ void TrackComponent::layoutSliders()
     m_grainOverlap.setRange(0.1, 10.0, 0.01);
     m_grainOverlap.setTrackColor( m_color);
     m_grainOverlap.onValueChange = [&]() {
-        m_processorRef.setGain(m_id, static_cast<float>(m_gainSlider.getValue()));
+        m_processorRef.setGrainOverlap(m_id, static_cast<float>(m_grainOverlap.getValue()));
     };
 
     addAndMakeVisible(m_grainOverlapLabel);
@@ -136,6 +136,10 @@ void TrackComponent::layoutSliders()
         m_processorRef.setEnd(m_id, static_cast<float>(m_endTime.getValue()));
         repaint();
     };
+    //
+    // m_grainLength.setEnabled(false);
+    // m_grainOverlap.setEnabled(false);
+    // m_grainSpeed.setEnabled(false);
 }
 
 void TrackComponent::layoutButtons()
@@ -151,6 +155,29 @@ void TrackComponent::layoutButtons()
     m_stopButton.onClick = [&]() {
         m_processorRef.stop(m_id);
     };
+
+    //addAndMakeVisible(m_granulatorButton);
+    m_granulatorButton.setColour(juce::ComboBox::outlineColourId, m_color);
+    m_granulatorButton.setColour(juce::TextButton::buttonColourId, juce::Colours::transparentWhite);
+    m_granulatorButton.onClick = [&]() {
+        togglePlayMode();
+    };
+}
+
+void TrackComponent::togglePlayMode() {
+    if (m_playMode == PlayMode::Regular) {
+        m_playMode = PlayMode::Granular;
+
+        m_grainLength.setEnabled(true);
+        m_grainOverlap.setEnabled(true);
+        m_grainSpeed.setEnabled(true);
+    } else if (m_playMode == PlayMode::Granular) {
+        m_playMode = PlayMode::Regular;
+
+        m_grainLength.setEnabled(false);
+        m_grainOverlap.setEnabled(false);
+        m_grainSpeed.setEnabled(false);
+    }
 }
 
 void TrackComponent::update()
@@ -231,7 +258,7 @@ void TrackComponent::resized() {
     m_grainOverlapLabel.setBounds(m_grainOverlap.getX(), labelY, sliderSize, spacer);
     m_granulatorLabel.setBounds(m_grainSpeed.getX(), m_thumbnailBounds.getBottom(), m_grainOverlap.getRight() - m_grainSpeed.getX(), spacer);
 
-
+    m_granulatorButton.setBounds(m_grainSpeed.getX() - spacer, m_thumbnailBounds.getBottom() + 2, (m_grainOverlap.getRight() + spacer) - (m_grainSpeed.getX() - spacer), (m_grainOverlapLabel.getBottom() + 2) - (m_thumbnailBounds.getBottom() + 2) );
 
 
     m_startTime.setBounds(m_thumbnailBounds.getX(), m_gainSlider.getBottom() + spacer, m_thumbnailBounds.getWidth(), 20);
