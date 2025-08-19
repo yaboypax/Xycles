@@ -13,21 +13,40 @@ pub struct GrainHead {
         grains:      Vec<Grain>,
     pub gain:        f32,
     pub speed:       f32,
+    pub overlap:     f32,    
+    pub base_pos:    f32,       
+    pub spawn:       usize, 
+    
 }
 
 impl GrainHead {
     pub fn new(sample_rate: usize) -> GrainHead {
 
-        let grain_size = 200 * (sample_rate/ 1000); // ms to samples
-        let hop_size = (grain_size as f32 / 0.25) as usize;
-        GrainHead { grain_size, hop_size, window: GrainHead::calculate_window(grain_size), grains: Vec::new(), gain: 1.0, speed: 1.0}
-    }
+        let grain_ms   = 200.0;
+        let grain_size = (sample_rate as f32 * (grain_ms / 1000.0)).round() as usize;
+
+        let overlap  = 4.0;
+        let hop_size   = ((grain_size as f32) / overlap).max(1.0).round() as usize;
+
+        GrainHead {
+            grain_size,
+            hop_size,
+            window: Self::calculate_window(grain_size),
+            grains: Vec::new(),
+            gain: 1.0,
+            speed: 1.0,
+            overlap,
+            base_pos: 0.0,
+            spawn: 0,
+        }}
 
     pub fn calculate_window(grain_size: usize) -> Vec<f32> {
-       (0..grain_size)
+        let denom = (grain_size - 1) as f32;
+        (0..grain_size)
             .map(|i| {
-                let x = i as f32 / (grain_size - 1) as f32;
-                0.5 * (1.0 - (2.0 * std::f32::consts::PI * x).cos())
+                let theta = std::f32::consts::PI * (i as f32 / denom);
+                let s = theta.sin();
+                s * s // sin^2(π x), identical to 0.5*(1 - cos(2πx)) but more stable
             })
             .collect()
     }
