@@ -49,8 +49,8 @@ private:
     juce::Label m_gainLabel, m_speedLabel;
 
     juce::Label m_granulatorLabel;
-    TrackKnob m_grainSpeed, m_grainLength, m_grainOverlap;
-    juce::Label m_grainSpeedLabel, m_grainLengthLabel, m_grainOverlapLabel;
+    TrackKnob m_grainSpeed, m_grainLength, m_grainOverlap, m_grainsCount, m_grainSpread;
+    juce::Label m_grainSpeedLabel, m_grainLengthLabel, m_grainOverlapLabel, m_grainsCountLabel, m_grainSpreadLabel;
     juce::TextButton m_granulatorButton;
 
     TrackSlider m_startTime, m_endTime;

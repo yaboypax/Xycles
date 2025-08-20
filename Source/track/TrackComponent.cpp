@@ -106,6 +106,34 @@ void TrackComponent::layoutSliders()
     m_grainOverlapLabel.setText("Grain Overlap", juce::dontSendNotification);
     m_grainOverlapLabel.setJustificationType(juce::Justification::centredTop);
 
+    addAndMakeVisible(m_grainSpread);
+    m_grainSpread.setRange(0.0, 2.0, 0.01);
+    m_grainSpread.setTrackColor( m_color);
+    m_grainSpread.onValueChange = [&]() {
+        m_processorRef.setGrainOverlap(m_id, static_cast<float>(m_grainOverlap.getValue()));
+    };
+
+    addAndMakeVisible(m_grainSpreadLabel);
+    m_grainSpreadLabel.attachToComponent(&m_grainSpread, false);
+    m_grainSpreadLabel.setColour(juce::Label::textColourId, juce::Colours::black);
+    m_grainSpreadLabel.setText("Grain Spread", juce::dontSendNotification);
+    m_grainSpreadLabel.setJustificationType(juce::Justification::centredTop);
+
+
+    addAndMakeVisible(m_grainsCount);
+    m_grainsCount.setRange(1, 12, 1);
+    m_grainOverlap.setTrackColor( m_color);
+    m_grainOverlap.onValueChange = [&]() {
+        m_processorRef.setGrainOverlap(m_id, static_cast<float>(m_grainOverlap.getValue()));
+    };
+
+    addAndMakeVisible(m_grainsCountLabel);
+    m_grainsCountLabel.attachToComponent(&m_grainsCount, false);
+    m_grainsCountLabel.setColour(juce::Label::textColourId, juce::Colours::black);
+    m_grainsCountLabel.setText("Grains", juce::dontSendNotification);
+    m_grainsCountLabel.setJustificationType(juce::Justification::centredTop);
+
+
 
     addAndMakeVisible(m_startTime);
     m_endTime.setTrackDirection(Start);
@@ -256,9 +284,15 @@ void TrackComponent::resized() {
 
     m_grainOverlap.setBounds(m_grainLength.getRight()+20, sliderY, sliderSize, sliderSize);
     m_grainOverlapLabel.setBounds(m_grainOverlap.getX(), labelY, sliderSize, spacer);
-    m_granulatorLabel.setBounds(m_grainSpeed.getX(), m_thumbnailBounds.getBottom(), m_grainOverlap.getRight() - m_grainSpeed.getX(), spacer);
 
-    m_granulatorButton.setBounds(m_grainSpeed.getX() - spacer, m_thumbnailBounds.getBottom() + 2, (m_grainOverlap.getRight() + spacer) - (m_grainSpeed.getX() - spacer), (m_grainOverlapLabel.getBottom() + 2) - (m_thumbnailBounds.getBottom() + 2) );
+    m_grainsCount.setBounds(m_grainOverlap.getRight()+20, sliderY, sliderSize, sliderSize);
+    m_grainsCountLabel.setBounds(m_grainsCount.getX(), labelY, sliderSize, spacer);
+
+    m_grainSpread.setBounds(m_grainsCount.getRight()+20, sliderY, sliderSize, sliderSize);
+    m_grainSpreadLabel.setBounds(m_grainSpread.getX(), labelY, sliderSize, spacer);
+
+    m_granulatorLabel.setBounds(m_grainSpeed.getX(), m_thumbnailBounds.getBottom(), m_grainSpread.getRight() - m_grainSpeed.getX(), spacer);
+    m_granulatorButton.setBounds(m_grainSpeed.getX() - spacer, m_thumbnailBounds.getBottom() + 2, (m_grainSpread.getRight() + spacer) - (m_grainSpeed.getX() - spacer), (m_grainOverlapLabel.getBottom() + 2) - (m_thumbnailBounds.getBottom() + 2) );
 
 
     m_startTime.setBounds(m_thumbnailBounds.getX(), m_gainSlider.getBottom() + spacer, m_thumbnailBounds.getWidth(), 20);
