@@ -21,13 +21,13 @@
         Load(String),
         Play,           
         Pause,          
-        Stop,         
-        
+        Stop,
+
         SetGain(f32),
         SetSpeed(f32),
         SetStart(f32),
         SetEnd(f32),
-        
+
         SetGrainSpeed(f32),
         SetGrainLength(f32),
         SetGrainOverlap(f32)
@@ -100,34 +100,35 @@
                     let end        = track.end;
                     let loop_len   = end - start;
 
-                    // &mut borrow 
-                    let (mut grains, hop_size, speed, mut base_pos, mut spawn_ctr) = {
+                    // &mut borrow
+                    let (mut grains, hop_size, speed, grain_speed, mut read_position, mut spawn_ctr) = {
                         let ghm = track.grain_head_mut();
                         (
                             std::mem::take(ghm.grains()),
                             ghm.hop_size,
                             ghm.speed,
+                            ghm.grain_speed,
                             ghm.base_pos,
                             std::mem::take(&mut ghm.spawn),
                         )
-                    }; 
-                    
+                    };
+
                     // immutable refs AFTER &mut is dropped
                     let samples: &[f32] = &track.samples;
                     let (grain_size, gain, window): (usize, f32, &[f32]) = {
                         let gh = track.grain_head();
                         (gh.grain_size, gh.gain, &gh.window)
-                    }; 
+                    };
 
                     for frame in 0..frames {
                         // every hop_size frames spawn a new grain at read_pos=0
                         if spawn_ctr == 0 {
                             grains.push(Grain {
                                 // anchor the grain at current head position inside the loop
-                                read_position:   base_pos,    
+                                read_position,
                                 window_position: 0,
-                                velocity:        1.0,         
-                                grain_speed:     1.0,    
+                                velocity:        1.0,
+                                grain_speed
                             });
                             spawn_ctr = hop_size;
                             if grains.len() > 64 { grains.remove(0); }
@@ -142,7 +143,7 @@
                         // advance each grain and sum into output
                         grains.retain_mut(|g| {
                             if g.window_position < grain_size {
-                                
+
                                 let idx       = (g.read_position.floor() as usize) % loop_len;
                                 let next_idx  = (idx + 1) % loop_len;
                                 let frac      = (g.read_position - (idx as f32)).clamp(0.0, 1.0);
@@ -154,8 +155,8 @@
                                     let sample = s0 + (s1 - s0) * frac; // linear interp
                                     buffer[frame * channels + c] += sample * w * gain;
                                 }
-                                
-                                g.read_position += g.velocity * speed;
+
+                                g.read_position += g.velocity * g.grain_speed;
                                 if g.read_position >= loop_len as f32 { g.read_position -= loop_len as f32; }
                                 if g.read_position < 0.0               { g.read_position += loop_len as f32; }
 
@@ -166,13 +167,13 @@
                             }
                         });
 
-                        base_pos += speed;
-                        if base_pos >= loop_len as f32 { base_pos -= loop_len as f32; }
-                        if base_pos < 0.0              { base_pos += loop_len as f32; }
+                        read_position += speed;
+                        if read_position >= loop_len as f32 { read_position -= loop_len as f32; }
+                        if read_position < 0.0              { read_position += loop_len as f32; }
                     }
 
                     let ghm = track.grain_head_mut();
-                    ghm.base_pos       = base_pos;
+                    ghm.base_pos       = read_position;
                     ghm.spawn          = spawn_ctr;
                     *ghm.grains()      = grains;
                 }
@@ -182,7 +183,7 @@
                     let output_block = buffer.len() / track.channels;
                     let loop_length = track.end - track.start;
                     let crossfade_samples = 250;
-                    
+
                     for frame in 0..output_block {
                         let mut relative_position = (track.play_head_mut().position + track.play_head_mut().speed)
                             .rem_euclid(loop_length as f32);
@@ -314,6 +315,17 @@
                     EngineState::Playing (t)
                 }
 
+                (EngineState::Granulating (track), EngineEvent::SetGain(g)) => {
+                    let mut t = track;
+                    t.grain_head_mut().gain = g;
+                    EngineState::Granulating (t)
+                }
+                (EngineState::Granulating (track), EngineEvent::SetSpeed(s)) => {
+                    let mut t = track;
+                    t.grain_head_mut().speed = s;
+                    EngineState::Granulating (t)
+                }
+
                 (EngineState::Playing(track), EngineEvent::SetGrainLength(l)) => {
                     let mut t = track;
                     let grain_size = l as usize;
@@ -345,7 +357,7 @@
 
                 (EngineState::Granulating(track), EngineEvent::SetGrainSpeed(s)) => {
                     let mut t = track;
-                    t.grain_head_mut().speed = s;
+                    t.grain_head_mut().grain_speed = s;
                     EngineState::Granulating(t)
                 }
 
