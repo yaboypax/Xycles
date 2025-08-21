@@ -34,6 +34,23 @@
         SetGrainCount(i8),
         SetGrainSpread(f32)
     }
+    #[inline]
+    fn rando(state: &mut u32) -> f32 {
+        *state = state.wrapping_mul(1664525).wrapping_add(1013904223);
+        ((*state >> 8) as f32) * (1.0 / 16_777_216.0)
+    }
+
+    #[inline]
+    fn random_pan(spread: f32, state: &mut u32) -> f32 {
+        let u = 2.0 * rando(state) - 1.0; // [-1, 1)
+        (u * spread).clamp(-1.0, 1.0)
+    }
+
+    #[inline]
+    fn equal_power_gains(pan: f32) -> (f32, f32) {
+        // pan in [-1,1] → theta in [0, π/2]
+        let theta = (pan.clamp(-1.0, 1.0) + 1.0) * std::f32::consts::FRAC_PI_4;
+        (theta.cos(), theta.sin()) // (left, right)
     }
 
     pub struct Engine {
@@ -106,13 +123,15 @@
                     let loop_len   = end - start;
 
                     // &mut borrow
-                    let (mut grains, hop_size, speed, grain_speed, mut read_position, mut spawn_ctr) = {
+                    let (mut grains, hop_size, speed, grain_speed, spread, mut rng_state, mut read_position, mut spawn_ctr) = {
                         let ghm = track.grain_head_mut();
                         (
                             std::mem::take(ghm.grains()),
                             ghm.hop_size,
                             ghm.speed,
                             ghm.grain_speed,
+                            ghm.spread,
+                            ghm.rng_state,
                             ghm.base_pos,
                             std::mem::take(&mut ghm.spawn),
                         )
@@ -120,21 +139,26 @@
 
                     // immutable refs AFTER &mut is dropped
                     let samples: &[f32] = &track.samples;
-                    let (grain_size, gain, window): (usize, f32, &[f32]) = {
+                    let (grain_size, gain, window, count): (usize, f32, &[f32], i8) = {
                         let gh = track.grain_head();
-                        (gh.grain_size, gh.gain, &gh.window)
+                        (gh.grain_size, gh.gain, &gh.window, gh.count)
                     };
 
                     for frame in 0..frames {
                         // every hop_size frames spawn a new grain at read_pos=0
                         if spawn_ctr == 0 {
-                            grains.push(Grain {
-                                // anchor the grain at current head position inside the loop
-                                read_position,
-                                window_position: 0,
-                                velocity:        1.0,
-                                grain_speed
-                            });
+                            for grain in 0 .. count {
+                                let pan = random_pan(spread, &mut rng_state);
+                                grains.push(Grain {
+                                    // anchor the grain at current head position inside the loop
+                                    read_position,
+                                    window_position: 0,
+                                    pan,
+                                    grain_speed
+                                });
+                                
+                                read_position += 10.0;
+                            }
                             spawn_ctr = hop_size;
                             if grains.len() > 64 { grains.remove(0); }
                         }
@@ -148,23 +172,37 @@
                         // advance each grain and sum into output
                         grains.retain_mut(|g| {
                             if g.window_position < grain_size {
+                                let idx  = (g.read_position.floor() as usize) % loop_len;
+                                let next = (idx + 1) % loop_len;
+                                let frac = (g.read_position - (idx as f32)).clamp(0.0, 1.0);
+                                let w    = window[g.window_position];
 
-                                let idx       = (g.read_position.floor() as usize) % loop_len;
-                                let next_idx  = (idx + 1) % loop_len;
-                                let frac      = (g.read_position - (idx as f32)).clamp(0.0, 1.0);
-                                let w         = window[g.window_position];
+                                if channels == 2 {
+                                    // interpolate source per channel, then make mono
+                                    let s0_l = *samples.get((start + idx)  * 2 + 0).unwrap_or(&0.0);
+                                    let s0_r = *samples.get((start + idx)  * 2 + 1).unwrap_or(&0.0);
+                                    let s1_l = *samples.get((start + next) * 2 + 0).unwrap_or(&0.0);
+                                    let s1_r = *samples.get((start + next) * 2 + 1).unwrap_or(&0.0);
 
-                                for c in 0..channels {
-                                    let s0 = *samples.get((start + idx)      * channels + c).unwrap_or(&0.0);
-                                    let s1 = *samples.get((start + next_idx) * channels + c).unwrap_or(&0.0);
-                                    let sample = s0 + (s1 - s0) * frac; // linear interp
-                                    buffer[frame * channels + c] += sample * w * gain;
+                                    let l = s0_l + (s1_l - s0_l) * frac;
+                                    let r = s0_r + (s1_r - s0_r) * frac;
+                                    let mono = 0.5 * (l + r);
+
+                                    let (gl, gr) = equal_power_gains(g.pan);
+                                    buffer[frame * 2 + 0] += mono * w * gain * gl;
+                                    buffer[frame * 2 + 1] += mono * w * gain * gr;
+                                } else {
+                                    // mono or multichannel fallback: no pan
+                                    for c in 0..channels {
+                                        let s0 = *samples.get((start + idx)  * channels + c).unwrap_or(&0.0);
+                                        let s1 = *samples.get((start + next) * channels + c).unwrap_or(&0.0);
+                                        let sample = s0 + (s1 - s0) * frac;
+                                        buffer[frame * channels + c] += sample * w * gain;
+                                    }
                                 }
 
-                                g.read_position += g.velocity * g.grain_speed;
-                                if g.read_position >= loop_len as f32 { g.read_position -= loop_len as f32; }
-                                if g.read_position < 0.0               { g.read_position += loop_len as f32; }
-
+                                // advance grain
+                                g.read_position = (g.read_position + g.grain_speed).rem_euclid(loop_len as f32);
                                 g.window_position += 1;
                                 true
                             } else {
@@ -180,6 +218,7 @@
                     let ghm = track.grain_head_mut();
                     ghm.base_pos       = read_position;
                     ghm.spawn          = spawn_ctr;
+                    ghm.rng_state      = rng_state;
                     *ghm.grains()      = grains;
                 }
 

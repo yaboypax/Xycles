@@ -3,7 +3,7 @@ pub struct Grain {
     pub read_position: f32,
     pub window_position: usize,
     pub grain_speed: f32,
-    pub velocity: f32
+    pub pan: f32
 }
 
 pub struct GrainHead {
@@ -16,7 +16,10 @@ pub struct GrainHead {
     pub grain_speed: f32,
     pub overlap:     f32,    
     pub base_pos:    f32,       
-    pub spawn:       usize, 
+    pub spawn:       usize,
+    pub count:       i8,
+    pub spread:      f32,
+    pub rng_state:   u32,
     
 }
 
@@ -40,6 +43,9 @@ impl GrainHead {
             overlap,
             base_pos: 0.0,
             spawn: 0,
+            count: 1,
+            spread: 1.0,
+            rng_state: 0
         }}
 
     pub fn calculate_window(grain_size: usize) -> Vec<f32> {

@@ -17,7 +17,6 @@ impl Track {
     pub fn play_head(&self) -> &PlayHead {
          &self.play_head
     }
-
     pub fn play_head_mut(&mut self) -> &mut PlayHead {
         &mut self.play_head
     }
@@ -25,8 +24,5 @@ impl Track {
     pub fn grain_head(&self) -> &GrainHead {
         &self.grain_head
     }
-
-    pub fn grain_head_mut(&mut self) -> &mut GrainHead {
-        &mut self.grain_head
-    }
+    pub fn grain_head_mut(&mut self) -> &mut GrainHead { &mut self.grain_head}
 }
