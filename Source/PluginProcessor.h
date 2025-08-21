@@ -55,6 +55,8 @@ public:
   void setGrainLength(size_t index, float grainLength);
   void setGrainSpeed(size_t index, float grainSpeed);
   void setGrainOverlap(size_t index, float grainOverlap);
+  void setGrainCount(size_t index, int grainCount);
+  void setGrainSpread(size_t index, float grainSpread);
 
   float getTrackPlayhead(size_t index);
   

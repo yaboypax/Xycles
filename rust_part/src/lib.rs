@@ -13,8 +13,6 @@ mod ffi {
         type EngineEvent;
         
         fn new_engine() -> Box<Engine>;
-        
-        
         fn process_block(self: &mut Engine, buffer: &mut Vec<f32>);
         fn load_audio(self: &mut Engine, path: &str);
         
@@ -31,6 +29,8 @@ mod ffi {
         fn set_grain_speed(self: &mut Engine, speed: f32);
         fn set_grain_length(self: &mut Engine, length: f32);
         fn set_grain_overlap(self: &mut Engine, overlap: f32);
+        fn set_grain_count(self: &mut Engine, count: i8);
+        fn set_grain_spread(self: &mut Engine, spread: f32);
         
         fn get_playhead(self: &Engine) -> f32;
     }

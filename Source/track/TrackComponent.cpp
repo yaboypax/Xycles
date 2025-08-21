@@ -110,7 +110,7 @@ void TrackComponent::layoutSliders()
     m_grainSpread.setRange(0.0, 2.0, 0.01);
     m_grainSpread.setTrackColor( m_color);
     m_grainSpread.onValueChange = [&]() {
-        m_processorRef.setGrainOverlap(m_id, static_cast<float>(m_grainOverlap.getValue()));
+        m_processorRef.setGrainSpread(m_id, static_cast<float>(m_grainSpread.getValue()));
     };
 
     addAndMakeVisible(m_grainSpreadLabel);
@@ -122,9 +122,9 @@ void TrackComponent::layoutSliders()
 
     addAndMakeVisible(m_grainsCount);
     m_grainsCount.setRange(1, 12, 1);
-    m_grainOverlap.setTrackColor( m_color);
-    m_grainOverlap.onValueChange = [&]() {
-        m_processorRef.setGrainOverlap(m_id, static_cast<float>(m_grainOverlap.getValue()));
+    m_grainsCount.setTrackColor( m_color);
+    m_grainsCount.onValueChange = [&]() {
+        m_processorRef.setGrainCount(m_id, static_cast<int>(m_grainsCount.getValue()));
     };
 
     addAndMakeVisible(m_grainsCountLabel);
@@ -132,7 +132,6 @@ void TrackComponent::layoutSliders()
     m_grainsCountLabel.setColour(juce::Label::textColourId, juce::Colours::black);
     m_grainsCountLabel.setText("Grains", juce::dontSendNotification);
     m_grainsCountLabel.setJustificationType(juce::Justification::centredTop);
-
 
 
     addAndMakeVisible(m_startTime);

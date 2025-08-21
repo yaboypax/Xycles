@@ -30,7 +30,10 @@
 
         SetGrainSpeed(f32),
         SetGrainLength(f32),
-        SetGrainOverlap(f32)
+        SetGrainOverlap(f32),
+        SetGrainCount(i8),
+        SetGrainSpread(f32)
+    }
     }
 
     pub struct Engine {
@@ -63,9 +66,12 @@
         pub fn set_speed(&mut self, s: f32)        { self.push_event(EngineEvent::SetSpeed(s)) }
         pub fn set_start(&mut self, start: f32)    { self.push_event(EngineEvent::SetStart(start)) }
         pub fn set_end(&mut self, end: f32)        { self.push_event(EngineEvent::SetEnd(end)) }
+        
         pub fn set_grain_speed(&mut self, s: f32)  { self.push_event(EngineEvent::SetGrainSpeed(s)) }
         pub fn set_grain_length(&mut self, l: f32) { self.push_event(EngineEvent::SetGrainLength(l)) }
         pub fn set_grain_overlap(&mut self, o: f32){ self.push_event(EngineEvent::SetGrainOverlap(o)) }
+        pub fn set_grain_count(&mut self, c: i8)   { self.push_event(EngineEvent::SetGrainCount(c)) }
+        pub fn set_grain_spread(&mut self, sp: f32){ self.push_event(EngineEvent::SetGrainSpread(sp)) }
         
         pub fn get_playhead(&self) -> f32
         {
@@ -87,7 +93,6 @@
         
         pub fn fill_silence(buffer: &mut Vec<f32>) {for sample in buffer.iter_mut() {*sample = 0.0}; }
         
-
         pub fn process_block(&mut self, buffer: &mut Vec<f32>)
         {
             self.apply_pending();
@@ -280,7 +285,7 @@
                 (EngineState::Ready (track), EngineEvent::Play) => {
                     let mut t = track;
                     t.play_head_mut().position = t.start as f32;
-                    EngineState::Playing (t)
+                    EngineState::Granulating (t)
                 }
 
                 (EngineState::Ready (track), EngineEvent::SetStart(start)) => {
@@ -331,7 +336,7 @@
                     let grain_size = l as usize;
                     t.grain_head_mut().grain_size = grain_size;
                     t.grain_head_mut().window = GrainHead::calculate_window(grain_size);
-                    EngineState::Granulating(t)
+                    EngineState::Playing(t)
                 }
 
                 (EngineState::Playing(track), EngineEvent::SetGrainSpeed(s)) => {
@@ -367,6 +372,19 @@
                     t.grain_head_mut().hop_size = ((t.grain_head_mut().grain_size as f32) / o).max(1.0).round() as usize;
                     EngineState::Granulating(t)
                 }
+
+                (EngineState::Granulating(track), EngineEvent::SetGrainCount(c)) => {
+                    let mut t = track;
+                    t.grain_head_mut().count = c;
+                    EngineState::Granulating(t)
+                }
+
+                (EngineState::Granulating(track), EngineEvent::SetGrainSpread(sp)) => {
+                    let mut t = track;
+                    t.grain_head_mut().spread = sp;
+                    EngineState::Granulating(t)
+                }
+
 
 
                 (EngineState::Playing (track), EngineEvent::SetStart(start)) => {
