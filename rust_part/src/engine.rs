@@ -76,11 +76,19 @@
                         let play_head = track.play_head();
                         play_head.position.clamp(0.0, loop_length) / loop_length
                     } else {
-                         0.0
+                        0.0
                     }
                 }
                 EngineState::Idle => 0.0,
-                EngineState::Granulating(_track) => 0.0
+                EngineState::Granulating(track) => {
+                    if track.start < track.end {
+                        let loop_length = (track.end - track.start) as f32;
+                        let grain_head = track.grain_head();
+                        grain_head.base_pos.clamp(0.0, loop_length) / loop_length
+                    } else {
+                        0.0
+                    }
+                }
             }
         }
         
@@ -98,22 +106,20 @@
         pub fn process_block(&mut self, buffer: &mut Vec<f32>)
         {
             self.apply_pending();
-            match &mut self.state {
-
+            match &mut self.state 
+            {
                 EngineState::Granulating(track ) => {
                     track.granular_process_block(buffer);
                 }
-
                 EngineState::Playing (track) => {
                     track.playhead_proccess_block(buffer);
                 }
                 _ => {
                 }
             }
-            
         }
 
-        pub fn load_path(&mut self, path: String) -> EngineState
+        pub fn load_path(&mut self, path: String) -> Track
         {
             let file   = BufReader::new(File::open(&path).unwrap());
             let source = Decoder::new(file).unwrap();
@@ -121,13 +127,8 @@
             let channels = source.channels() as usize;
             let samples: Vec<f32> = source.convert_samples().collect();
             let end = samples.len() / channels;
-
-            let track = Track{ samples, start: 0, end, channels, play_head: PlayHead::new(), grain_head: GrainHead::new(sample_rate)};
-            EngineState::Ready(track)
+            Track{ samples, start: 0, end, channels, play_head: PlayHead::new(), grain_head: GrainHead::new(sample_rate)}
         }
-        
-
-
         
         pub fn transition(&mut self, event: EngineEvent) {
             let old = mem::replace(&mut self.state, EngineState::Idle);
@@ -135,15 +136,14 @@
 
                 // ─── Idle ───
                 (_, EngineEvent::Load(path)) => {
-                    self.load_path(path)
+                    let track = self.load_path(path);
+                    EngineState::Ready(track)
                 }
-                
                 (EngineState::Ready (track), EngineEvent::Play) => {
                     let mut t = track;
                     t.play_head_mut().position = t.start as f32;
                     EngineState::Granulating (t)
                 }
-
                 (EngineState::Ready (track), EngineEvent::SetParameters(state )) => {
                     let mut t = track;
                     t.set_parameters(state);
@@ -161,7 +161,6 @@
                 }
 
                 // ─── Granulating ───
-
                 (EngineState::Granulating(track), EngineEvent::Stop) => {
                     EngineState::Ready(track)
                 }
@@ -170,8 +169,6 @@
                     t.set_parameters(state);
                     EngineState::Granulating(t)
                 }
-
-                
 
                 // no state change
                 (old_state, _) => old_state,
