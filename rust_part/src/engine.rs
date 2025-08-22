@@ -16,13 +16,8 @@
         Granulating (Track),
         Paused (Track),
     }
-    #[derive(Debug)]
-    pub enum EngineEvent {
-        Load(String),
-        Play,           
-        Pause,          
-        Stop,
-
+    
+    pub enum ParameterState {
         SetGain(f32),
         SetSpeed(f32),
         SetStart(f32),
@@ -31,26 +26,16 @@
         SetGrainSpeed(f32),
         SetGrainLength(f32),
         SetGrainOverlap(f32),
-        SetGrainCount(i8),
+        SetGrainCount(f32),
         SetGrainSpread(f32)
     }
-    #[inline]
-    fn rando(state: &mut u32) -> f32 {
-        *state = state.wrapping_mul(1664525).wrapping_add(1013904223);
-        ((*state >> 8) as f32) * (1.0 / 16_777_216.0)
-    }
+    pub enum EngineEvent {
+        Load(String),
+        Play,           
+        Pause,          
+        Stop,
 
-    #[inline]
-    fn random_pan(spread: f32, state: &mut u32) -> f32 {
-        let u = 2.0 * rando(state) - 1.0; // [-1, 1)
-        (u * spread).clamp(-1.0, 1.0)
-    }
-
-    #[inline]
-    fn equal_power_gains(pan: f32) -> (f32, f32) {
-        // pan in [-1,1] → theta in [0, π/2]
-        let theta = (pan.clamp(-1.0, 1.0) + 1.0) * std::f32::consts::FRAC_PI_4;
-        (theta.cos(), theta.sin()) // (left, right)
+        SetParameters(ParameterState)
     }
 
     pub struct Engine {
@@ -63,32 +48,23 @@
         pub fn new() -> Self {
             Engine { state: EngineState::Idle, commands: Arc::new(ArrayQueue::new(32))}
         }
-
-        fn push_event(&self, event: EngineEvent) {
-            let _ = self.commands.push(event);
-        }
-
-        fn apply_pending(&mut self) {
-            while let Some(event) = self.commands.pop() {
-                self.transition(event);
-            }
-        }
-
+        
         // FFI Bridge
         pub fn load_audio(&mut self, path: &str)   { self.push_event(EngineEvent::Load(path.into())) }
         pub fn play(&mut self)                     { self.push_event(EngineEvent::Play) }
         pub fn pause(&mut self)                    { self.push_event(EngineEvent::Pause) }
         pub fn stop(&mut self)                     { self.push_event(EngineEvent::Stop) }
-        pub fn set_gain(&mut self, g: f32)         { self.push_event(EngineEvent::SetGain(g)) }
-        pub fn set_speed(&mut self, s: f32)        { self.push_event(EngineEvent::SetSpeed(s)) }
-        pub fn set_start(&mut self, start: f32)    { self.push_event(EngineEvent::SetStart(start)) }
-        pub fn set_end(&mut self, end: f32)        { self.push_event(EngineEvent::SetEnd(end)) }
         
-        pub fn set_grain_speed(&mut self, s: f32)  { self.push_event(EngineEvent::SetGrainSpeed(s)) }
-        pub fn set_grain_length(&mut self, l: f32) { self.push_event(EngineEvent::SetGrainLength(l)) }
-        pub fn set_grain_overlap(&mut self, o: f32){ self.push_event(EngineEvent::SetGrainOverlap(o)) }
-        pub fn set_grain_count(&mut self, c: i8)   { self.push_event(EngineEvent::SetGrainCount(c)) }
-        pub fn set_grain_spread(&mut self, sp: f32){ self.push_event(EngineEvent::SetGrainSpread(sp)) }
+        pub fn set_gain(&mut self, g: f32)         { self.push_event(EngineEvent::SetParameters(ParameterState::SetGain(g)))}
+        pub fn set_speed(&mut self, s: f32)        { self.push_event(EngineEvent::SetParameters(ParameterState::SetSpeed(s)))}
+        pub fn set_start(&mut self, start: f32)    { self.push_event(EngineEvent::SetParameters(ParameterState::SetStart(start)))}
+        pub fn set_end(&mut self, end: f32)        { self.push_event(EngineEvent::SetParameters(ParameterState::SetEnd(end)))}
+
+        pub fn set_grain_speed(&mut self, s: f32)  { self.push_event(EngineEvent::SetParameters(ParameterState::SetGrainSpeed(s)))}
+        pub fn set_grain_length(&mut self, l: f32) { self.push_event(EngineEvent::SetParameters(ParameterState::SetGrainLength(l)))}
+        pub fn set_grain_overlap(&mut self, o: f32){ self.push_event(EngineEvent::SetParameters(ParameterState::SetGrainOverlap(o)))}
+        pub fn set_grain_count(&mut self, c: f32)  { self.push_event(EngineEvent::SetParameters(ParameterState::SetGrainCount(c)))}
+        pub fn set_grain_spread(&mut self, sp: f32){ self.push_event(EngineEvent::SetParameters(ParameterState::SetGrainSpread(sp)))}
         
         pub fn get_playhead(&self) -> f32
         {
@@ -109,188 +85,27 @@
         }
         
         pub fn fill_silence(buffer: &mut Vec<f32>) {for sample in buffer.iter_mut() {*sample = 0.0}; }
-        
+
+        fn push_event(&self, event: EngineEvent) {
+            let _ = self.commands.push(event);
+        }
+        fn apply_pending(&mut self) {
+            while let Some(event) = self.commands.pop() {
+                self.transition(event);
+            }
+        }
+
         pub fn process_block(&mut self, buffer: &mut Vec<f32>)
         {
             self.apply_pending();
             match &mut self.state {
 
                 EngineState::Granulating(track ) => {
-                    let channels = track.channels;
-                    let frames = buffer.len() / channels;
-                    let start      = track.start;
-                    let end        = track.end;
-                    let loop_len   = end - start;
-
-                    // &mut borrow
-                    let (mut grains, hop_size, speed, grain_speed, spread, mut rng_state, mut read_position, mut spawn_ctr) = {
-                        let ghm = track.grain_head_mut();
-                        (
-                            std::mem::take(ghm.grains()),
-                            ghm.hop_size,
-                            ghm.speed,
-                            ghm.grain_speed,
-                            ghm.spread,
-                            ghm.rng_state,
-                            ghm.base_pos,
-                            std::mem::take(&mut ghm.spawn),
-                        )
-                    };
-
-                    // immutable refs AFTER &mut is dropped
-                    let samples: &[f32] = &track.samples;
-                    let (grain_size, gain, window, count): (usize, f32, &[f32], i8) = {
-                        let gh = track.grain_head();
-                        (gh.grain_size, gh.gain, &gh.window, gh.count)
-                    };
-
-                    for frame in 0..frames {
-                        // every hop_size frames spawn a new grain at read_pos=0
-                        if spawn_ctr == 0 {
-                            for grain in 0 .. count {
-                                let pan = random_pan(spread, &mut rng_state);
-                                grains.push(Grain {
-                                    // anchor the grain at current head position inside the loop
-                                    read_position,
-                                    window_position: 0,
-                                    pan,
-                                    grain_speed
-                                });
-                                
-                                read_position += 10.0;
-                            }
-                            spawn_ctr = hop_size;
-                            if grains.len() > 64 { grains.remove(0); }
-                        }
-                        spawn_ctr = spawn_ctr.saturating_sub(1);
-
-                        // clear output
-                        for c in 0..channels {
-                            buffer[frame * channels + c] = 0.0;
-                        }
-
-                        // advance each grain and sum into output
-                        grains.retain_mut(|g| {
-                            if g.window_position < grain_size {
-                                let idx  = (g.read_position.floor() as usize) % loop_len;
-                                let next = (idx + 1) % loop_len;
-                                let frac = (g.read_position - (idx as f32)).clamp(0.0, 1.0);
-                                let w    = window[g.window_position];
-
-                                if channels == 2 {
-                                    // interpolate source per channel, then make mono
-                                    let s0_l = *samples.get((start + idx)  * 2 + 0).unwrap_or(&0.0);
-                                    let s0_r = *samples.get((start + idx)  * 2 + 1).unwrap_or(&0.0);
-                                    let s1_l = *samples.get((start + next) * 2 + 0).unwrap_or(&0.0);
-                                    let s1_r = *samples.get((start + next) * 2 + 1).unwrap_or(&0.0);
-
-                                    let l = s0_l + (s1_l - s0_l) * frac;
-                                    let r = s0_r + (s1_r - s0_r) * frac;
-                                    let mono = 0.5 * (l + r);
-
-                                    let (gl, gr) = equal_power_gains(g.pan);
-                                    buffer[frame * 2 + 0] += mono * w * gain * gl;
-                                    buffer[frame * 2 + 1] += mono * w * gain * gr;
-                                } else {
-                                    // mono or multichannel fallback: no pan
-                                    for c in 0..channels {
-                                        let s0 = *samples.get((start + idx)  * channels + c).unwrap_or(&0.0);
-                                        let s1 = *samples.get((start + next) * channels + c).unwrap_or(&0.0);
-                                        let sample = s0 + (s1 - s0) * frac;
-                                        buffer[frame * channels + c] += sample * w * gain;
-                                    }
-                                }
-
-                                // advance grain
-                                g.read_position = (g.read_position + g.grain_speed).rem_euclid(loop_len as f32);
-                                g.window_position += 1;
-                                true
-                            } else {
-                                false
-                            }
-                        });
-
-                        read_position += speed;
-                        if read_position >= loop_len as f32 { read_position -= loop_len as f32; }
-                        if read_position < 0.0              { read_position += loop_len as f32; }
-                    }
-
-                    let ghm = track.grain_head_mut();
-                    ghm.base_pos       = read_position;
-                    ghm.spawn          = spawn_ctr;
-                    ghm.rng_state      = rng_state;
-                    *ghm.grains()      = grains;
+                    track.granular_process_block(buffer);
                 }
 
                 EngineState::Playing (track) => {
-                    
-                    let output_block = buffer.len() / track.channels;
-                    let loop_length = track.end - track.start;
-                    let crossfade_samples = 250;
-
-                    for frame in 0..output_block {
-                        let mut relative_position = (track.play_head_mut().position + track.play_head_mut().speed)
-                            .rem_euclid(loop_length as f32);
-                        if relative_position.is_nan() { relative_position = 0.0; }
-                        
-                        let index    =  relative_position.floor() as usize;
-                        let fraction = (relative_position - (index as f32)).clamp(0.0, 1.0);
-                        let next_index = if index + 1 >= loop_length {
-                            0
-                        } else {
-                            index + 1
-                        };
-                        
-                        let base_offset = (track.start + index)
-                            .checked_mul(track.channels)
-                            .unwrap_or_else(|| {
-                                panic!(
-                                    "overflow: {} * {} too big for usize",
-                                    (track.start + index), track.channels
-                                )
-                            });
-                        
-                        let next_offset = (track.start + next_index)
-                            .checked_mul(track.channels)
-                            .unwrap_or_else(|| {
-                                panic!(
-                                    "overflow: {} * {} too big for usize",
-                                    (track.start + next_index), track.channels
-                                )
-                            });
-
-                        for channel in 0..track.channels {
-                            let s0 = *track
-                                .samples
-                                .get(base_offset + channel)
-                                .unwrap_or(&0.0);
-                            let s1 = *track
-                                .samples
-                                .get(next_offset + channel)
-                                .unwrap_or(&0.0);
-                            let mut sample = s0 + (s1 - s0) * fraction;
-
-
-                            if index >= loop_length - crossfade_samples {
-                                let fade_pos = (index + 1 + crossfade_samples - loop_length) as f32 / crossfade_samples as f32;
-                                let fade_pos = fade_pos.clamp(0.0, 1.0);
-
-                                let start_sample = *track.samples.get(track.start * track.channels + channel).unwrap_or(&0.0);
-                                sample = sample * (1.0 - fade_pos) + start_sample * fade_pos;
-                            }
-                            
-                            
-                            buffer[frame*track.channels + channel] += sample * track.play_head_mut().gain;
-                        }
-
-                        track.play_head_mut().position = relative_position;
-
-                        //
-                        // // Clip
-                        // for s in buffer.iter_mut() {
-                        //     *s = (*s).clamp(-1.0, 1.0);
-                        // }
-                    }
+                    track.playhead_proccess_block(buffer);
                 }
                 _ => {
                 }
@@ -312,6 +127,7 @@
         }
         
 
+
         
         pub fn transition(&mut self, event: EngineEvent) {
             let old = mem::replace(&mut self.state, EngineState::Idle);
@@ -321,159 +137,41 @@
                 (_, EngineEvent::Load(path)) => {
                     self.load_path(path)
                 }
+                
                 (EngineState::Ready (track), EngineEvent::Play) => {
                     let mut t = track;
                     t.play_head_mut().position = t.start as f32;
                     EngineState::Granulating (t)
                 }
 
-                (EngineState::Ready (track), EngineEvent::SetStart(start)) => {
+                (EngineState::Ready (track), EngineEvent::SetParameters(state )) => {
                     let mut t = track;
-                    let start_samples = start * (t.samples.len() / t.channels) as f32;
-                    t.start = start_samples as usize;
-                    t.play_head_mut().position = start_samples;
-                    EngineState::Ready (t)
-                }
-                (EngineState::Ready (track), EngineEvent::SetEnd(end)) => {
-                    let mut t = track;
-                    t.end = (end * (t.samples.len() / t.channels) as f32) as usize;
-                    t.play_head_mut().position = t.start as f32;
+                    t.set_parameters(state);
                     EngineState::Ready (t)
                 }
 
                 // ─── Playing ───
-                (EngineState::Playing (track), EngineEvent::Pause) => {
-                    EngineState::Paused (track)
-                }
                 (EngineState::Playing (track), EngineEvent::Stop) => {
                     EngineState::Ready (track)
                 }
-                (EngineState::Playing (track), EngineEvent::SetGain(g)) => {
+                (EngineState::Playing (track), EngineEvent::SetParameters(state )) => {
                     let mut t = track;
-                    t.play_head_mut().gain = g;
-                    EngineState::Playing (t)
-                }
-                (EngineState::Playing (track), EngineEvent::SetSpeed(s)) => {
-                    let mut t = track;
-                    t.play_head_mut().speed = s;
+                    t.set_parameters(state);
                     EngineState::Playing (t)
                 }
 
-                (EngineState::Granulating (track), EngineEvent::SetGain(g)) => {
-                    let mut t = track;
-                    t.grain_head_mut().gain = g;
-                    EngineState::Granulating (t)
-                }
-                (EngineState::Granulating (track), EngineEvent::SetSpeed(s)) => {
-                    let mut t = track;
-                    t.grain_head_mut().speed = s;
-                    EngineState::Granulating (t)
-                }
+                // ─── Granulating ───
 
-                (EngineState::Playing(track), EngineEvent::SetGrainLength(l)) => {
-                    let mut t = track;
-                    let grain_size = l as usize;
-                    t.grain_head_mut().grain_size = grain_size;
-                    t.grain_head_mut().window = GrainHead::calculate_window(grain_size);
-                    EngineState::Playing(t)
+                (EngineState::Granulating(track), EngineEvent::Stop) => {
+                    EngineState::Ready(track)
                 }
-
-                (EngineState::Playing(track), EngineEvent::SetGrainSpeed(s)) => {
+                (EngineState::Granulating(track), EngineEvent::SetParameters(state)) => {
                     let mut t = track;
-                    t.grain_head_mut().speed = s;
+                    t.set_parameters(state);
                     EngineState::Granulating(t)
                 }
 
-                (EngineState::Playing(track), EngineEvent::SetGrainOverlap(o)) => {
-                    let mut t = track;
-                    t.grain_head_mut().overlap = o;
-                    t.grain_head_mut().hop_size = ((t.grain_head_mut().grain_size as f32) / o).max(1.0).round() as usize;
-                    EngineState::Granulating(t)
-                }
-
-                (EngineState::Granulating(track), EngineEvent::SetGrainLength(l)) => {
-                    let mut t = track;
-                    let grain_size = l as usize;
-                    t.grain_head_mut().grain_size = grain_size;
-                    t.grain_head_mut().window = GrainHead::calculate_window(grain_size);
-                    EngineState::Granulating(t)
-                }
-
-                (EngineState::Granulating(track), EngineEvent::SetGrainSpeed(s)) => {
-                    let mut t = track;
-                    t.grain_head_mut().grain_speed = s;
-                    EngineState::Granulating(t)
-                }
-
-                (EngineState::Granulating(track), EngineEvent::SetGrainOverlap(o)) => {
-                    let mut t = track;
-                    t.grain_head_mut().overlap = o;
-                    t.grain_head_mut().hop_size = ((t.grain_head_mut().grain_size as f32) / o).max(1.0).round() as usize;
-                    EngineState::Granulating(t)
-                }
-
-                (EngineState::Granulating(track), EngineEvent::SetGrainCount(c)) => {
-                    let mut t = track;
-                    t.grain_head_mut().count = c;
-                    EngineState::Granulating(t)
-                }
-
-                (EngineState::Granulating(track), EngineEvent::SetGrainSpread(sp)) => {
-                    let mut t = track;
-                    t.grain_head_mut().spread = sp;
-                    EngineState::Granulating(t)
-                }
-
-
-
-                (EngineState::Playing (track), EngineEvent::SetStart(start)) => {
-                    let mut t = track;
-                    let start_samples = start * t.samples.len() as f32;
-                    t.start = start_samples as usize;
-                    t.play_head_mut().position = start_samples;
-                    EngineState::Paused (t)
-                }
-                (EngineState::Playing (track), EngineEvent::SetEnd(end)) => {
-                    let mut t = track;
-                    t.end = (end * (t.samples.len() / t.channels) as f32) as usize;
-                    t.play_head_mut().position = t.start as f32;
-                    EngineState::Paused (t)
-                }
                 
-                (EngineState::Paused (track), EngineEvent::Play) => {
-                    let mut t = track;
-                    t.play_head_mut().position = t.start as f32;
-                    EngineState::Playing (t)
-                }
-                
-                (EngineState::Paused (track), EngineEvent::Stop) => {
-                    EngineState::Ready (track)
-                }
-                (EngineState::Paused (track), EngineEvent::SetGain(g)) => {
-                    let mut t = track;
-                    t.play_head_mut().gain = g;
-                    EngineState::Paused (t)
-                }
-                
-                (EngineState::Paused (track), EngineEvent::SetSpeed(s)) => {
-                    let mut t = track;
-                    t.play_head_mut().speed = s;
-                    EngineState::Paused (t)
-                }
-
-                (EngineState::Paused (track), EngineEvent::SetStart(start)) => {    
-                    let mut t = track;
-                    let start_samples = start * (t.samples.len() / t.channels) as f32;
-                    t.start = start_samples as usize;
-                    t.play_head_mut().position = start_samples;
-                    EngineState::Paused (t)
-                }
-                (EngineState::Paused (track), EngineEvent::SetEnd(end)) => {
-                    let mut t = track;
-                    t.end = (end * (t.samples.len() / t.channels) as f32) as usize;
-                    t.play_head_mut().position = t.start as f32;
-                    EngineState::Paused (t)
-                }
 
                 // no state change
                 (old_state, _) => old_state,

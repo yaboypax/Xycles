@@ -17,7 +17,7 @@ pub struct GrainHead {
     pub overlap:     f32,    
     pub base_pos:    f32,       
     pub spawn:       usize,
-    pub count:       i8,
+    pub count:       usize,
     pub spread:      f32,
     pub rng_state:   u32,
     
