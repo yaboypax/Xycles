@@ -17,7 +17,7 @@ mod ffi {
         fn load_audio(self: &mut Engine, path: &str);
         
         fn play(self: &mut Engine);
-        fn pause(self: &mut Engine);
+        fn grain_play(self: &mut Engine);
         fn stop(self: &mut Engine);
         
         fn set_gain(self: &mut Engine, gain: f32);

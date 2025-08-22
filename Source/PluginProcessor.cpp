@@ -224,8 +224,13 @@ void XyclesAudioProcessor::loadFile(size_t index, const std::string& path) {
   m_trackEngines[index]->load_audio(path);
 }
 
-void XyclesAudioProcessor::play(size_t index) {
-  m_trackEngines[index]->play();
+void XyclesAudioProcessor::play(size_t index, PlayMode playMode) {
+  if (playMode == PlayMode::Regular) {
+    m_trackEngines[index]->play();
+  } else if (playMode == PlayMode::Granular)
+  {
+    m_trackEngines[index]->grain_play();
+  }
 }
 
 void XyclesAudioProcessor::stop(size_t index) {

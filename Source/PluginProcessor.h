@@ -4,6 +4,10 @@
 
 #include "AudioRecorder.h"
 #include "rust_part.h"
+enum PlayMode {
+  Regular,
+  Granular
+};
 
 //==============================================================================
 class XyclesAudioProcessor final : public juce::AudioProcessor {
@@ -61,7 +65,7 @@ public:
   float getTrackPlayhead(size_t index);
   
   void loadFile(size_t index, const std::string& path);
-  void play(size_t index);
+  void play(size_t index, PlayMode playMode);
   void stop(size_t index);
 
   void playAll();

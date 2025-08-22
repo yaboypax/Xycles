@@ -16,8 +16,8 @@ TrackKnob::TrackKnob()
     }
     void TrackKnob::paint(juce::Graphics& g)
     {
-        const auto outline = juce::Colours::black;
-        const auto fill = m_trackColor;
+        const auto outline = isEnabled() ? juce::Colours::black : juce::Colours::black.withAlpha(0.5f);
+        const auto fill = isEnabled() ? m_trackColor : juce::Colours::black.withAlpha(0.5f);
         const auto sliderPos = valueToProportionOfLength (getValue());
         auto bounds = Rectangle<int>(0, 0, getWidth(), getHeight()).toFloat().reduced(10);
 

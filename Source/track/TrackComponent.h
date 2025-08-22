@@ -10,10 +10,7 @@
 #include "../subcomponents/StopButton.h"
 #include "../PluginProcessor.h"
 
-enum PlayMode {
-    Regular,
-    Granular
-};
+
 class TrackComponent: public juce::AnimatedAppComponent, public juce::FileDragAndDropTarget
 {
 public:

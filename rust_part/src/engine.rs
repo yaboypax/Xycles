@@ -14,7 +14,6 @@
         Ready (Track),
         Playing (Track),
         Granulating (Track),
-        Paused (Track),
     }
     
     pub enum ParameterState {
@@ -32,7 +31,7 @@
     pub enum EngineEvent {
         Load(String),
         Play,           
-        Pause,          
+        GrainPlay,
         Stop,
 
         SetParameters(ParameterState)
@@ -52,7 +51,7 @@
         // FFI Bridge
         pub fn load_audio(&mut self, path: &str)   { self.push_event(EngineEvent::Load(path.into())) }
         pub fn play(&mut self)                     { self.push_event(EngineEvent::Play) }
-        pub fn pause(&mut self)                    { self.push_event(EngineEvent::Pause) }
+        pub fn grain_play(&mut self)               { self.push_event(EngineEvent::GrainPlay) }
         pub fn stop(&mut self)                     { self.push_event(EngineEvent::Stop) }
         
         pub fn set_gain(&mut self, g: f32)         { self.push_event(EngineEvent::SetParameters(ParameterState::SetGain(g)))}
@@ -69,8 +68,7 @@
         pub fn get_playhead(&self) -> f32
         {
             match &self.state {
-                EngineState::Playing(track) | EngineState::Paused(track)
-                | EngineState::Ready(track) => {
+                EngineState::Playing(track) | EngineState::Ready(track) => {
                     if track.start < track.end {
                         let loop_length = (track.end - track.start) as f32;
                         let play_head = track.play_head();
@@ -142,6 +140,11 @@
                 (EngineState::Ready (track), EngineEvent::Play) => {
                     let mut t = track;
                     t.play_head_mut().position = t.start as f32;
+                    EngineState::Playing (t)
+                }
+                (EngineState::Ready (track), EngineEvent::GrainPlay) => {
+                    let mut t = track;
+                    t.grain_head_mut().base_pos = t.start as f32;
                     EngineState::Granulating (t)
                 }
                 (EngineState::Ready (track), EngineEvent::SetParameters(state )) => {
@@ -159,6 +162,11 @@
                     t.set_parameters(state);
                     EngineState::Playing (t)
                 }
+                (EngineState::Playing (track), EngineEvent::GrainPlay) => {
+                    let mut t = track;
+                    t.grain_head_mut().base_pos = t.play_head().position;
+                    EngineState::Granulating (t)
+                }
 
                 // ─── Granulating ───
                 (EngineState::Granulating(track), EngineEvent::Stop) => {
@@ -168,6 +176,11 @@
                     let mut t = track;
                     t.set_parameters(state);
                     EngineState::Granulating(t)
+                }
+                (EngineState::Granulating (track), EngineEvent::Play) => {
+                    let mut t = track;
+                    t.play_head_mut().position = t.grain_head().base_pos;
+                    EngineState::Playing (t)
                 }
 
                 // no state change
