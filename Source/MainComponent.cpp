@@ -7,6 +7,7 @@
 MainComponent::MainComponent()
 {
     setSize(1200, 1000);
+    setAudioChannels(0,8);
     //setResizable(true, true);
     addAndMakeVisible(m_trackViewport);
     m_trackEditor.setSize(1200, 1000);
@@ -14,7 +15,7 @@ MainComponent::MainComponent()
 
     m_trackEditor.addTrackCallback = [&]() ->std::unique_ptr<TrackComponent> {
         m_trackEngines.emplace_back(rust_part::new_engine());
-        rust_part::Engine* eng = &*m_trackEngines.back(); // pointer to pointee (stable)
+        rust_part::Engine* eng = &*m_trackEngines.back();
         return std::make_unique<TrackComponent>(eng);
     };
 
@@ -34,6 +35,7 @@ MainComponent::MainComponent()
 
     m_backgroundImage = juce::Image(
         juce::ImageCache::getFromMemory(BinaryData::background_png, BinaryData::background_pngSize));
+
 }
 
 MainComponent::~MainComponent()
