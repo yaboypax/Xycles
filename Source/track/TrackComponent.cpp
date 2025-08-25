@@ -4,7 +4,7 @@
 
 #include "TrackComponent.h"
 
-TrackComponent::TrackComponent(rust::Box<rust_part::Engine>& engine) :
+TrackComponent::TrackComponent(rust_part::Engine* engine) :
                                                     m_engine(engine),
                                                     m_thumbnailCache (5),
                                                     m_thumbnail (512, m_formatManager, m_thumbnailCache)

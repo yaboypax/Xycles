@@ -18,7 +18,7 @@ enum PlayMode {
 class TrackComponent: public juce::AnimatedAppComponent, public juce::FileDragAndDropTarget
 {
 public:
-    explicit TrackComponent(rust::Box<rust_part::Engine>&);
+    explicit TrackComponent(rust_part::Engine*);
     void paint(juce::Graphics &) override;
     void resized() override;
 
@@ -33,7 +33,7 @@ public:
     void mouseEnter(const MouseEvent &e) override;
 
 private:
-    rust::Box<rust_part::Engine>& m_engine;
+    rust_part::Engine* m_engine;
     void layoutSliders();
     void layoutButtons();
 

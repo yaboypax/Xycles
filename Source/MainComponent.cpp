@@ -13,10 +13,9 @@ MainComponent::MainComponent()
     m_trackViewport.setViewedComponent(&m_trackEditor, false);
 
     m_trackEditor.addTrackCallback = [&]() ->std::unique_ptr<TrackComponent> {
-        auto engine = rust_part::new_engine();
-        auto track = std::make_unique<TrackComponent>(engine);
-        m_trackEngines.push_back(std::move(engine));
-        return track;
+        m_trackEngines.emplace_back(rust_part::new_engine());
+        rust_part::Engine* eng = &*m_trackEngines.back(); // pointer to pointee (stable)
+        return std::make_unique<TrackComponent>(eng);
     };
 
     m_trackEditor.removeTrackCallback = [&]{
