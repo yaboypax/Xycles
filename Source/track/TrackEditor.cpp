@@ -9,15 +9,15 @@ namespace {
     constexpr int kButtonHeight = 50;
 }
 
-TrackEditor::TrackEditor(XyclesAudioProcessor &p) : processorRef(p) {
+TrackEditor::TrackEditor() {
     addAndMakeVisible(&m_plusButton);
     m_plusButton.setButtonText("+");
 
     m_plusButton.setColour(juce::TextButton::textColourOffId, juce::Colours::black);
     m_plusButton.setColour(juce::TextButton::buttonColourId, juce::Colours::transparentWhite);
     m_plusButton.onClick = [&] {
-        processorRef.addTrack();
-        std::unique_ptr<TrackComponent> track = std::make_unique<TrackComponent>(processorRef, m_trackCount);
+        assert(addTrackCallback);
+        std::unique_ptr<TrackComponent> track = addTrackCallback();
         addAndMakeVisible(track.get());
         m_tracks.push_back(std::move(track));
         m_trackCount++;
@@ -31,10 +31,11 @@ TrackEditor::TrackEditor(XyclesAudioProcessor &p) : processorRef(p) {
     m_removeButton.setColour(juce::TextButton::textColourOffId, juce::Colours::black);
     m_removeButton.setColour(juce::TextButton::buttonColourId, juce::Colours::transparentWhite);
     m_removeButton.onClick = [&] {
-        processorRef.removeTrack();
+        assert(addTrackCallback);
+        removeTrackCallback();
         m_tracks.pop_back();
         m_trackCount--;
-        const int totalHeight = m_trackCount * kTrackHeight + kButtonHeight;
+        const int totalHeight = static_cast<int>(m_trackCount) * kTrackHeight + kButtonHeight;
         setSize(getWidth(), totalHeight);
     };
 }
