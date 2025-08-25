@@ -1,6 +1,6 @@
 # Xycles
 
-Xycles is a standalone application asynchronous loop station and texture generation suite. It has a custom audio engine built in Rust and uses JUCE/C++ for its GUI. 
+Xycles is a standalone application asynchronous loop station and texture generation suite. It has a custom audio engine built in Rust and uses JUCE/C++ for its GUI. Inspiration and build templates for this came from Stephan Eckes' [rust-audio-plugin](https://github.com/steckes/rust-audio-plugin) repository.
 
 ## Experiments in FSM and Fat Enums
 
