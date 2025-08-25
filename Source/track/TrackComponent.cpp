@@ -320,7 +320,8 @@ void TrackComponent::resized() {
 void TrackComponent::filesDropped(const StringArray &files, int x, int y) {
     if (isInterestedInFileDrag(files)) {
         loadFileThumbnail(*files.begin());
-        const rust::Str rustPath = files.begin()->toStdString();
+        const std::string path = files.begin()->toStdString();
+        const rust::Str rustPath = path;
         m_engine->load_audio(rustPath);
     }
     auto& random = juce::Random::getSystemRandom();
