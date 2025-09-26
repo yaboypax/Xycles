@@ -30,7 +30,8 @@
         SetGrainSpread(f32),
 
         SetReverbWet(f64),
-        SetReverbSize(f64)
+        SetReverbSize(f64),
+        SetReverbDamp(f64),
     }
 
     pub enum EngineEvent {
@@ -72,6 +73,7 @@
 
         pub fn set_reverb_wet(&mut self, wet: f32) { self.push_event(EngineEvent::SetParameters(ParameterState::SetReverbWet(wet as f64)))}
         pub fn set_reverb_size(&mut self, size:f32){ self.push_event(EngineEvent::SetParameters(ParameterState::SetReverbSize(size as f64)))}
+        pub fn set_reverb_damp(&mut self, damp:f32){ self.push_event(EngineEvent::SetParameters(ParameterState::SetReverbDamp(damp as f64)))}
 
         pub fn get_playhead(&self) -> f32
         {

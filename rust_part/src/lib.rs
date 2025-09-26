@@ -34,6 +34,7 @@ mod ffi {
 
         fn set_reverb_wet(self: &mut Engine, wet: f32);
         fn set_reverb_size(self: &mut Engine, size: f32);
+        fn set_reverb_damp(self: &mut Engine, damp: f32);
 
         fn get_playhead(self: &Engine) -> f32;
     }
