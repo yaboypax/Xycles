@@ -98,6 +98,9 @@ impl Track {
                 self.reverb.set_room_size(size);
             }
 
+            ParameterState::SetReverbDamp(damp) => {
+                self.reverb.set_dampening(damp);
+            }
             _ => {}
         }
     }

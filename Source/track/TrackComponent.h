@@ -53,8 +53,8 @@ private:
 
 
     juce::Label m_reverbLabel;
-    TrackKnob m_reverbSize, m_reverbAmount;
-    juce::Label m_reverbSizeLabel, m_reverbAmountLabel;
+    TrackKnob m_reverbSize, m_reverbAmount, m_reverbDamp;
+    juce::Label m_reverbSizeLabel, m_reverbAmountLabel, m_reverbDampLabel;
 
 
     TrackSlider m_startTime, m_endTime;

@@ -207,6 +207,21 @@ void TrackComponent::layoutSliders()
     m_reverbSizeLabel.setText("Room Size", juce::dontSendNotification);
     m_reverbSizeLabel.setJustificationType(juce::Justification::centredTop);
 
+     addAndMakeVisible(m_reverbDamp);
+     m_reverbDamp.setRange(0.0, 1.0, 0.01);
+     m_reverbDamp.setValue(0.0);
+     m_reverbDamp.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
+     m_reverbDamp.setTrackColor(m_color);
+     m_reverbDamp.onValueChange = [&](){
+             m_engine->set_reverb_damp(m_reverbDamp.getValue());
+          };
+
+    addAndMakeVisible(m_reverbDampLabel);
+    m_reverbDampLabel.attachToComponent(&m_reverbDamp, false);
+    m_reverbDampLabel.setColour(juce::Label::textColourId, juce::Colours::black);
+    m_reverbDampLabel.setText("Dampening", juce::dontSendNotification);
+    m_reverbDampLabel.setJustificationType(juce::Justification::centredTop);
+
 
 }
 
@@ -331,7 +346,7 @@ void TrackComponent::resized() {
     m_speedLabel.setBounds(m_speedSlider.getX(), labelY, sliderSize, spacer);
 
     // Grain
-    m_grainSpeed.setBounds(m_speedSlider.getRight()+75, sliderY, sliderSize, sliderSize);
+    m_grainSpeed.setBounds(m_speedSlider.getRight()+40, sliderY, sliderSize, sliderSize);
     m_grainSpeedLabel.setBounds(m_grainSpeed.getX(), labelY, sliderSize, spacer);
 
     m_grainLength.setBounds(m_grainSpeed.getRight()+20, sliderY, sliderSize, sliderSize);
@@ -350,13 +365,16 @@ void TrackComponent::resized() {
     m_granulatorButton.setBounds(m_granulatorLabel.getBounds());
 
     // FX
-    m_reverbAmount.setBounds(m_grainSpread.getRight()+75, sliderY, sliderSize, sliderSize);
+    m_reverbAmount.setBounds(m_grainSpread.getRight()+40, sliderY, sliderSize, sliderSize);
     m_reverbAmountLabel.setBounds(m_reverbAmount.getX(), labelY, sliderSize, spacer);
 
     m_reverbSize.setBounds(m_reverbAmount.getRight()+20, sliderY, sliderSize, sliderSize);
     m_reverbSizeLabel.setBounds(m_reverbSize.getX(), labelY, sliderSize, spacer);
 
-    m_reverbLabel.setBounds(m_reverbAmount.getX(), m_thumbnailBounds.getBottom(), m_reverbSize.getRight()-m_reverbAmount.getX(), spacer);
+    m_reverbDamp.setBounds(m_reverbSize.getRight()+20, sliderY, sliderSize, sliderSize);
+    m_reverbDampLabel.setBounds(m_reverbDamp.getX(), labelY, sliderSize, spacer);
+
+    m_reverbLabel.setBounds(m_reverbAmount.getX(), m_thumbnailBounds.getBottom(), m_reverbDamp.getRight()-m_reverbAmount.getX(), spacer);
 
     m_startTime.setBounds(m_thumbnailBounds.getX(), m_gainSlider.getBottom() + spacer, m_thumbnailBounds.getWidth(), 20);
     m_endTime.setBounds(m_thumbnailBounds.getX(), m_startTime.getBottom() + 5, m_thumbnailBounds.getWidth(), 20);
