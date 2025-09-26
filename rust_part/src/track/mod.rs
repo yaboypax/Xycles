@@ -215,7 +215,7 @@ impl Track {
         for frame in 0..frames {
             // every hop_size frames spawn a new grain at read_pos=0
             if spawn_ctr == 0 {
-                for grain in 0 .. count {
+                for _ in 0 .. count {
                     let pan = random_pan(spread, &mut rng_state);
                     grains.push(Grain {
                         // anchor the grain at current head position inside the loop
