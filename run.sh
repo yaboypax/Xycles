@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-
+mkdir -p cmake-build-release
 cmake --build cmake-build-release --clean-first -j6
 
 OS=$(uname)
