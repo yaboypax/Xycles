@@ -31,7 +31,10 @@ mod ffi {
         fn set_grain_overlap(self: &mut Engine, overlap: f32);
         fn set_grain_count(self: &mut Engine, count: f32);
         fn set_grain_spread(self: &mut Engine, spread: f32);
-        
+
+        fn set_reverb_wet(self: &mut Engine, wet: f32);
+        fn set_reverb_size(self: &mut Engine, size: f32);
+
         fn get_playhead(self: &Engine) -> f32;
     }
 }
