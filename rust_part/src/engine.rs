@@ -9,6 +9,8 @@
     use crate::track::play_head::PlayHead;
     use crate::track::grain::GrainHead;
 
+    use freeverb::Freeverb;
+
     pub enum EngineState {
         Idle,
         Ready (Track),
@@ -125,7 +127,7 @@
             let channels = source.channels() as usize;
             let samples: Vec<f32> = source.convert_samples().collect();
             let end = samples.len() / channels;
-            Track{ samples, start: 0, end, channels, play_head: PlayHead::new(), grain_head: GrainHead::new(sample_rate)}
+            Track{ samples, start: 0, end, channels, play_head: PlayHead::new(), grain_head: GrainHead::new(sample_rate), reverb: Freeverb::new(sample_rate)}
         }
         
         pub fn transition(&mut self, event: EngineEvent) {

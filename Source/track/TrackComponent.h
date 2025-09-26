@@ -50,6 +50,13 @@ private:
     juce::Label m_grainSpeedLabel, m_grainLengthLabel, m_grainOverlapLabel, m_grainsCountLabel, m_grainSpreadLabel;
     juce::TextButton m_granulatorButton;
 
+
+    juce::Label m_effectsLabel;
+    TrackKnob m_reverbTime, m_reverbAmount, m_delayTime, m_delayFeedback, m_delayAmount;
+    juce::Label m_reverbTimeLabel, m_reverbAmountLabel, m_delayTimeLabel, m_delayFeedbackLabel, m_delayAmountLabel;
+    juce::TextButton m_effectsButton;
+
+
     TrackSlider m_startTime, m_endTime;
     Xycles::PlayButton m_playButton;
     Xycles::StopButton m_stopButton;

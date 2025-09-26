@@ -6,6 +6,7 @@ use play_head::PlayHead;
 use crate::engine::ParameterState;
 use crate::track::grain::Grain;
 
+use freeverb::Freeverb;
 
 #[inline]
 fn rando(state: &mut u32) -> f32 {
@@ -32,7 +33,8 @@ pub struct Track {
     pub end:        usize,
     pub channels:   usize,
     pub play_head:  PlayHead,
-    pub grain_head: GrainHead
+    pub grain_head: GrainHead,
+    pub reverb:     Freeverb,
 }
 
 impl Track {
@@ -43,6 +45,7 @@ impl Track {
         let samples = self.samples.len();
         let channels    = self.channels;
 
+        //self.reverb.set_room_size(2.0);
         
         match state {
 
@@ -157,9 +160,12 @@ impl Track {
                     sample = sample * (1.0 - fade_pos) + start_sample * fade_pos;
                 }
 
-
                 buffer[frame*self.channels + channel] += sample * self.play_head_mut().gain;
             }
+
+            let (left_wet, right_wet) = self.reverb.tick((buffer[frame*self.channels] as f64, buffer[frame*self.channels+1] as f64));
+            buffer[frame*self.channels]   = left_wet as f32;
+            buffer[frame*self.channels+1] = right_wet as f32;
 
             self.play_head_mut().position = relative_position;
 
