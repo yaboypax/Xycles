@@ -52,10 +52,9 @@ private:
     juce::TextButton m_granulatorButton;
 
 
-    juce::Label m_effectsLabel;
-    TrackKnob m_reverbSize, m_reverbAmount, m_delayTime, m_delayFeedback, m_delayAmount;
-    juce::Label m_reverbSizeLabel, m_reverbAmountLabel, m_delayTimeLabel, m_delayFeedbackLabel, m_delayAmountLabel;
-    juce::TextButton m_effectsButton;
+    juce::Label m_reverbLabel;
+    TrackKnob m_reverbSize, m_reverbAmount;
+    juce::Label m_reverbSizeLabel, m_reverbAmountLabel;
 
 
     TrackSlider m_startTime, m_endTime;
