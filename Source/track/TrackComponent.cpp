@@ -34,6 +34,11 @@ void TrackComponent::layoutSliders()
     m_granulatorLabel.setColour(juce::Label::textColourId, juce::Colours::black);
     m_granulatorLabel.setJustificationType(juce::Justification::centred);
 
+    addAndMakeVisible(m_reverbLabel);
+    m_reverbLabel.setText("Reverb", juce::dontSendNotification);
+    m_reverbLabel.setColour(juce::Label::textColourId, juce::Colours::black);
+    m_reverbLabel.setJustificationType(juce::Justification::centred);
+
 
     addAndMakeVisible(m_gainSlider);
     m_gainSlider.setRange(0.01, 1.00, 0.01);
@@ -172,12 +177,20 @@ void TrackComponent::layoutSliders()
 
     addAndMakeVisible(m_reverbAmount);
     m_reverbAmount.setRange(0.0, 1.0, 0.01);
-    m_reverbAmount.setValue(0.5);
+    m_reverbAmount.setValue(0.0);
     m_reverbAmount.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
     m_reverbAmount.setTrackColor(m_color);
     m_reverbAmount.onValueChange = [&](){
         m_engine->set_reverb_wet(m_reverbAmount.getValue());
     };
+
+    addAndMakeVisible(m_reverbAmountLabel);
+    m_reverbAmountLabel.attachToComponent(&m_reverbAmount, false);
+    m_reverbAmountLabel.setColour(juce::Label::textColourId, juce::Colours::black);
+    m_reverbAmountLabel.setText("Dry/Wet", juce::dontSendNotification);
+    m_reverbAmountLabel.setJustificationType(juce::Justification::centredTop);
+
+
 
      addAndMakeVisible(m_reverbSize);
      m_reverbSize.setRange(0.0, 1.0, 0.01);
@@ -187,6 +200,14 @@ void TrackComponent::layoutSliders()
      m_reverbSize.onValueChange = [&](){
              m_engine->set_reverb_size(m_reverbSize.getValue());
           };
+
+    addAndMakeVisible(m_reverbSizeLabel);
+    m_reverbSizeLabel.attachToComponent(&m_reverbSize, false);
+    m_reverbSizeLabel.setColour(juce::Label::textColourId, juce::Colours::black);
+    m_reverbSizeLabel.setText("Room Size", juce::dontSendNotification);
+    m_reverbSizeLabel.setJustificationType(juce::Justification::centredTop);
+
+
 }
 
 void TrackComponent::layoutButtons()
@@ -329,8 +350,13 @@ void TrackComponent::resized() {
     m_granulatorButton.setBounds(m_granulatorLabel.getBounds());
 
     // FX
-    m_reverbAmount.setBounds(m_grainSpread.getRight()+20, sliderY, sliderSize, sliderSize);
+    m_reverbAmount.setBounds(m_grainSpread.getRight()+75, sliderY, sliderSize, sliderSize);
+    m_reverbAmountLabel.setBounds(m_reverbAmount.getX(), labelY, sliderSize, spacer);
+
     m_reverbSize.setBounds(m_reverbAmount.getRight()+20, sliderY, sliderSize, sliderSize);
+    m_reverbSizeLabel.setBounds(m_reverbSize.getX(), labelY, sliderSize, spacer);
+
+    m_reverbLabel.setBounds(m_reverbAmount.getX(), m_thumbnailBounds.getBottom(), m_reverbSize.getRight()-m_reverbAmount.getX(), spacer);
 
     m_startTime.setBounds(m_thumbnailBounds.getX(), m_gainSlider.getBottom() + spacer, m_thumbnailBounds.getWidth(), 20);
     m_endTime.setBounds(m_thumbnailBounds.getX(), m_startTime.getBottom() + 5, m_thumbnailBounds.getWidth(), 20);
