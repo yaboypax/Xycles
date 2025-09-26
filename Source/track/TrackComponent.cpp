@@ -169,6 +169,24 @@ void TrackComponent::layoutSliders()
     m_grainSpeed.setEnabled(false);
     m_grainsCount.setEnabled(false);
     m_grainSpread.setEnabled(false);
+
+    addAndMakeVisible(m_reverbAmount);
+    m_reverbAmount.setRange(0.0, 1.0, 0.01);
+    m_reverbAmount.setValue(0.5);
+    m_reverbAmount.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
+    m_reverbAmount.setTrackColor(m_color);
+    m_reverbAmount.onValueChange = [&](){
+        m_engine->set_reverb_wet(m_reverbAmount.getValue());
+    };
+
+     addAndMakeVisible(m_reverbSize);
+     m_reverbSize.setRange(0.0, 1.0, 0.01);
+     m_reverbSize.setValue(0.5);
+     m_reverbSize.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
+     m_reverbSize.setTrackColor(m_color);
+     m_reverbSize.onValueChange = [&](){
+             m_engine->set_reverb_size(m_reverbSize.getValue());
+          };
 }
 
 void TrackComponent::layoutButtons()
@@ -309,6 +327,10 @@ void TrackComponent::resized() {
 
     m_granulatorLabel.setBounds(m_grainSpeed.getX(), m_thumbnailBounds.getBottom(), m_grainSpread.getRight() - m_grainSpeed.getX(), spacer);
     m_granulatorButton.setBounds(m_granulatorLabel.getBounds());
+
+    // FX
+    m_reverbAmount.setBounds(m_grainSpread.getRight()+20, sliderY, sliderSize, sliderSize);
+    m_reverbSize.setBounds(m_reverbAmount.getRight()+20, sliderY, sliderSize, sliderSize);
 
     m_startTime.setBounds(m_thumbnailBounds.getX(), m_gainSlider.getBottom() + spacer, m_thumbnailBounds.getWidth(), 20);
     m_endTime.setBounds(m_thumbnailBounds.getX(), m_startTime.getBottom() + 5, m_thumbnailBounds.getWidth(), 20);
