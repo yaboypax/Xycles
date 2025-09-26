@@ -196,27 +196,30 @@ impl Track {
         let end        = self.end;
         let loop_len   = end - start;
 
-        // &mut borrow
-        let (mut grains, hop_size, speed, grain_speed, spread, mut rng_state, mut read_position, mut spawn_ctr) = {
-            let ghm = self.grain_head_mut();
-            (
-                std::mem::take(ghm.grains()),
-                ghm.hop_size,
-                ghm.speed,
-                ghm.grain_speed,
-                ghm.spread,
-                ghm.rng_state,
-                ghm.base_pos,
-                std::mem::take(&mut ghm.spawn),
-            )
+        // mutable object refs
+        let (ghm, reverb, samples) = (&mut self.grain_head, &mut self.reverb, &self.samples);
+
+        // immutable value refs
+        let (mut grains, hop_size, speed, grain_speed, spread, mut rng_state, mut read_position, mut spawn_ctr, window, grain_size, gain, count) = {
+
+            let grains = std::mem::take(ghm.grains());
+            let hop_size = ghm.hop_size;
+            let speed = ghm.speed;
+            let grain_speed = ghm.grain_speed;
+            let spread = ghm.spread;
+            let rng_state = ghm.rng_state;
+            let read_position = ghm.base_pos;
+            let spawn_ctr = std::mem::take(&mut ghm.spawn);
+
+            let window: &[f32] = &ghm.window;
+            let grain_size = ghm.grain_size;
+            let gain = ghm.gain;
+            let count = ghm.count;
+
+            (grains, hop_size, speed, grain_speed, spread, rng_state, read_position, spawn_ctr, window, grain_size, gain, count)
         };
 
-        // immutable refs AFTER &mut is dropped
-        let samples: &[f32] = &self.samples;
-        let (grain_size, gain, window, count): (usize, f32, &[f32], usize) = {
-            let gh = self.grain_head();
-            (gh.grain_size, gh.gain, &gh.window, gh.count)
-        };
+
 
         for frame in 0..frames {
             // every hop_size frames spawn a new grain at read_pos=0
@@ -282,6 +285,13 @@ impl Track {
             read_position += speed;
             if read_position >= loop_len as f32 { read_position -= loop_len as f32; }
             if read_position < 0.0              { read_position += loop_len as f32; }
+
+
+          let (left_wet, right_wet) = reverb.tick((buffer[frame*self.channels] as f64, buffer[frame*self.channels+1] as f64));
+          buffer[frame*self.channels]   = left_wet as f32;
+          buffer[frame*self.channels+1] = right_wet as f32;
+
+
         }
 
         let ghm = self.grain_head_mut();
