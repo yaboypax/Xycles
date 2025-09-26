@@ -4,8 +4,8 @@
 
 #include "TrackComponent.h"
 
-TrackComponent::TrackComponent(XyclesAudioProcessor &p, const size_t id) :
-                                                    m_id(id), m_processorRef(p),
+TrackComponent::TrackComponent(rust_part::Engine* engine) :
+                                                    m_engine(engine),
                                                     m_thumbnailCache (5),
                                                     m_thumbnail (512, m_formatManager, m_thumbnailCache)
 {
@@ -39,7 +39,7 @@ void TrackComponent::layoutSliders()
     m_gainSlider.setRange(0.01, 1.00, 0.01);
     m_gainSlider.setTrackColor( m_color);
     m_gainSlider.onValueChange = [&]() {
-        m_processorRef.setGain(m_id, static_cast<float>(m_gainSlider.getValue()));
+            m_engine->set_gain(m_gainSlider.getValue());
     };
 
     addAndMakeVisible(m_gainLabel);
@@ -55,7 +55,7 @@ void TrackComponent::layoutSliders()
     m_speedSlider.setValue(1.0);
     m_speedSlider.setTrackColor( m_color);
     m_speedSlider.onValueChange = [&]() {
-        m_processorRef.setSpeed(m_id, static_cast<float>(m_speedSlider.getValue()));
+        m_engine->set_speed(static_cast<float>(m_speedSlider.getValue()));
     };
 
     addAndMakeVisible(m_speedLabel);
@@ -70,7 +70,7 @@ void TrackComponent::layoutSliders()
     m_grainSpeed.setValue(1.0);
     m_grainSpeed.setTrackColor( m_color);
     m_grainSpeed.onValueChange = [&]() {
-        m_processorRef.setGrainSpeed(m_id, static_cast<float>(m_grainSpeed.getValue()));
+        m_engine->set_grain_speed(static_cast<float>(m_grainSpeed.getValue()));
     };
 
     addAndMakeVisible(m_grainSpeedLabel);
@@ -83,7 +83,7 @@ void TrackComponent::layoutSliders()
     m_grainLength.setRange(20, 10000, 1);
     m_grainLength.setTrackColor( m_color);
     m_grainLength.onValueChange = [&]() {
-        m_processorRef.setGrainLength(m_id, static_cast<float>(m_grainLength.getValue()));
+        m_engine->set_grain_length(static_cast<float>(m_grainLength.getValue()));
     };
 
     addAndMakeVisible(m_grainLengthLabel);
@@ -97,7 +97,7 @@ void TrackComponent::layoutSliders()
     m_grainOverlap.setRange(0.1, 10.0, 0.01);
     m_grainOverlap.setTrackColor( m_color);
     m_grainOverlap.onValueChange = [&]() {
-        m_processorRef.setGrainOverlap(m_id, static_cast<float>(m_grainOverlap.getValue()));
+        m_engine->set_grain_overlap(static_cast<float>(m_grainOverlap.getValue()));
     };
 
     addAndMakeVisible(m_grainOverlapLabel);
@@ -110,7 +110,7 @@ void TrackComponent::layoutSliders()
     m_grainSpread.setRange(0.0, 2.0, 0.01);
     m_grainSpread.setTrackColor( m_color);
     m_grainSpread.onValueChange = [&]() {
-        m_processorRef.setGrainSpread(m_id, static_cast<float>(m_grainSpread.getValue()));
+        m_engine->set_grain_spread(static_cast<float>(m_grainSpread.getValue()));
     };
 
     addAndMakeVisible(m_grainSpreadLabel);
@@ -124,7 +124,7 @@ void TrackComponent::layoutSliders()
     m_grainsCount.setRange(1, 12, 1);
     m_grainsCount.setTrackColor( m_color);
     m_grainsCount.onValueChange = [&]() {
-        m_processorRef.setGrainCount(m_id, static_cast<int>(m_grainsCount.getValue()));
+        m_engine->set_grain_count(static_cast<float>(m_grainsCount.getValue()));
     };
 
     addAndMakeVisible(m_grainsCountLabel);
@@ -145,7 +145,7 @@ void TrackComponent::layoutSliders()
             m_startTime.setValue(m_endTime.getValue()-0.001);
         }
         m_endTime.setStartPosition(m_startTime.getValue());
-        m_processorRef.setStart(m_id, static_cast<float>(m_startTime.getValue()));
+        m_engine->set_start(static_cast<float>(m_startTime.getValue()));
         repaint();
     };
 
@@ -160,7 +160,7 @@ void TrackComponent::layoutSliders()
             m_endTime.setValue(m_startTime.getValue()+0.001);
         }
         m_startTime.setEndPosition(m_endTime.getValue());
-        m_processorRef.setEnd(m_id, static_cast<float>(m_endTime.getValue()));
+        m_engine->set_end(static_cast<float>(m_endTime.getValue()));
         repaint();
     };
 
@@ -176,13 +176,16 @@ void TrackComponent::layoutButtons()
     addAndMakeVisible(m_playButton);
     m_playButton.setColour(juce::ComboBox::outlineColourId, m_color);
     m_playButton.onClick = [&]() {
-        m_processorRef.play(m_id, m_playMode);
+        switch (m_playMode) {
+            case Regular : m_engine->play(); break;
+            case Granular : m_engine->grain_play(); break;
+        }
     };
 
     addAndMakeVisible(m_stopButton);
     m_stopButton.setColour(juce::ComboBox::outlineColourId, m_color);
     m_stopButton.onClick = [&]() {
-        m_processorRef.stop(m_id);
+        m_engine->stop();
     };
 
     addAndMakeVisible(m_granulatorButton);
@@ -194,26 +197,30 @@ void TrackComponent::layoutButtons()
 }
 
 void TrackComponent::togglePlayMode() {
-    if (m_playMode == PlayMode::Regular) {
-        m_playMode = PlayMode::Granular;
+    switch (m_playMode) {
+        case Regular : {
+            m_playMode = PlayMode::Granular;
 
-        m_grainLength.setEnabled(true);
-        m_grainOverlap.setEnabled(true);
-        m_grainSpeed.setEnabled(true);
-        m_grainsCount.setEnabled(true);
-        m_grainSpread.setEnabled(true);
+            m_grainLength.setEnabled(true);
+            m_grainOverlap.setEnabled(true);
+            m_grainSpeed.setEnabled(true);
+            m_grainsCount.setEnabled(true);
+            m_grainSpread.setEnabled(true);
+            m_engine->grain_play();
+            break;
 
-    } else if (m_playMode == PlayMode::Granular) {
-        m_playMode = PlayMode::Regular;
+        } case Granular : {
+            m_playMode = PlayMode::Regular;
 
-        m_grainLength.setEnabled(false);
-        m_grainOverlap.setEnabled(false);
-        m_grainSpeed.setEnabled(false);
-        m_grainsCount.setEnabled(false);
-        m_grainSpread.setEnabled(false);
+            m_grainLength.setEnabled(false);
+            m_grainOverlap.setEnabled(false);
+            m_grainSpeed.setEnabled(false);
+            m_grainsCount.setEnabled(false);
+            m_grainSpread.setEnabled(false);
+            m_engine->play();
+            break;
+        }
     }
-
-    m_processorRef.play(m_id, m_playMode);
     repaint();
 }
 
@@ -234,7 +241,7 @@ void TrackComponent::drawTrack(juce::Graphics &g) {
         m_thumbnail.drawChannels (g, m_thumbnailBounds,m_thumbnail.getTotalLength() * m_startTime.getValue(), m_thumbnail.getTotalLength() * m_endTime.getValue(), 1.0f);
 
         g.setColour(juce::Colours::black);
-        const auto playPosition =  m_processorRef.getTrackPlayhead(m_id) * m_thumbnailBounds.toFloat().getWidth() + m_thumbnailBounds.toFloat().getX();
+        const auto playPosition =  m_engine->get_playhead() * m_thumbnailBounds.toFloat().getWidth() + m_thumbnailBounds.toFloat().getX();
         g.drawLine( playPosition, m_thumbnailBounds.toFloat().getY(),playPosition, m_thumbnailBounds.toFloat().getHeight()*1.25f);
     } else {
         g.setColour (juce::Colours::darkgrey);
@@ -313,7 +320,9 @@ void TrackComponent::resized() {
 void TrackComponent::filesDropped(const StringArray &files, int x, int y) {
     if (isInterestedInFileDrag(files)) {
         loadFileThumbnail(*files.begin());
-        m_processorRef.loadFile(m_id, files.begin()->toStdString());
+        const std::string path = files.begin()->toStdString();
+        const rust::Str rustPath = path;
+        m_engine->load_audio(rustPath);
     }
     auto& random = juce::Random::getSystemRandom();
     const juce::Colour color (random.nextInt (256),

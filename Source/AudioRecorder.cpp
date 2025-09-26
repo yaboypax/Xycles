@@ -62,9 +62,9 @@ bool AudioRecorder::isRecording() const
     return activeWriter.load() != nullptr;
 }
 
-void AudioRecorder::processBlock (AudioSampleBuffer& buffer)
+void AudioRecorder::processBlock (const juce::AudioSourceChannelInfo& bufferToFill) const
 {
     const ScopedLock sl (writerLock);
     if (activeWriter.load() != nullptr)
-        activeWriter.load()->write (buffer.getArrayOfReadPointers(), buffer.getNumSamples());
+        activeWriter.load()->write (bufferToFill.buffer->getArrayOfReadPointers(), bufferToFill.buffer->getNumSamples());
 }
