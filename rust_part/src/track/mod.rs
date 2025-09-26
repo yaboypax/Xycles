@@ -89,10 +89,15 @@ impl Track {
             ParameterState::SetGrainCount(grain_count) => {
                 self.grain_head_mut().count = grain_count as usize;
             }
-            
-            _ => {
+
+            ParameterState::SetReverbWet(wet) => {
+                self.reverb.set_wet(wet);
+            }
+            ParameterState::SetReverbSize(size) => {
+                self.reverb.set_room_size(size);
             }
 
+            _ => {}
         }
     }
     

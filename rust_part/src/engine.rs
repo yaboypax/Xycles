@@ -27,8 +27,12 @@
         SetGrainLength(f32),
         SetGrainOverlap(f32),
         SetGrainCount(f32),
-        SetGrainSpread(f32)
+        SetGrainSpread(f32),
+
+        SetReverbWet(f64),
+        SetReverbSize(f64)
     }
+
     pub enum EngineEvent {
         Load(String),
         Play,           
@@ -65,7 +69,10 @@
         pub fn set_grain_overlap(&mut self, o: f32){ self.push_event(EngineEvent::SetParameters(ParameterState::SetGrainOverlap(o)))}
         pub fn set_grain_count(&mut self, c: f32)  { self.push_event(EngineEvent::SetParameters(ParameterState::SetGrainCount(c)))}
         pub fn set_grain_spread(&mut self, sp: f32){ self.push_event(EngineEvent::SetParameters(ParameterState::SetGrainSpread(sp)))}
-        
+
+        pub fn set_reverb_wet(&mut self, wet: f32) { self.push_event(EngineEvent::SetParameters(ParameterState::SetReverbWet(wet as f64)))}
+        pub fn set_reverb_size(&mut self, size:f32){ self.push_event(EngineEvent::SetParameters(ParameterState::SetReverbSize(size as f64)))}
+
         pub fn get_playhead(&self) -> f32
         {
             match &self.state {
