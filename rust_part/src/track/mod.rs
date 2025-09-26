@@ -92,6 +92,7 @@ impl Track {
 
             ParameterState::SetReverbWet(wet) => {
                 self.reverb.set_wet(wet);
+                self.reverb.set_dry(1.0-wet);
             }
             ParameterState::SetReverbSize(size) => {
                 self.reverb.set_room_size(size);
