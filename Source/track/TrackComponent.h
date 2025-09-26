@@ -8,13 +8,17 @@
 #include "TrackKnob.h"
 #include "../subcomponents/PlayButton.h"
 #include "../subcomponents/StopButton.h"
-#include "../PluginProcessor.h"
+#include "rust_part.h"
 
+enum PlayMode {
+    Regular,
+    Granular
+  };
 
 class TrackComponent: public juce::AnimatedAppComponent, public juce::FileDragAndDropTarget
 {
 public:
-    explicit TrackComponent(XyclesAudioProcessor &, size_t);
+    explicit TrackComponent(rust_part::Engine*);
     void paint(juce::Graphics &) override;
     void resized() override;
 
@@ -25,21 +29,18 @@ public:
     void animate(juce::Graphics &g);
     void update() override;
 
-    size_t getID() const {return m_id;}
 
     void mouseEnter(const MouseEvent &e) override;
 
 private:
+    rust_part::Engine* m_engine;
     void layoutSliders();
     void layoutButtons();
 
     PlayMode m_playMode = PlayMode::Regular;
     void togglePlayMode();
 
-    const size_t m_id;
     juce::Colour m_color;
-
-    XyclesAudioProcessor &m_processorRef;
 
     juce::Label m_playHeadLabel;
     TrackKnob m_gainSlider, m_speedSlider;

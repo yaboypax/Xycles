@@ -10,11 +10,11 @@ public:
     void startRecording (const File& file);
     void stop();
 
-    void prepareToPlay(const double sampleRate);
+    void prepareToPlay(double sampleRate);
     void releaseResources();
 
     bool isRecording() const;
-    void processBlock (AudioSampleBuffer& buffer);
+    void processBlock (const juce::AudioSourceChannelInfo& bufferToFill) const;
 
 
 private:

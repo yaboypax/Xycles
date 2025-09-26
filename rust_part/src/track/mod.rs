@@ -169,7 +169,7 @@ impl Track {
 
             self.play_head_mut().position = relative_position;
 
-            //
+             //
             // // Clip
             // for s in buffer.iter_mut() {
             //     *s = (*s).clamp(-1.0, 1.0);
@@ -231,11 +231,6 @@ impl Track {
                 if grains.len() > 64 { grains.remove(0); }
             }
             spawn_ctr = spawn_ctr.saturating_sub(1);
-
-            // clear output
-            for c in 0..channels {
-                buffer[frame * channels + c] = 0.0;
-            }
 
             // advance each grain and sum into output
             grains.retain_mut(|g| {
