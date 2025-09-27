@@ -65,8 +65,10 @@ void RecordingIndicator::startRecording()
 
 void RecordingIndicator::stopRecording()
 {
-    m_recorder->stop();
-    m_chooser.launchAsync (  FileBrowserComponent::saveMode
+    if (m_recorder->isRecording())
+    {
+        m_recorder->stop();
+        m_chooser.launchAsync (  FileBrowserComponent::saveMode
                          | FileBrowserComponent::canSelectFiles
                          | FileBrowserComponent::warnAboutOverwriting,
                          [this] (const FileChooser& c)
@@ -75,6 +77,7 @@ void RecordingIndicator::stopRecording()
                                  if (const auto outputStream = makeOutputStream (c.getURLResult()))
                                      outputStream->writeFromInputStream (inputStream, -1);
                           });
+    }
 }
 
 void RecordingIndicator::setRecorder(std::shared_ptr<AudioRecorder> recorder)
