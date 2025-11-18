@@ -44,7 +44,6 @@ impl Track {
 
         let samples = self.samples.len();
         let channels    = self.channels;
-
         //self.reverb.set_room_size(2.0);
         
         match state {
@@ -158,7 +157,10 @@ impl Track {
                     .samples
                     .get(next_offset + channel)
                     .unwrap_or(&0.0);
-                let mut sample = s0 + (s1 - s0) * fraction;
+
+
+                let (left_wet, right_wet) = self.reverb.tick((s0 as f64, s1 as f64));
+                let mut sample = left_wet as f32 + (right_wet - left_wet) as f32 * fraction;
 
 
                 if index >= loop_length - crossfade_samples {
@@ -171,10 +173,6 @@ impl Track {
 
                 buffer[frame*self.channels + channel] += sample * self.play_head_mut().gain;
             }
-
-            let (left_wet, right_wet) = self.reverb.tick((buffer[frame*self.channels] as f64, buffer[frame*self.channels+1] as f64));
-            buffer[frame*self.channels]   = left_wet as f32;
-            buffer[frame*self.channels+1] = right_wet as f32;
 
             self.play_head_mut().position = relative_position;
 
@@ -247,36 +245,26 @@ impl Track {
             // advance each grain and sum into output
             grains.retain_mut(|g| {
                 if g.window_position < grain_size {
-                    let idx  = (g.read_position.floor() as usize) % loop_len;
+                    let idx = (g.read_position.floor() as usize) % loop_len;
                     let next = (idx + 1) % loop_len;
                     let frac = (g.read_position - (idx as f32)).clamp(0.0, 1.0);
-                    let w    = window[g.window_position];
+                    let w = window[g.window_position];
 
-                    if channels == 2 {
-                        // interpolate source per channel, then make mono
-                        let s0_l = *samples.get((start + idx)  * 2 + 0).unwrap_or(&0.0);
-                        let s0_r = *samples.get((start + idx)  * 2 + 1).unwrap_or(&0.0);
-                        let s1_l = *samples.get((start + next) * 2 + 0).unwrap_or(&0.0);
-                        let s1_r = *samples.get((start + next) * 2 + 1).unwrap_or(&0.0);
+                    let s0_l = *samples.get((start + idx) * 2 + 0).unwrap_or(&0.0);
+                    let s0_r = *samples.get((start + idx) * 2 + 1).unwrap_or(&0.0);
+                    let s1_l = *samples.get((start + next) * 2 + 0).unwrap_or(&0.0);
+                    let s1_r = *samples.get((start + next) * 2 + 1).unwrap_or(&0.0);
 
-                        let l = s0_l + (s1_l - s0_l) * frac;
-                        let r = s0_r + (s1_r - s0_r) * frac;
-                        let mono = 0.5 * (l + r);
+                    let l = s0_l + (s1_l - s0_l) * frac;
+                    let r = s0_r + (s1_r - s0_r) * frac;
+                    let (left_wet, right_wet) = reverb.tick((l as f64, r as f64));
 
-                        let (gl, gr) = equal_power_gains(g.pan);
-                        buffer[frame * 2 + 0] += mono * w * gain * gl;
-                        buffer[frame * 2 + 1] += mono * w * gain * gr;
-                    } else {
-                        // mono or multichannel fallback: no pan
-                        for c in 0..channels {
-                            let s0 = *samples.get((start + idx)  * channels + c).unwrap_or(&0.0);
-                            let s1 = *samples.get((start + next) * channels + c).unwrap_or(&0.0);
-                            let sample = s0 + (s1 - s0) * frac;
-                            buffer[frame * channels + c] += sample * w * gain;
-                        }
-                    }
+                    let mono = 0.5 * (l + r);
+                    let (gl, gr) = equal_power_gains(g.pan);
 
-                    // advance grain
+                    buffer[frame * channels + 0] += mono * w * gain * gl;;
+                    buffer[frame * channels + 1] += mono * w * gain * gr;
+
                     g.read_position = (g.read_position + g.grain_speed).rem_euclid(loop_len as f32);
                     g.window_position += 1;
                     true
@@ -288,12 +276,6 @@ impl Track {
             read_position += speed;
             if read_position >= loop_len as f32 { read_position -= loop_len as f32; }
             if read_position < 0.0              { read_position += loop_len as f32; }
-
-
-          let (left_wet, right_wet) = reverb.tick((buffer[frame*self.channels] as f64, buffer[frame*self.channels+1] as f64));
-          buffer[frame*self.channels]   = left_wet as f32;
-          buffer[frame*self.channels+1] = right_wet as f32;
-
 
         }
 
