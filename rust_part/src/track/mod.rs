@@ -243,6 +243,7 @@ impl Track {
             spawn_ctr = spawn_ctr.saturating_sub(1);
 
             // advance each grain and sum into output
+            let (mut out_left, mut out_right) :(f32,f32) = (0.0, 0.0);
             grains.retain_mut(|g| {
                 if g.window_position < grain_size {
                     let idx = (g.read_position.floor() as usize) % loop_len;
@@ -257,13 +258,12 @@ impl Track {
 
                     let l = s0_l + (s1_l - s0_l) * frac;
                     let r = s0_r + (s1_r - s0_r) * frac;
-                    let (left_wet, right_wet) = reverb.tick((l as f64, r as f64));
 
                     let mono = 0.5 * (l + r);
                     let (gl, gr) = equal_power_gains(g.pan);
 
-                    buffer[frame * channels + 0] += mono * w * gain * gl;;
-                    buffer[frame * channels + 1] += mono * w * gain * gr;
+                    out_left  += mono * w * gain * gl;
+                    out_right += mono * w * gain * gr;
 
                     g.read_position = (g.read_position + g.grain_speed).rem_euclid(loop_len as f32);
                     g.window_position += 1;
@@ -272,6 +272,11 @@ impl Track {
                     false
                 }
             });
+
+
+            let (left_wet, right_wet) = reverb.tick((out_left as f64, out_right as f64));
+            buffer[frame * channels + 0] += left_wet  as f32;
+            buffer[frame * channels + 1] += right_wet as f32;
 
             read_position += speed;
             if read_position >= loop_len as f32 { read_position -= loop_len as f32; }
