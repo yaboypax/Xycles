@@ -57,3 +57,15 @@ void TrackEditor::resized()
     }
 
 }
+
+void TrackEditor::playAll() const noexcept
+{
+    for (const auto& track : m_tracks)
+        track->play();
+}
+
+void TrackEditor::stopAll() const noexcept
+{
+    for (const auto& track : m_tracks)
+        track->stop();
+}

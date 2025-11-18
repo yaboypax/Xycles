@@ -29,6 +29,8 @@ public:
     void animate(juce::Graphics &g);
     void update() override;
 
+    void play();
+    void stop();
 
     void mouseEnter(const MouseEvent &e) override;
 

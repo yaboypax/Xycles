@@ -11,6 +11,9 @@ public:
     void paint(juce::Graphics &) override {}
     void resized() override;
 
+    void playAll() const noexcept;
+    void stopAll() const noexcept;
+
     std::function<std::unique_ptr<TrackComponent>()> addTrackCallback;
     std::function<void()> removeTrackCallback;
 

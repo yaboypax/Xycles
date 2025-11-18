@@ -24,8 +24,8 @@ public:
     void getNextAudioBlock (const juce::AudioSourceChannelInfo& bufferToFill) override;
     void releaseResources() override;
 
-    void playAll();
-    void stopAll();
+    void playAll() const noexcept;
+    void stopAll() const noexcept;
 
 private:
     rust::Vec<float> m_interleavedBuffer;
