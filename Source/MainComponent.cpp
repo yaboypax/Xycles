@@ -94,16 +94,12 @@ void MainComponent::releaseResources() {
     m_recorder->releaseResources();
 }
 
-
-void MainComponent::playAll()
+void MainComponent::playAll() const noexcept
 {
-  for (auto& track: m_trackEngines)
-    track->play();
+    m_trackEditor.playAll();
 }
 
-void MainComponent::stopAll()
+void MainComponent::stopAll() const noexcept
 {
-  for (auto& track: m_trackEngines)
-    track->stop();
-
+  m_trackEditor.stopAll();
 }

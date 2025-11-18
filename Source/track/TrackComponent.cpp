@@ -422,3 +422,17 @@ void TrackComponent::mouseEnter(const MouseEvent &e)
 {
 
 }
+
+void TrackComponent::play()
+{
+    if (m_playMode == Regular) {
+        m_engine->play();
+    } else if (m_playMode == Granular) {
+        m_engine->grain_play();
+    }
+}
+
+void TrackComponent::stop()
+{
+    m_engine->stop();
+}
