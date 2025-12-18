@@ -313,14 +313,10 @@ void TrackComponent::drawTrack(juce::Graphics &g) {
         const auto playPosition =  m_engine->get_playhead() * m_thumbnailBounds.toFloat().getWidth() + m_thumbnailBounds.toFloat().getX();
         g.drawLine( playPosition, m_thumbnailBounds.toFloat().getY(),playPosition, m_thumbnailBounds.toFloat().getHeight()*1.25f);
     } else {
-        g.setColour (juce::Colours::darkgrey);
-        g.fillRect (m_thumbnailBounds);
-
-        //animate(g);
-
+        animate(g);
         g.setColour(juce::Colours::black);
         g.setFont (32.0f);
-        g.drawText("Drag and Drop .wav File", m_thumbnailBounds, juce::Justification::centred, false);
+        g.drawText("Click to Select or Drag and Drop .wav File", m_thumbnailBounds, juce::Justification::centred, false);
 
 
     }
