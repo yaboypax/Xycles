@@ -248,6 +248,21 @@ void TrackComponent::layoutButtons()
     m_granulatorButton.onClick = [&]() {
         togglePlayMode();
     };
+
+    addAndMakeVisible(m_loadButton);
+    m_loadButton.setColour(juce::TextButton::buttonColourId, juce::Colours::transparentWhite);
+    m_loadButton.onClick = [&]()
+    {
+        m_fileChooser = std::make_unique<juce::FileChooser>("Select a file", File::getSpecialLocation (File::userHomeDirectory) , "*.wav;", true, false, nullptr);
+        m_fileChooser->launchAsync(
+            juce::FileBrowserComponent::openMode
+            | juce::FileBrowserComponent::canSelectFiles,
+            [this] (const juce::FileChooser& fc){
+                if (const auto file = fc.getResult(); file.existsAsFile())
+                    filesDropped({file.getFullPathName()}, 0, 0);
+            }
+        );
+    };
 }
 
 void TrackComponent::togglePlayMode() {
@@ -380,6 +395,7 @@ void TrackComponent::resized() {
     m_endTime.setBounds(m_thumbnailBounds.getX(), m_startTime.getBottom() + 5, m_thumbnailBounds.getWidth(), 20);
     m_playButton.setBounds(m_thumbnailBounds.getRight() - buttonSize*2 - margin*2, buttonY, buttonSize, buttonSize);
     m_stopButton.setBounds(m_thumbnailBounds.getRight() - buttonSize - margin, buttonY, buttonSize, buttonSize);
+    m_loadButton.setBounds(m_thumbnailBounds);
     //DBG("RESIZED");
 }
 
