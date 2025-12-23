@@ -32,7 +32,18 @@ public:
     void play();
     void stop();
 
+    void setLength(const double length) {
+        const auto trackLength = m_engine->get_length();
+        const auto end = m_startTime.getValue() + static_cast<double>(length)/static_cast<double>(trackLength);
+        m_endTime.setValue(end);
+    }
+
     void mouseEnter(const MouseEvent &e) override;
+
+    std::function<void()> minusCallback;
+    std::function<void(double)> loopMasterCallback;
+    std::function<void()> soloCallback;
+    std::function<void()> muteCallback;
 
 private:
     rust_part::Engine* m_engine;
@@ -69,5 +80,7 @@ private:
     juce::Rectangle<int> m_thumbnailBounds;
     juce::TextButton m_loadButton;
     std::unique_ptr<juce::FileChooser> m_fileChooser;
+
+    juce::TextButton m_minusButton, m_loopMasterButton, m_soloButton, m_muteButton;
 };
 
