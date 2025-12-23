@@ -14,6 +14,13 @@ public:
     void playAll() const noexcept;
     void stopAll() const noexcept;
 
+    void setGlobalLoop(const double length)  const noexcept
+    {
+        for (const auto& track : m_tracks) {
+            track->setLength(length);
+        }
+    }
+
     std::function<std::unique_ptr<TrackComponent>()> addTrackCallback;
     std::function<void()> removeTrackCallback;
 

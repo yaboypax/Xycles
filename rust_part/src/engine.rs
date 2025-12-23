@@ -99,6 +99,17 @@
                 }
             }
         }
+
+        pub fn get_length(&self) -> usize {
+
+            match &self.state {
+                EngineState::Playing(track) | EngineState::Ready(track) | EngineState::Granulating(track) => {
+                    track.samples.len() / track.channels
+                }
+                EngineState::Idle | _ => 0
+            }
+
+        }
         
         pub fn fill_silence(buffer: &mut Vec<f32>) {for sample in buffer.iter_mut() {*sample = 0.0}; }
 

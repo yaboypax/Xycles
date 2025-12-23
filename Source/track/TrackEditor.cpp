@@ -18,6 +18,7 @@ TrackEditor::TrackEditor() {
     m_plusButton.onClick = [&] {
         assert(addTrackCallback);
         std::unique_ptr<TrackComponent> track = addTrackCallback();
+        track->loopMasterCallback = [&](const double amount){ setGlobalLoop(amount);};
         addAndMakeVisible(track.get());
         m_tracks.push_back(std::move(track));
         m_trackCount++;

@@ -263,6 +263,19 @@ void TrackComponent::layoutButtons()
             }
         );
     };
+
+
+    addAndMakeVisible(m_loopMasterButton);
+    m_loopMasterButton.setButtonText("LOOP");
+    m_loopMasterButton.setColour(juce::ComboBox::outlineColourId, m_color);
+    m_loopMasterButton.setColour(juce::TextButton::buttonColourId, juce::Colours::transparentWhite);
+    m_loopMasterButton.onClick = [&]() {
+        if (loopMasterCallback) {
+            const auto samples = m_engine->get_length();
+            const auto length = m_endTime.getValue() * samples - m_startTime.getValue() * samples;
+            loopMasterCallback(length);
+        }
+    };
 }
 
 void TrackComponent::togglePlayMode() {
@@ -393,6 +406,8 @@ void TrackComponent::resized() {
     m_stopButton.setBounds(m_thumbnailBounds.getRight() - buttonSize - margin, buttonY, buttonSize, buttonSize);
     m_loadButton.setBounds(m_thumbnailBounds);
     //DBG("RESIZED");
+
+    m_loopMasterButton.setBounds(m_thumbnailBounds.getRight() + margin, getHeight()/4, buttonSize/2, buttonSize/2);
 }
 
 void TrackComponent::filesDropped(const StringArray &files, int x, int y) {
