@@ -463,3 +463,10 @@ void TrackComponent::stop()
 {
     m_engine->stop();
 }
+
+void TrackComponent::setLength(const double length) {
+    const auto trackLength = m_engine->get_length();
+    const auto end = m_startTime.getValue() + static_cast<double>(length)/static_cast<double>(trackLength);
+    m_endTime.setValue(end);
+}
+

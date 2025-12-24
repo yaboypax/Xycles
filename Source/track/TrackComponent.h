@@ -32,12 +32,7 @@ public:
     void play();
     void stop();
 
-    void setLength(const double length) {
-        const auto trackLength = m_engine->get_length();
-        const auto end = m_startTime.getValue() + static_cast<double>(length)/static_cast<double>(trackLength);
-        m_endTime.setValue(end);
-    }
-
+    void setLength(double length);
     void mouseEnter(const MouseEvent &e) override;
 
     std::function<void()> minusCallback;
