@@ -70,3 +70,10 @@ void TrackEditor::stopAll() const noexcept
     for (const auto& track : m_tracks)
         track->stop();
 }
+
+void TrackEditor::setGlobalLoop(const double length) const noexcept
+{
+    for (const auto& track : m_tracks) {
+        track->setLength(length);
+    }
+}
