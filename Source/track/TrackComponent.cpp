@@ -41,10 +41,11 @@ void TrackComponent::layoutSliders()
 
 
     addAndMakeVisible(m_gainSlider);
-    m_gainSlider.setRange(0.01, 1.00, 0.01);
+    m_gainSlider.setRange(0.01, 2.00, 0.01);
+    m_gainSlider.setValue(1.0);
     m_gainSlider.setTrackColor( m_color);
     m_gainSlider.onValueChange = [&]() {
-            m_engine->set_gain(m_gainSlider.getValue());
+            m_engine->set_gain(static_cast<float>(m_gainSlider.getValue()));
     };
 
     addAndMakeVisible(m_gainLabel);
@@ -177,12 +178,12 @@ void TrackComponent::layoutSliders()
 
     addAndMakeVisible(m_reverbAmount);
     m_reverbAmount.setRange(0.0, 1.0, 0.01);
-    m_reverbAmount.setValue(0.0);
     m_reverbAmount.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
     m_reverbAmount.setTrackColor(m_color);
     m_reverbAmount.onValueChange = [&](){
-        m_engine->set_reverb_wet(m_reverbAmount.getValue());
+        m_engine->set_reverb_wet(static_cast<float>(m_reverbAmount.getValue()));
     };
+    m_reverbAmount.setValue(0.0);
 
     addAndMakeVisible(m_reverbAmountLabel);
     m_reverbAmountLabel.attachToComponent(&m_reverbAmount, false);
@@ -194,12 +195,12 @@ void TrackComponent::layoutSliders()
 
      addAndMakeVisible(m_reverbSize);
      m_reverbSize.setRange(0.0, 1.0, 0.01);
-     m_reverbSize.setValue(0.5);
      m_reverbSize.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
      m_reverbSize.setTrackColor(m_color);
      m_reverbSize.onValueChange = [&](){
-             m_engine->set_reverb_size(m_reverbSize.getValue());
+             m_engine->set_reverb_size(static_cast<float>(m_reverbSize.getValue()));
           };
+    m_reverbSize.setValue(0.5);
 
     addAndMakeVisible(m_reverbSizeLabel);
     m_reverbSizeLabel.attachToComponent(&m_reverbSize, false);
@@ -209,12 +210,12 @@ void TrackComponent::layoutSliders()
 
      addAndMakeVisible(m_reverbDamp);
      m_reverbDamp.setRange(0.0, 1.0, 0.01);
-     m_reverbDamp.setValue(0.0);
      m_reverbDamp.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
      m_reverbDamp.setTrackColor(m_color);
      m_reverbDamp.onValueChange = [&](){
-             m_engine->set_reverb_damp(m_reverbDamp.getValue());
+             m_engine->set_reverb_damp(static_cast<float>(m_reverbDamp.getValue()));
           };
+    m_reverbDamp.setValue(0.0);
 
     addAndMakeVisible(m_reverbDampLabel);
     m_reverbDampLabel.attachToComponent(&m_reverbDamp, false);
