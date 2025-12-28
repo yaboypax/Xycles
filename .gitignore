@@ -1,3 +1,1 @@
-.*
-.idea/
-rust_part/target/
+build/*
