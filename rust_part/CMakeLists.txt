@@ -23,7 +23,7 @@ set(RUST_PART_H   "${RUST_OUT_DIR}/${RUST_CRATE_NAME}.h")
 
 if (MSVC)
     set(RUST_PART_LIB "${RUST_OUT_DIR}/${TARGET_DIR}/${RUST_CRATE_NAME}.lib")
-elseif (APPLE)
+else ()
     set(RUST_PART_LIB "${RUST_OUT_DIR}/${TARGET_DIR}/lib${RUST_CRATE_NAME}.a")
 endif ()
 
