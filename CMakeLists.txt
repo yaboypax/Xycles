@@ -22,6 +22,8 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS true)
 # Set the C++ version
 set(CMAKE_CXX_STANDARD 17)
 
+set(GDK_BACKEND x11)
+
 # Define Rust library name once here
 set(RUST_CRATE_NAME "rust_part")
 
@@ -30,6 +32,8 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR}/${RUST_CRATE_NAME})
 include_directories(include)
 add_subdirectory(${RUST_CRATE_NAME})
 
+add_compile_options(-fsanitize=address)
+add_link_options(-fsanitize=address)
 
 # If you've installed JUCE somehow (via a package manager, or directly using the CMake install
 # target), you'll need to tell this project that it depends on the installed copy of JUCE. If you've
@@ -85,7 +89,7 @@ juce_add_gui_app(Xycles
 # this header will be automatically added to the target. The main function of the JuceHeader is to
 # include all your JUCE module headers; if you're happy to include module headers directly, you
 # probably don't need to call this.
- 
+
 juce_generate_juce_header(Xycles)
 
 # `target_sources` adds source files to a target. We pass the target that needs the sources as the
@@ -112,9 +116,9 @@ target_sources(Xycles
         Source/track/TrackKnob.h
         Source/track/TrackSlider.cpp
         Source/track/TrackSlider.h
-		Source/subcomponents/PlayButton.h
-		Source/subcomponents/RecordButton.h
-		Source/subcomponents/StopButton.h
+  Source/subcomponents/PlayButton.h
+  Source/subcomponents/RecordButton.h
+  Source/subcomponents/StopButton.h
 )
 
 # `target_compile_definitions` adds some preprocessor definitions to our target. In a Projucer
@@ -154,7 +158,7 @@ juce_add_binary_data(XyclesBinaryData
 # here too. This is a standard CMake command.
 
 if (MSVC)
-    target_link_libraries(Xycles PRIVATE
+  target_link_libraries(Xycles PRIVATE
             userenv ntdll
             OleAut32
             Propsys
@@ -168,6 +172,7 @@ target_link_libraries(Xycles
         juce::juce_audio_utils
         rust_part
         ${RUST_PART_LIB}
+  pthread
         PUBLIC
         juce::juce_recommended_config_flags
         juce::juce_recommended_lto_flags
