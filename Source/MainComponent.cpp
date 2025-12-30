@@ -38,6 +38,7 @@ MainComponent::MainComponent() {
       break;
     }
     }
+    m_trackEditor.setTheme(m_theme);
     repaint();
   };
 

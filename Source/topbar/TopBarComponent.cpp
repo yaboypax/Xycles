@@ -3,6 +3,7 @@
 //
 
 #include "TopBarComponent.h"
+#include "juce_graphics/juce_graphics.h"
 
 TopBarComponent::TopBarComponent() {
   addAndMakeVisible(m_globalPlay);
@@ -53,11 +54,23 @@ TopBarComponent::TopBarComponent() {
   m_lightDarkButton.onClick = [&] {
     if (onLightDarkToggle)
       onLightDarkToggle();
+
+    if (m_lightDarkButton.getButtonText() == "LIGHT") {
+      m_lightDarkButton.setButtonText("DARK");
+    } else if (m_lightDarkButton.getButtonText() == "DARK") {
+      m_lightDarkButton.setButtonText("LIGHT");
+    }
   };
 }
 
 void TopBarComponent::paint(juce::Graphics &g) {
-  g.setColour(juce::Colours::black);
+
+  if (m_lightDarkButton.getButtonText() == "LIGHT") {
+    g.setColour(juce::Colours::black);
+  } else if (m_lightDarkButton.getButtonText() == "DARK") {
+    g.setColour(juce::Colours::white);
+  }
+
   g.setFont(25.f);
   g.drawText("Xycles", getLocalBounds(), juce::Justification::centred, true);
 
