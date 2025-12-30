@@ -3,6 +3,7 @@
 //
 
 #include "MainComponent.h"
+#include "juce_graphics/juce_graphics.h"
 
 MainComponent::MainComponent() {
   setSize(1200, 1000);
@@ -26,16 +27,44 @@ MainComponent::MainComponent() {
 
   m_topBar.setRecorder(m_recorder);
 
+  m_topBar.onLightDarkToggle = [&] {
+    switch (m_theme) {
+    case Theme::LIGHT: {
+      m_theme = Theme::DARK;
+      break;
+    }
+    case Theme::DARK: {
+      m_theme = Theme::LIGHT;
+      break;
+    }
+    }
+    repaint();
+  };
+
   m_backgroundImage = juce::Image(juce::ImageCache::getFromMemory(
       BinaryData::background_png, BinaryData::background_pngSize));
+  m_darkBackgroundImage = juce::Image(juce::ImageCache::getFromMemory(
+      BinaryData::darkbackground_png, BinaryData::darkbackground_pngSize));
 }
 
 MainComponent::~MainComponent() { shutdownAudio(); }
 
 //==============================================================================
 void MainComponent::paint(juce::Graphics &g) {
-  g.fillAll(juce::Colours::white);
-  g.drawImage(m_backgroundImage, getLocalBounds().toFloat());
+
+  switch (m_theme) {
+  case Theme::LIGHT: {
+    g.fillAll(juce::Colours::white);
+    g.drawImage(m_backgroundImage, getLocalBounds().toFloat());
+    break;
+  }
+  case Theme::DARK: {
+    g.fillAll(juce::Colour(0xFF383838));
+    // g.setOpacity(0.8f);
+    g.drawImage(m_darkBackgroundImage, getLocalBounds().toFloat());
+    break;
+  }
+  }
 }
 
 void MainComponent::resized() {
