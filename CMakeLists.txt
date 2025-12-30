@@ -147,6 +147,7 @@ target_compile_definitions(Xycles
 juce_add_binary_data(XyclesBinaryData
         SOURCES
         Resource/background.png
+        Resource/dark-background.png
         NAMESPACE BinaryData
 )
 
