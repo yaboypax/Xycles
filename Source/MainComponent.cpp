@@ -63,9 +63,7 @@ void MainComponent::getNextAudioBlock(
     return;
   bufferToFill.clearActiveBufferRegion();
 
-  // m_interleavedBuffer.resize((size_t)bufferToFill.buffer->getNumSamples()  *
-  // (size_t)bufferToFill.buffer->getNumChannels());
-
+  /*
   const int frames = bufferToFill.numSamples;
   const int ch = bufferToFill.buffer->getNumChannels();
   const int needed = frames * ch;
@@ -74,6 +72,7 @@ void MainComponent::getNextAudioBlock(
       "frames=" + juce::String(frames) + " ch=" + juce::String(ch) +
       " needed=" + juce::String(needed) +
       " vecSize=" + juce::String((int)m_interleavedBuffer.size()));
+  */
 
   using Format = AudioData::Format<AudioData::Float32, AudioData::NativeEndian>;
   juce::AudioData::interleaveSamples(
