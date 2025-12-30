@@ -32,8 +32,8 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR}/${RUST_CRATE_NAME})
 include_directories(include)
 add_subdirectory(${RUST_CRATE_NAME})
 
-add_compile_options(-fsanitize=address)
-add_link_options(-fsanitize=address)
+# add_compile_options(-fsanitize=address)
+# add_link_options(-fsanitize=address)
 
 # If you've installed JUCE somehow (via a package manager, or directly using the CMake install
 # target), you'll need to tell this project that it depends on the installed copy of JUCE. If you've
