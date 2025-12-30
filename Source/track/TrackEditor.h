@@ -4,23 +4,23 @@
 #pragma once
 #include "TrackComponent.h"
 
-
 class TrackEditor : public juce::Component {
 public:
-    explicit TrackEditor();
-    void paint(juce::Graphics &) override {}
-    void resized() override;
+  explicit TrackEditor();
+  void paint(juce::Graphics &) override {}
+  void resized() override;
 
-    void playAll() const noexcept;
-    void stopAll() const noexcept;
+  void playAll() const noexcept;
+  void stopAll() const noexcept;
 
-    void setGlobalLoop(double length)  const noexcept;
+  void setGlobalLoop(double length) const noexcept;
+  void setTheme(Theme theme);
 
-    std::function<std::unique_ptr<TrackComponent>()> addTrackCallback;
-    std::function<void()> removeTrackCallback;
+  std::function<std::unique_ptr<TrackComponent>()> addTrackCallback;
+  std::function<void()> removeTrackCallback;
 
 private:
-    std::vector<std::unique_ptr<TrackComponent>> m_tracks;
-    std::size_t m_trackCount = 0;
-    juce::TextButton m_plusButton,m_removeButton;
+  std::vector<std::unique_ptr<TrackComponent>> m_tracks;
+  std::size_t m_trackCount = 0;
+  juce::TextButton m_plusButton, m_removeButton;
 };

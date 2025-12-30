@@ -3,79 +3,80 @@
 //
 
 #pragma once
-#include <JuceHeader.h>
-#include "TrackSlider.h"
-#include "TrackKnob.h"
 #include "../subcomponents/PlayButton.h"
 #include "../subcomponents/StopButton.h"
+#include "TrackKnob.h"
+#include "TrackSlider.h"
 #include "rust_part.h"
+#include <JuceHeader.h>
 
-enum PlayMode {
-    Regular,
-    Granular
-  };
+enum PlayMode { Regular, Granular };
 
-class TrackComponent: public juce::AnimatedAppComponent, public juce::FileDragAndDropTarget
-{
+enum Theme { LIGHT = 0, DARK };
+
+class TrackComponent : public juce::AnimatedAppComponent,
+                       public juce::FileDragAndDropTarget {
 public:
-    explicit TrackComponent(rust_part::Engine*);
-    void paint(juce::Graphics &) override;
-    void resized() override;
+  explicit TrackComponent(rust_part::Engine *);
+  void paint(juce::Graphics &) override;
+  void resized() override;
+  void setTheme(Theme theme);
 
-    void filesDropped(	const StringArray &	files, int	x, int	y ) override;
-    bool isInterestedInFileDrag(const StringArray &files) override;
-    void loadFileThumbnail(const String& fileName);
-    void drawTrack(juce::Graphics &g);
-    void animate(juce::Graphics &g);
-    void update() override;
+  void filesDropped(const StringArray &files, int x, int y) override;
+  bool isInterestedInFileDrag(const StringArray &files) override;
+  void loadFileThumbnail(const String &fileName);
+  void drawTrack(juce::Graphics &g);
+  void animate(juce::Graphics &g);
+  void update() override;
 
-    void play();
-    void stop();
+  void play();
+  void stop();
 
-    void setLength(double length);
-    void mouseEnter(const MouseEvent &e) override;
+  void setLength(double length);
+  void mouseEnter(const MouseEvent &e) override;
 
-    std::function<void()> minusCallback;
-    std::function<void(double)> loopMasterCallback;
-    std::function<void()> soloCallback;
-    std::function<void()> muteCallback;
+  std::function<void()> minusCallback;
+  std::function<void(double)> loopMasterCallback;
+  std::function<void()> soloCallback;
+  std::function<void()> muteCallback;
 
 private:
-    rust_part::Engine* m_engine;
-    void layoutSliders();
-    void layoutButtons();
+  rust_part::Engine *m_engine;
+  void layoutSliders();
+  void layoutButtons();
 
-    PlayMode m_playMode = PlayMode::Regular;
-    void togglePlayMode();
+  Theme m_theme = Theme::LIGHT;
+  PlayMode m_playMode = PlayMode::Regular;
+  void togglePlayMode();
 
-    juce::Colour m_color;
+  juce::Colour m_color;
 
-    juce::Label m_playHeadLabel;
-    TrackKnob m_gainSlider, m_speedSlider;
-    juce::Label m_gainLabel, m_speedLabel;
+  juce::Label m_playHeadLabel;
+  TrackKnob m_gainSlider, m_speedSlider;
+  juce::Label m_gainLabel, m_speedLabel;
 
-    juce::Label m_granulatorLabel;
-    TrackKnob m_grainSpeed, m_grainLength, m_grainOverlap, m_grainsCount, m_grainSpread;
-    juce::Label m_grainSpeedLabel, m_grainLengthLabel, m_grainOverlapLabel, m_grainsCountLabel, m_grainSpreadLabel;
-    juce::TextButton m_granulatorButton;
+  juce::Label m_granulatorLabel;
+  TrackKnob m_grainSpeed, m_grainLength, m_grainOverlap, m_grainsCount,
+      m_grainSpread;
+  juce::Label m_grainSpeedLabel, m_grainLengthLabel, m_grainOverlapLabel,
+      m_grainsCountLabel, m_grainSpreadLabel;
+  juce::TextButton m_granulatorButton;
 
+  juce::Label m_reverbLabel;
+  TrackKnob m_reverbSize, m_reverbAmount, m_reverbDamp;
+  juce::Label m_reverbSizeLabel, m_reverbAmountLabel, m_reverbDampLabel;
 
-    juce::Label m_reverbLabel;
-    TrackKnob m_reverbSize, m_reverbAmount, m_reverbDamp;
-    juce::Label m_reverbSizeLabel, m_reverbAmountLabel, m_reverbDampLabel;
+  TrackSlider m_startTime, m_endTime;
+  Xycles::PlayButton m_playButton;
+  Xycles::StopButton m_stopButton;
 
+  juce::AudioFormatManager m_formatManager;
+  juce::AudioThumbnailCache m_thumbnailCache;
+  juce::AudioThumbnail m_thumbnail;
+  juce::Rectangle<int> m_thumbnailBounds;
+  juce::TextButton m_loadButton;
+  std::unique_ptr<juce::FileChooser> m_fileChooser;
 
-    TrackSlider m_startTime, m_endTime;
-    Xycles::PlayButton m_playButton;
-    Xycles::StopButton m_stopButton;
-
-    juce::AudioFormatManager m_formatManager;
-    juce::AudioThumbnailCache m_thumbnailCache;
-    juce::AudioThumbnail m_thumbnail;
-    juce::Rectangle<int> m_thumbnailBounds;
-    juce::TextButton m_loadButton;
-    std::unique_ptr<juce::FileChooser> m_fileChooser;
-
-    juce::TextButton m_minusButton, m_loopMasterButton, m_soloButton, m_muteButton;
+  juce::TextButton m_minusButton, m_loopMasterButton, m_soloButton,
+      m_muteButton;
 };
-

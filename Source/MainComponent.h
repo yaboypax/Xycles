@@ -9,8 +9,6 @@
 #include "topbar/TopBarComponent.h"
 #include "track/TrackEditor.h"
 
-enum Theme { LIGHT = 0, DARK };
-
 class MainComponent : public juce::AudioAppComponent {
 public:
   //==============================================================================
