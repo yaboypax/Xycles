@@ -14,6 +14,8 @@ TrackComponent::TrackComponent(rust_part::Engine *engine)
 
   m_color = juce::Colours::black;
   setOpaque(true);
+
+  loadTheme();
   layoutSliders();
   layoutButtons();
 
@@ -364,6 +366,9 @@ void TrackComponent::animate(juce::Graphics &g) {
 
 void TrackComponent::setTheme(const Theme theme) {
   m_theme = theme;
+  loadTheme();
+}
+void TrackComponent::loadTheme() {
   switch (m_theme) {
   case Theme::LIGHT: {
     m_gainLabel.setColour(juce::Label::textColourId, juce::Colours::black);
