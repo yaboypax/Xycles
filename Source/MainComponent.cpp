@@ -16,7 +16,9 @@ MainComponent::MainComponent() {
   m_trackEditor.addTrackCallback = [&]() -> std::unique_ptr<TrackComponent> {
     m_trackEngines.emplace_back(rust_part::new_engine());
     rust_part::Engine *eng = &*m_trackEngines.back();
-    return std::make_unique<TrackComponent>(eng);
+    auto track = std::make_unique<TrackComponent>(eng);
+    track->setTheme(m_theme);
+    return track;
   };
 
   m_trackEditor.removeTrackCallback = [&] { m_trackEngines.pop_back(); };

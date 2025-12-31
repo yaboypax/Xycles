@@ -20,7 +20,9 @@ public:
   explicit TrackComponent(rust_part::Engine *);
   void paint(juce::Graphics &) override;
   void resized() override;
+
   void setTheme(Theme theme);
+  void loadTheme();
 
   void filesDropped(const StringArray &files, int x, int y) override;
   bool isInterestedInFileDrag(const StringArray &files) override;
