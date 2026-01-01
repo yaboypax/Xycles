@@ -3,16 +3,13 @@
 //
 
 #pragma once
+#include "../static/Utilities.h"
 #include "../subcomponents/PlayButton.h"
 #include "../subcomponents/StopButton.h"
 #include "TrackKnob.h"
 #include "TrackSlider.h"
 #include "rust_part.h"
 #include <JuceHeader.h>
-
-enum PlayMode { Regular, Granular };
-
-enum Theme { LIGHT = 0, DARK };
 
 class TrackComponent : public juce::AnimatedAppComponent,
                        public juce::FileDragAndDropTarget {
@@ -47,7 +44,7 @@ private:
   void layoutSliders();
   void layoutButtons();
 
-  Theme m_theme = Theme::LIGHT;
+  Theme m_theme = Theme::Light;
   PlayMode m_playMode = PlayMode::Regular;
   void togglePlayMode();
 

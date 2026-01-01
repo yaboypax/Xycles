@@ -31,12 +31,12 @@ MainComponent::MainComponent() {
 
   m_topBar.onLightDarkToggle = [&] {
     switch (m_theme) {
-    case Theme::LIGHT: {
-      m_theme = Theme::DARK;
+    case Theme::Light: {
+      m_theme = Theme::Dark;
       break;
     }
-    case Theme::DARK: {
-      m_theme = Theme::LIGHT;
+    case Theme::Dark: {
+      m_theme = Theme::Light;
       break;
     }
     }
@@ -56,12 +56,12 @@ MainComponent::~MainComponent() { shutdownAudio(); }
 void MainComponent::paint(juce::Graphics &g) {
 
   switch (m_theme) {
-  case Theme::LIGHT: {
+  case Theme::Light: {
     g.fillAll(juce::Colours::white);
     g.drawImage(m_backgroundImage, getLocalBounds().toFloat());
     break;
   }
-  case Theme::DARK: {
+  case Theme::Dark: {
     g.fillAll(juce::Colour(0xFF383838));
     // g.setOpacity(0.8f);
     g.drawImage(m_darkBackgroundImage, getLocalBounds().toFloat());

@@ -38,7 +38,7 @@ private:
   TopBarComponent m_topBar;
   juce::Image m_backgroundImage;
   juce::Image m_darkBackgroundImage;
-  Theme m_theme = Theme::LIGHT;
+  Theme m_theme = Theme::Light;
 
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainComponent)
 };
