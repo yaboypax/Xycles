@@ -424,7 +424,20 @@ void TrackComponent::loadTheme() {
 
   m_playButton.setTheme(m_theme);
   m_stopButton.setTheme(m_theme);
+  m_gainSlider.setTheme(m_theme);
+  m_speedSlider.setTheme(m_theme);
+  m_grainSpeed.setTheme(m_theme);
+  m_grainLength.setTheme(m_theme);
+  m_grainOverlap.setTheme(m_theme);
+  m_grainsCount.setTheme(m_theme);
+  m_grainSpread.setTheme(m_theme);
 
+  m_reverbAmount.setTheme(m_theme);
+  m_reverbDamp.setTheme(m_theme);
+  m_reverbSize.setTheme(m_theme);
+
+  m_startTime.setTheme(m_theme);
+  m_endTime.setTheme(m_theme);
   repaint();
 }
 
