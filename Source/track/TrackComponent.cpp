@@ -323,11 +323,11 @@ void TrackComponent::drawTrack(juce::Graphics &g) {
     animate(g);
 
     switch (m_theme) {
-    case Theme::LIGHT: {
+    case Theme::Light: {
       g.setColour(juce::Colours::black);
       break;
     }
-    case Theme::DARK: {
+    case Theme::Dark: {
       g.setColour(juce::Colours::white);
       break;
     }
@@ -341,11 +341,11 @@ void TrackComponent::drawTrack(juce::Graphics &g) {
 
 void TrackComponent::animate(juce::Graphics &g) {
   switch (m_theme) {
-  case Theme::LIGHT: {
+  case Theme::Light: {
     g.setColour(juce::Colours::black);
     break;
   }
-  case Theme::DARK: {
+  case Theme::Dark: {
     g.setColour(juce::Colours::white);
     break;
   }
@@ -370,7 +370,7 @@ void TrackComponent::setTheme(const Theme theme) {
 }
 void TrackComponent::loadTheme() {
   switch (m_theme) {
-  case Theme::LIGHT: {
+  case Theme::Light: {
     m_gainLabel.setColour(juce::Label::textColourId, juce::Colours::black);
     m_speedLabel.setColour(juce::Label::textColourId, juce::Colours::black);
     m_reverbLabel.setColour(juce::Label::textColourId, juce::Colours::black);
@@ -393,9 +393,15 @@ void TrackComponent::loadTheme() {
                                   juce::Colours::black);
     m_grainsCountLabel.setColour(juce::Label::textColourId,
                                  juce::Colours::black);
+
+    m_playButton.setColour(juce::ComboBox::outlineColourId,
+                           juce::Colours::black);
+    m_stopButton.setColour(juce::ComboBox::outlineColourId,
+                           juce::Colours::black);
+
     break;
   }
-  case Theme::DARK: {
+  case Theme::Dark: {
     m_gainLabel.setColour(juce::Label::textColourId, juce::Colours::white);
     m_speedLabel.setColour(juce::Label::textColourId, juce::Colours::white);
     m_reverbLabel.setColour(juce::Label::textColourId, juce::Colours::white);
@@ -418,6 +424,12 @@ void TrackComponent::loadTheme() {
                                   juce::Colours::white);
     m_grainsCountLabel.setColour(juce::Label::textColourId,
                                  juce::Colours::white);
+
+    m_playButton.setColour(juce::ComboBox::outlineColourId,
+                           juce::Colours::white);
+    m_stopButton.setColour(juce::ComboBox::outlineColourId,
+                           juce::Colours::white);
+
     break;
   }
   }
