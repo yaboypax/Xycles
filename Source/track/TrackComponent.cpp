@@ -528,6 +528,7 @@ void TrackComponent::filesDropped(const StringArray &files, int x, int y) {
   m_color = color;
   layoutSliders();
   layoutButtons();
+  loadTheme();
   repaint();
   resized();
 }
