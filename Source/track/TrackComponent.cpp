@@ -393,12 +393,6 @@ void TrackComponent::loadTheme() {
                                   juce::Colours::black);
     m_grainsCountLabel.setColour(juce::Label::textColourId,
                                  juce::Colours::black);
-
-    m_playButton.setColour(juce::ComboBox::outlineColourId,
-                           juce::Colours::black);
-    m_stopButton.setColour(juce::ComboBox::outlineColourId,
-                           juce::Colours::black);
-
     break;
   }
   case Theme::Dark: {
@@ -424,15 +418,12 @@ void TrackComponent::loadTheme() {
                                   juce::Colours::white);
     m_grainsCountLabel.setColour(juce::Label::textColourId,
                                  juce::Colours::white);
-
-    m_playButton.setColour(juce::ComboBox::outlineColourId,
-                           juce::Colours::white);
-    m_stopButton.setColour(juce::ComboBox::outlineColourId,
-                           juce::Colours::white);
-
     break;
   }
   }
+
+  m_playButton.setTheme(m_theme);
+  m_stopButton.setTheme(m_theme);
 
   repaint();
 }

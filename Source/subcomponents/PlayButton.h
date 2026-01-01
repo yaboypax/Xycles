@@ -3,6 +3,7 @@
 //
 
 #pragma once
+#include "../static/Utilities.h"
 #include "juce_graphics/juce_graphics.h"
 #include <JuceHeader.h>
 
@@ -15,13 +16,24 @@ struct PlayButton : juce::TextButton {
               juce::Colours::transparentWhite);
     setColour(juce::ComboBox::outlineColourId, juce::Colours::black);
   }
+
   void paintButton(juce::Graphics &g, bool shouldDrawButtonAsHighlighted,
                    bool shouldDrawButtonAsDown) override {
     juce::TextButton::paintButton(g, shouldDrawButtonAsHighlighted,
                                   shouldDrawButtonAsDown);
-    g.setColour(shouldDrawButtonAsDown
-                    ? juce::Colours::black.withMultipliedAlpha(0.8f)
-                    : juce::Colours::black);
+    juce::Colour color;
+    switch (m_theme) {
+    case Theme::Light: {
+      color = juce::Colours::black;
+      break;
+    }
+    case Theme::Dark: {
+      color = juce::Colours::white;
+      break;
+    }
+    }
+    g.setColour(shouldDrawButtonAsDown ? color.withMultipliedAlpha(0.8f)
+                                       : color);
 
     const auto area = getLocalBounds().toFloat().reduced(getWidth() * 0.3f);
     juce::Path triangle;
@@ -29,6 +41,23 @@ struct PlayButton : juce::TextButton {
                          area.getCentreY(), area.getX(), area.getBottom());
 
     g.fillPath(triangle);
+  }
+
+  Theme m_theme;
+  void setTheme(const Theme theme) {
+    m_theme = theme;
+
+    switch (m_theme) {
+    case Theme::Light: {
+      setColour(juce::ComboBox::outlineColourId, juce::Colours::black);
+      break;
+    }
+
+    case Theme::Dark: {
+      setColour(juce::ComboBox::outlineColourId, juce::Colours::white);
+      break;
+    }
+    }
   }
 };
 
