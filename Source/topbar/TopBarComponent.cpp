@@ -65,7 +65,7 @@ TopBarComponent::TopBarComponent() {
 
     m_globalPlay.setTheme(m_theme);
     m_globalStop.setTheme(m_theme);
-    // m_globalRecord.setTheme(m_theme);
+    m_globalRecord.setTheme(m_theme);
 
     repaint();
   };
