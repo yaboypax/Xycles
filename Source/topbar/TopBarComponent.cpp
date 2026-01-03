@@ -56,10 +56,18 @@ TopBarComponent::TopBarComponent() {
       onLightDarkToggle();
 
     if (m_lightDarkButton.getButtonText() == "LIGHT") {
+      m_theme = Theme::Dark;
       m_lightDarkButton.setButtonText("DARK");
     } else if (m_lightDarkButton.getButtonText() == "DARK") {
       m_lightDarkButton.setButtonText("LIGHT");
+      m_theme = Theme::Light;
     }
+
+    m_globalPlay.setTheme(m_theme);
+    m_globalStop.setTheme(m_theme);
+    // m_globalRecord.setTheme(m_theme);
+
+    repaint();
   };
 }
 

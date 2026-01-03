@@ -27,6 +27,7 @@ private:
   Xycles::PlayButton m_globalPlay;
   Xycles::RecordButton m_globalRecord;
   RecordingIndicator m_recorderComponent;
+  Theme m_theme = Light;
   bool m_isPlaying = false;
 
   juce::TextButton m_lightDarkButton;
