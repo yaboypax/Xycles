@@ -81,6 +81,8 @@ constexpr int MAX_FRAMES = 4096;
 
 void MainComponent::prepareToPlay(int samplesPerBlock, double sampleRate) {
   const int maxFrames = juce::jmax(samplesPerBlock, MAX_FRAMES);
+  m_interleavedBuffer.clear();
+  m_interleavedBuffer.reserve(static_cast<size_t>(maxFrames * 2));
   for (int i = 0; i < maxFrames * 2; i++) {
     m_interleavedBuffer.push_back(0.f);
   }
