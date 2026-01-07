@@ -3,6 +3,8 @@
 //
 
 #include "TrackEditor.h"
+#include "juce_graphics/juce_graphics.h"
+#include "juce_gui_basics/juce_gui_basics.h"
 
 namespace {
 constexpr int kTrackHeight = 400;
@@ -69,6 +71,23 @@ void TrackEditor::resized() {
 void TrackEditor::setTheme(Theme theme) {
   for (const auto &track : m_tracks)
     track->setTheme(theme);
+
+  switch (theme) {
+
+  case Theme::Light: {
+    m_plusButton.setColour(juce::TextButton::textColourOffId,
+                           juce::Colours::black);
+    m_removeButton.setColour(juce::TextButton::textColourOffId,
+                             juce::Colours::black);
+  }
+
+  case Theme::Dark: {
+    m_plusButton.setColour(juce::TextButton::textColourOffId,
+                           juce::Colours::white);
+    m_removeButton.setColour(juce::TextButton::textColourOffId,
+                             juce::Colours::white);
+  }
+  }
 }
 
 void TrackEditor::playAll() const noexcept {
