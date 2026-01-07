@@ -168,7 +168,7 @@ impl Engine {
         }
     }
 
-    pub fn process_block(&mut self, buffer: &mut Vec<f32>) {
+    pub fn process_block(&mut self, buffer: &mut [f32]) {
         self.apply_pending();
         match &mut self.state {
             EngineState::Granulating(track) => {
