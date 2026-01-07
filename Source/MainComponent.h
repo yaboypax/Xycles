@@ -6,6 +6,7 @@
 
 #include "AudioRecorder.h"
 
+#include "juce_audio_devices/juce_audio_devices.h"
 #include "topbar/TopBarComponent.h"
 #include "track/TrackEditor.h"
 
@@ -23,16 +24,17 @@ public:
   void
   getNextAudioBlock(const juce::AudioSourceChannelInfo &bufferToFill) override;
   void releaseResources() override;
+  void showAudioSettings();
 
   void playAll() const noexcept;
   void stopAll() const noexcept;
 
 private:
-  rust::Vec<float> m_interleavedBuffer;
+  std::vector<float> m_interleavedBuffer;
   std::vector<rust::Box<rust_part::Engine>> m_trackEngines;
   std::shared_ptr<AudioRecorder> m_recorder = std::make_shared<AudioRecorder>();
   //==============================================================================
-
+  juce::AudioDeviceManager m_deviceManager;
   juce::Viewport m_trackViewport;
   TrackEditor m_trackEditor;
   TopBarComponent m_topBar;
