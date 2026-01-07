@@ -528,7 +528,7 @@ void TrackComponent::resized() {
                                getHeight() / 4, buttonSize / 2, buttonSize / 2);
 }
 
-void TrackComponent::filesDropped(const StringArray &files, int x, int y) {
+void TrackComponent::filesDropped(const StringArray &files, int, int) {
   if (isInterestedInFileDrag(files)) {
     loadFileThumbnail(*files.begin());
     const std::string path = files.begin()->toStdString();
@@ -565,7 +565,7 @@ void TrackComponent::loadFileThumbnail(const String &fileName) {
   }
 }
 
-void TrackComponent::mouseEnter(const MouseEvent &e) {}
+void TrackComponent::mouseEnter(const MouseEvent &) {}
 
 void TrackComponent::play() {
   if (m_playMode == Regular) {
