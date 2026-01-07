@@ -21,6 +21,7 @@ public:
   std::function<void()> onGlobalPlay = nullptr;
   std::function<void()> onGlobalStop = nullptr;
   std::function<void()> onLightDarkToggle = nullptr;
+  std::function<void()> onAudioSettings = nullptr;
 
 private:
   Xycles::StopButton m_globalStop;
@@ -30,5 +31,5 @@ private:
   Theme m_theme = Light;
   bool m_isPlaying = false;
 
-  juce::TextButton m_lightDarkButton;
+  juce::TextButton m_lightDarkButton, m_audioButton;
 };

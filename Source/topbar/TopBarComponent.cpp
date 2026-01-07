@@ -69,6 +69,13 @@ TopBarComponent::TopBarComponent() {
 
     repaint();
   };
+
+  addAndMakeVisible(m_audioButton);
+  m_audioButton.setButtonText("AUDIO");
+  m_audioButton.onClick = [&] {
+    if (onAudioSettings)
+      onAudioSettings();
+  };
 }
 
 void TopBarComponent::paint(juce::Graphics &g) {
@@ -99,7 +106,8 @@ void TopBarComponent::resized() {
                            buttonSize, buttonSize);
 
   m_lightDarkButton.setBounds(margin, margin, buttonSize * 2, buttonSize);
-
+  m_audioButton.setBounds(m_lightDarkButton.getRight() + margin, margin,
+                          buttonSize * 2, buttonSize);
   constexpr int recordingSize = 200;
   m_recorderComponent.setBounds(m_globalRecord.getX() - recordingSize, 0,
                                 recordingSize, getHeight());

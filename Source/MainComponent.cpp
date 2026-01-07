@@ -41,9 +41,10 @@ MainComponent::MainComponent() {
     }
     }
     m_trackEditor.setTheme(m_theme);
-    showAudioSettings();
     repaint();
   };
+
+  m_topBar.onAudioSettings = [&] { showAudioSettings(); };
 
   m_backgroundImage = juce::Image(juce::ImageCache::getFromMemory(
       BinaryData::background_png, BinaryData::background_pngSize));
