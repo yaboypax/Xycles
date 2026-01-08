@@ -237,6 +237,7 @@ void TrackComponent::layoutButtons() {
 
   m_playButton.toFront(true);
   m_stopButton.toFront(true);
+
   addAndMakeVisible(m_granulatorButton);
   m_granulatorButton.setColour(juce::ComboBox::outlineColourId, m_color);
   m_granulatorButton.setColour(juce::TextButton::buttonColourId,
@@ -308,6 +309,18 @@ void TrackComponent::paint(juce::Graphics &g) { drawTrack(g); }
 
 void TrackComponent::drawTrack(juce::Graphics &g) {
 
+  juce::Colour themeColor;
+  switch (m_theme) {
+    case Theme::Light: {
+      themeColor = juce::Colours::black;
+      break;
+    }
+    case Theme::Dark: {
+      themeColor = juce::Colours::white;
+      break;
+    }
+    }
+
   if (m_thumbnail.getNumChannels() != 0) {
     g.setColour(m_color);
     m_thumbnail.drawChannels(
@@ -315,7 +328,7 @@ void TrackComponent::drawTrack(juce::Graphics &g) {
         m_thumbnail.getTotalLength() * m_startTime.getValue(),
         m_thumbnail.getTotalLength() * m_endTime.getValue(), 1.0f);
 
-    g.setColour(juce::Colours::black);
+    g.setColour(themeColor);
     const auto playPosition =
         m_engine->get_playhead() * m_thumbnailBounds.toFloat().getWidth() +
         m_thumbnailBounds.toFloat().getX();
@@ -324,17 +337,7 @@ void TrackComponent::drawTrack(juce::Graphics &g) {
   } else {
     animate(g);
 
-    switch (m_theme) {
-    case Theme::Light: {
-      g.setColour(juce::Colours::black);
-      break;
-    }
-    case Theme::Dark: {
-      g.setColour(juce::Colours::white);
-      break;
-    }
-    }
-
+    g.setColour(themeColor);
     g.setFont(32.0f);
     g.drawText("Click to Select or Drag and Drop .wav File", m_thumbnailBounds,
                juce::Justification::centred, false);
