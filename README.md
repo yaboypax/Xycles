@@ -15,7 +15,6 @@ Clone this repository and run the `./build.sh bash` script. This will build usin
 To generate platform specific project files without building run:
 
 ```
-
 mkdir build
 
 cd build
@@ -23,3 +22,7 @@ cd build
 cmake .. -DCMAKE_BUILD_TYPE=Release
 ```
 
+## Dependencies
+- [cmake](https://cmake.org/)
+- [Rust + cargo](https://github.com/rust-lang/cargo)  
+- [JUCE](https://juce.com/) (fetched by cmake unless configured to point to specific JUCE version on system in `CMakeLists.txt`)
