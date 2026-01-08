@@ -6,5 +6,15 @@ Xycles is a standalone application asynchronous loop station and texture generat
 
 Xycles began as an exploration into Rust, particularly in building a Finite State Machine using Rust's fat enums. The FSM has been extremely useful in preventing OOP-related state management errors which can come up building something similar in JUCE.
 
+## Build
 >[!WARNING]
 >This project is still in the works and is not recommended to be built from source
+
+Clone this repository and run the `./build.sh bash` script. This will build using `cmake --build` and run the release build for you.
+
+To generate platform specific project files without building run:
+`
+mkdir build
+cd build
+cmake .. -DCMAKE_BUILD_TYPE=Release`
+
