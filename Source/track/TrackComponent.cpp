@@ -235,6 +235,8 @@ void TrackComponent::layoutButtons() {
   m_stopButton.setColour(juce::ComboBox::outlineColourId, m_color);
   m_stopButton.onClick = [&]() { m_engine->stop(); };
 
+  m_playButton.toFront(true);
+  m_stopButton.toFront(true);
   addAndMakeVisible(m_granulatorButton);
   m_granulatorButton.setColour(juce::ComboBox::outlineColourId, m_color);
   m_granulatorButton.setColour(juce::TextButton::buttonColourId,
@@ -441,16 +443,17 @@ void TrackComponent::loadTheme() {
   repaint();
 }
 
-void TrackComponent::resized() {
-
-  m_thumbnailBounds = juce::Rectangle<int>(50, 5, getWidth() - 100, 200);
-  const auto sliderY = m_thumbnailBounds.getBottom() + 20;
-  const auto buttonY = sliderY + 10;
+void TrackComponent::resized()
+{
   constexpr auto sliderSize = 75;
-  constexpr auto buttonSize = 50;
+  constexpr auto buttonSize = 30;
   constexpr auto margin = 5;
   constexpr auto spacer = 25;
 
+  m_thumbnailBounds = juce::Rectangle<int>(50, 5, getWidth() - 100, 200);
+  const auto sliderY = m_thumbnailBounds.getBottom() + 20;
+  const auto buttonY = m_thumbnailBounds.getBottom() - buttonSize - margin;
+ 
   // Playhead
 
   m_playHeadLabel.setBounds(m_thumbnailBounds.getX(),
