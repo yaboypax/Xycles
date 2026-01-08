@@ -9,6 +9,8 @@
 #include "../subcomponents/PlayButton.h"
 #include "../subcomponents/RecordButton.h"
 #include "../subcomponents/StopButton.h"
+#include "../subcomponents/AudioButton.h"
+#include "../subcomponents/ThemeButton.h"
 #include "RecordingIndicator.h"
 
 class TopBarComponent : public juce::Component {
@@ -31,5 +33,6 @@ private:
   Theme m_theme = Light;
   bool m_isPlaying = false;
 
-  juce::TextButton m_lightDarkButton, m_audioButton;
+  Xycles::AudioButton m_audioButton;
+  Xycles::ThemeButton m_lightDarkButton;
 };
