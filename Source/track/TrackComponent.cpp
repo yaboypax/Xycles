@@ -359,9 +359,9 @@ void TrackComponent::animate(juce::Graphics &g) {
 
   juce::Point<int> center(m_thumbnailBounds.getCentreX(),
                           m_thumbnailBounds.getCentreY());
-  g.fillEllipse(center.toFloat().x - currentRadius,
+  g.drawEllipse(center.toFloat().x - currentRadius,
                 center.toFloat().y - currentRadius, 2.0f * currentRadius,
-                2.0f * currentRadius);
+                2.0f * currentRadius, 2.f);
 }
 
 void TrackComponent::setTheme(const Theme theme) {

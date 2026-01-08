@@ -66,12 +66,13 @@ TopBarComponent::TopBarComponent() {
     m_globalPlay.setTheme(m_theme);
     m_globalStop.setTheme(m_theme);
     m_globalRecord.setTheme(m_theme);
+    m_audioButton.setTheme(m_theme);
+    m_lightDarkButton.setTheme(m_theme);
 
     repaint();
   };
 
   addAndMakeVisible(m_audioButton);
-  m_audioButton.setButtonText("AUDIO");
   m_audioButton.onClick = [&] {
     if (onAudioSettings)
       onAudioSettings();

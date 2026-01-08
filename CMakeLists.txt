@@ -119,6 +119,8 @@ target_sources(Xycles
   Source/subcomponents/PlayButton.h
   Source/subcomponents/RecordButton.h
   Source/subcomponents/StopButton.h
+  Source/subcomponents/ThemeButton.h
+  Source/subcomponents/AudioButton.h
 )
 
 # `target_compile_definitions` adds some preprocessor definitions to our target. In a Projucer
