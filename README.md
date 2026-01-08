@@ -13,8 +13,13 @@ Xycles began as an exploration into Rust, particularly in building a Finite Stat
 Clone this repository and run the `./build.sh bash` script. This will build using `cmake --build` and run the release build for you.
 
 To generate platform specific project files without building run:
-`
+
+```
+
 mkdir build
+
 cd build
-cmake .. -DCMAKE_BUILD_TYPE=Release`
+
+cmake .. -DCMAKE_BUILD_TYPE=Release
+```
 
