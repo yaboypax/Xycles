@@ -3,9 +3,11 @@
 //
 
 #pragma once
+#include "../effects/Granulator.h"
 #include "../static/Utilities.h"
 #include "../subcomponents/PlayButton.h"
 #include "../subcomponents/StopButton.h"
+
 #include "TrackKnob.h"
 #include "TrackSlider.h"
 #include "rust_part.h"
@@ -45,25 +47,20 @@ private:
   void layoutButtons();
 
   Theme m_theme = Theme::Light;
+  juce::Colour m_color;
+
   PlayMode m_playMode = PlayMode::Regular;
   void togglePlayMode();
-
-  juce::Colour m_color;
 
   juce::Label m_playHeadLabel;
   TrackKnob m_gainSlider, m_speedSlider;
   juce::Label m_gainLabel, m_speedLabel;
 
-  juce::Label m_granulatorLabel;
-  TrackKnob m_grainSpeed, m_grainLength, m_grainOverlap, m_grainsCount,
-      m_grainSpread;
-  juce::Label m_grainSpeedLabel, m_grainLengthLabel, m_grainOverlapLabel,
-      m_grainsCountLabel, m_grainSpreadLabel;
-  juce::TextButton m_granulatorButton;
-
   juce::Label m_reverbLabel;
   TrackKnob m_reverbSize, m_reverbAmount, m_reverbDamp;
   juce::Label m_reverbSizeLabel, m_reverbAmountLabel, m_reverbDampLabel;
+
+  Granulator m_granulator;
 
   TrackSlider m_startTime, m_endTime;
   Xycles::PlayButton m_playButton;

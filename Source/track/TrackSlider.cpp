@@ -46,15 +46,11 @@ void TrackSlider::paint(juce::Graphics &g) {
                {trackWidth, PathStrokeType::curved, PathStrokeType::rounded});
 
   Path valueTrack;
-  Point<float> thumbPoint;
 
   const auto kx = getPositionOfValue(getValue());
   const auto ky = (float)getHeight() * 0.5f;
 
-  const Point<float> minPoint = startPoint;
   Point<float> maxPoint = {kx, ky};
-
-  auto thumbWidth = 5;
 
   if (m_trackDirection == Start) {
     const Point<float> trackEnd = {getPositionOfValue(m_endPosition), ky};
