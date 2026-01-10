@@ -1,14 +1,17 @@
 #pragma once
 
 #include "../track/TrackKnob.h"
+#include "juce_graphics/juce_graphics.h"
 #include "rust_part.h"
 #include <JuceHeader.h>
 
 class Granulator : public juce::Component {
 public:
   Granulator() {
+    setInterceptsMouseClicks(false, true);
+    m_color = juce::Colours::black;
+
     loadTheme();
-    layoutButtons();
     layoutSliders();
   }
 
@@ -45,7 +48,6 @@ public:
     m_granulatorLabel.setBounds(m_grainSpeed.getX(), 0,
                                 m_grainSpread.getRight() - m_grainSpeed.getX(),
                                 spacer);
-    m_granulatorButton.setBounds(m_granulatorLabel.getBounds());
   }
 
   void setTheme(const Theme theme) {
@@ -60,6 +62,7 @@ public:
     m_grainSpread.setTheme(m_theme);
   }
   void setEngine(rust_part::Engine *engine) { m_engine = engine; }
+  void setColor(const juce::Colour color) { m_color = color; }
 
 private:
   rust_part::Engine *m_engine;
@@ -151,13 +154,6 @@ private:
        */
   }
 
-  void layoutButtons() {
-    addAndMakeVisible(m_granulatorButton);
-    m_granulatorButton.setColour(juce::ComboBox::outlineColourId, m_color);
-    m_granulatorButton.setColour(juce::TextButton::buttonColourId,
-                                 juce::Colours::transparentWhite);
-    // m_granulatorButton.onClick = [&]() { togglePlayMode(); };
-  }
   void loadTheme() {
     switch (m_theme) {
     case Theme::Light: {
@@ -202,5 +198,4 @@ private:
       m_grainSpread;
   juce::Label m_grainSpeedLabel, m_grainLengthLabel, m_grainOverlapLabel,
       m_grainsCountLabel, m_grainSpreadLabel;
-  juce::TextButton m_granulatorButton;
 };

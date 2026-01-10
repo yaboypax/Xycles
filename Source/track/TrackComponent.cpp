@@ -5,6 +5,7 @@
 #include "TrackComponent.h"
 #include "juce_graphics/juce_graphics.h"
 #include "juce_gui_basics/juce_gui_basics.h"
+#include "juce_gui_extra/juce_gui_extra.h"
 
 TrackComponent::TrackComponent(rust_part::Engine *engine)
     : m_engine(engine), m_thumbnailCache(5),
@@ -20,6 +21,7 @@ TrackComponent::TrackComponent(rust_part::Engine *engine)
   layoutButtons();
 
   addAndMakeVisible(m_granulator);
+  m_granulator.setEnabled(false);
   m_granulator.setEngine(m_engine);
 
   m_formatManager.registerBasicFormats();
@@ -159,6 +161,14 @@ void TrackComponent::layoutButtons() {
   addAndMakeVisible(m_stopButton);
   m_stopButton.setColour(juce::ComboBox::outlineColourId, m_color);
   m_stopButton.onClick = [&]() { m_engine->stop(); };
+
+  addAndMakeVisible(m_granulatorButton);
+  m_granulatorButton.setColour(juce::TextButton::buttonColourId,
+                               juce::Colours::transparentWhite);
+  m_granulatorButton.setColour(juce::ComboBox::outlineColourId,
+                               juce::Colours::transparentWhite);
+  m_granulatorButton.toBack();
+  m_granulatorButton.onClick = [&] { togglePlayMode(); };
 
   m_playButton.toFront(true);
   m_stopButton.toFront(true);
@@ -353,8 +363,9 @@ void TrackComponent::resized() {
   // FX
 
   m_granulator.setBounds(m_speedLabel.getRight() + 40,
-                         m_thumbnailBounds.getBottom(), 500,
+                         m_thumbnailBounds.getBottom(), 460,
                          (labelY + spacer * 2) - sliderY);
+  m_granulatorButton.setBounds(m_granulator.getBounds());
 
   m_reverbAmount.setBounds(m_granulator.getRight() + 40, sliderY, sliderSize,
                            sliderSize);
@@ -403,6 +414,7 @@ void TrackComponent::filesDropped(const StringArray &files, int, int) {
   m_color = color;
 
   addAndMakeVisible(m_granulator);
+  m_granulator.setColor(m_color);
   layoutSliders();
   layoutButtons();
   loadTheme();
