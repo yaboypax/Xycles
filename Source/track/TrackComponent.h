@@ -61,6 +61,7 @@ private:
   juce::Label m_reverbSizeLabel, m_reverbAmountLabel, m_reverbDampLabel;
 
   Granulator m_granulator;
+  juce::TextButton m_granulatorButton;
 
   TrackSlider m_startTime, m_endTime;
   Xycles::PlayButton m_playButton;
