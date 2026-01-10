@@ -19,6 +19,9 @@ TrackComponent::TrackComponent(rust_part::Engine *engine)
   layoutSliders();
   layoutButtons();
 
+  addAndMakeVisible(m_granulator);
+  m_granulator.setEngine(m_engine);
+
   m_formatManager.registerBasicFormats();
 }
 
@@ -28,11 +31,6 @@ void TrackComponent::layoutSliders() {
   m_playHeadLabel.setText("PlayHead", juce::dontSendNotification);
   m_playHeadLabel.setColour(juce::Label::textColourId, juce::Colours::black);
   m_playHeadLabel.setJustificationType(juce::Justification::centred);
-
-  addAndMakeVisible(m_granulatorLabel);
-  m_granulatorLabel.setText("Granulator", juce::dontSendNotification);
-  m_granulatorLabel.setColour(juce::Label::textColourId, juce::Colours::black);
-  m_granulatorLabel.setJustificationType(juce::Justification::centred);
 
   addAndMakeVisible(m_reverbLabel);
   m_reverbLabel.setText("Reverb", juce::dontSendNotification);
@@ -67,73 +65,6 @@ void TrackComponent::layoutSliders() {
   m_speedLabel.setText("Speed", juce::dontSendNotification);
   m_speedLabel.setJustificationType(juce::Justification::centredTop);
 
-  addAndMakeVisible(m_grainSpeed);
-  m_grainSpeed.setRange(-2.0, 2.0, 0.01);
-  m_grainSpeed.setValue(1.0);
-  m_grainSpeed.setTrackColor(m_color);
-  m_grainSpeed.onValueChange = [&]() {
-    m_engine->set_grain_speed(static_cast<float>(m_grainSpeed.getValue()));
-  };
-
-  addAndMakeVisible(m_grainSpeedLabel);
-  m_grainSpeedLabel.attachToComponent(&m_grainSpeed, false);
-  m_grainSpeedLabel.setColour(juce::Label::textColourId, juce::Colours::black);
-  m_grainSpeedLabel.setText("Grain Speed", juce::dontSendNotification);
-  m_grainSpeedLabel.setJustificationType(juce::Justification::centredTop);
-
-  addAndMakeVisible(m_grainLength);
-  m_grainLength.setRange(20, 10000, 1);
-  m_grainLength.setTrackColor(m_color);
-  m_grainLength.onValueChange = [&]() {
-    m_engine->set_grain_length(static_cast<float>(m_grainLength.getValue()));
-  };
-
-  addAndMakeVisible(m_grainLengthLabel);
-  m_grainLengthLabel.attachToComponent(&m_grainLength, false);
-  m_grainLengthLabel.setColour(juce::Label::textColourId, juce::Colours::black);
-  m_grainLengthLabel.setText("Grain Length", juce::dontSendNotification);
-  m_grainLengthLabel.setJustificationType(juce::Justification::centredTop);
-
-  addAndMakeVisible(m_grainOverlap);
-  m_grainOverlap.setRange(0.1, 10.0, 0.01);
-  m_grainOverlap.setTrackColor(m_color);
-  m_grainOverlap.onValueChange = [&]() {
-    m_engine->set_grain_overlap(static_cast<float>(m_grainOverlap.getValue()));
-  };
-
-  addAndMakeVisible(m_grainOverlapLabel);
-  m_grainOverlapLabel.attachToComponent(&m_grainOverlap, false);
-  m_grainOverlapLabel.setColour(juce::Label::textColourId,
-                                juce::Colours::black);
-  m_grainOverlapLabel.setText("Grain Overlap", juce::dontSendNotification);
-  m_grainOverlapLabel.setJustificationType(juce::Justification::centredTop);
-
-  addAndMakeVisible(m_grainSpread);
-  m_grainSpread.setRange(0.0, 2.0, 0.01);
-  m_grainSpread.setTrackColor(m_color);
-  m_grainSpread.onValueChange = [&]() {
-    m_engine->set_grain_spread(static_cast<float>(m_grainSpread.getValue()));
-  };
-
-  addAndMakeVisible(m_grainSpreadLabel);
-  m_grainSpreadLabel.attachToComponent(&m_grainSpread, false);
-  m_grainSpreadLabel.setColour(juce::Label::textColourId, juce::Colours::black);
-  m_grainSpreadLabel.setText("Grain Spread", juce::dontSendNotification);
-  m_grainSpreadLabel.setJustificationType(juce::Justification::centredTop);
-
-  addAndMakeVisible(m_grainsCount);
-  m_grainsCount.setRange(1, 12, 1);
-  m_grainsCount.setTrackColor(m_color);
-  m_grainsCount.onValueChange = [&]() {
-    m_engine->set_grain_count(static_cast<float>(m_grainsCount.getValue()));
-  };
-
-  addAndMakeVisible(m_grainsCountLabel);
-  m_grainsCountLabel.attachToComponent(&m_grainsCount, false);
-  m_grainsCountLabel.setColour(juce::Label::textColourId, juce::Colours::black);
-  m_grainsCountLabel.setText("Grains", juce::dontSendNotification);
-  m_grainsCountLabel.setJustificationType(juce::Justification::centredTop);
-
   addAndMakeVisible(m_startTime);
   m_endTime.setTrackDirection(Start);
   m_startTime.setSliderStyle(juce::Slider::LinearHorizontal);
@@ -163,12 +94,6 @@ void TrackComponent::layoutSliders() {
     m_engine->set_end(static_cast<float>(m_endTime.getValue()));
     repaint();
   };
-
-  m_grainLength.setEnabled(false);
-  m_grainOverlap.setEnabled(false);
-  m_grainSpeed.setEnabled(false);
-  m_grainsCount.setEnabled(false);
-  m_grainSpread.setEnabled(false);
 
   addAndMakeVisible(m_reverbAmount);
   m_reverbAmount.setRange(0.0, 1.0, 0.01);
@@ -238,12 +163,6 @@ void TrackComponent::layoutButtons() {
   m_playButton.toFront(true);
   m_stopButton.toFront(true);
 
-  addAndMakeVisible(m_granulatorButton);
-  m_granulatorButton.setColour(juce::ComboBox::outlineColourId, m_color);
-  m_granulatorButton.setColour(juce::TextButton::buttonColourId,
-                               juce::Colours::transparentWhite);
-  m_granulatorButton.onClick = [&]() { togglePlayMode(); };
-
   addAndMakeVisible(m_loadButton);
   m_loadButton.setColour(juce::TextButton::buttonColourId,
                          juce::Colours::transparentWhite);
@@ -279,23 +198,13 @@ void TrackComponent::togglePlayMode() {
   switch (m_playMode) {
   case Regular: {
     m_playMode = PlayMode::Granular;
-
-    m_grainLength.setEnabled(true);
-    m_grainOverlap.setEnabled(true);
-    m_grainSpeed.setEnabled(true);
-    m_grainsCount.setEnabled(true);
-    m_grainSpread.setEnabled(true);
+    m_granulator.setEnabled(true);
     m_engine->grain_play();
     break;
   }
   case Granular: {
     m_playMode = PlayMode::Regular;
-
-    m_grainLength.setEnabled(false);
-    m_grainOverlap.setEnabled(false);
-    m_grainSpeed.setEnabled(false);
-    m_grainsCount.setEnabled(false);
-    m_grainSpread.setEnabled(false);
+    m_granulator.setEnabled(false);
     m_engine->play();
     break;
   }
@@ -311,15 +220,15 @@ void TrackComponent::drawTrack(juce::Graphics &g) {
 
   juce::Colour themeColor;
   switch (m_theme) {
-    case Theme::Light: {
-      themeColor = juce::Colours::black;
-      break;
-    }
-    case Theme::Dark: {
-      themeColor = juce::Colours::white;
-      break;
-    }
-    }
+  case Theme::Light: {
+    themeColor = juce::Colours::black;
+    break;
+  }
+  case Theme::Dark: {
+    themeColor = juce::Colours::white;
+    break;
+  }
+  }
 
   if (m_thumbnail.getNumChannels() != 0) {
     g.setColour(m_color);
@@ -386,18 +295,6 @@ void TrackComponent::loadTheme() {
                                 juce::Colours::black);
     m_reverbAmountLabel.setColour(juce::Label::textColourId,
                                   juce::Colours::black);
-    m_grainSpeedLabel.setColour(juce::Label::textColourId,
-                                juce::Colours::black);
-    m_granulatorLabel.setColour(juce::Label::textColourId,
-                                juce::Colours::black);
-    m_grainSpreadLabel.setColour(juce::Label::textColourId,
-                                 juce::Colours::black);
-    m_grainLengthLabel.setColour(juce::Label::textColourId,
-                                 juce::Colours::black);
-    m_grainOverlapLabel.setColour(juce::Label::textColourId,
-                                  juce::Colours::black);
-    m_grainsCountLabel.setColour(juce::Label::textColourId,
-                                 juce::Colours::black);
     break;
   }
   case Theme::Dark: {
@@ -411,18 +308,6 @@ void TrackComponent::loadTheme() {
                                 juce::Colours::white);
     m_reverbAmountLabel.setColour(juce::Label::textColourId,
                                   juce::Colours::white);
-    m_grainSpeedLabel.setColour(juce::Label::textColourId,
-                                juce::Colours::white);
-    m_granulatorLabel.setColour(juce::Label::textColourId,
-                                juce::Colours::white);
-    m_grainSpreadLabel.setColour(juce::Label::textColourId,
-                                 juce::Colours::white);
-    m_grainLengthLabel.setColour(juce::Label::textColourId,
-                                 juce::Colours::white);
-    m_grainOverlapLabel.setColour(juce::Label::textColourId,
-                                  juce::Colours::white);
-    m_grainsCountLabel.setColour(juce::Label::textColourId,
-                                 juce::Colours::white);
     break;
   }
   }
@@ -431,11 +316,8 @@ void TrackComponent::loadTheme() {
   m_stopButton.setTheme(m_theme);
   m_gainSlider.setTheme(m_theme);
   m_speedSlider.setTheme(m_theme);
-  m_grainSpeed.setTheme(m_theme);
-  m_grainLength.setTheme(m_theme);
-  m_grainOverlap.setTheme(m_theme);
-  m_grainsCount.setTheme(m_theme);
-  m_grainSpread.setTheme(m_theme);
+
+  m_granulator.setTheme(m_theme);
 
   m_reverbAmount.setTheme(m_theme);
   m_reverbDamp.setTheme(m_theme);
@@ -446,8 +328,7 @@ void TrackComponent::loadTheme() {
   repaint();
 }
 
-void TrackComponent::resized()
-{
+void TrackComponent::resized() {
   constexpr auto sliderSize = 75;
   constexpr auto buttonSize = 30;
   constexpr auto margin = 5;
@@ -456,7 +337,7 @@ void TrackComponent::resized()
   m_thumbnailBounds = juce::Rectangle<int>(50, 5, getWidth() - 100, 200);
   const auto sliderY = m_thumbnailBounds.getBottom() + 20;
   const auto buttonY = m_thumbnailBounds.getBottom() - buttonSize - margin;
- 
+
   // Playhead
 
   m_playHeadLabel.setBounds(m_thumbnailBounds.getX(),
@@ -469,38 +350,13 @@ void TrackComponent::resized()
   m_gainLabel.setBounds(50, labelY, sliderSize, spacer);
   m_speedLabel.setBounds(m_speedSlider.getX(), labelY, sliderSize, spacer);
 
-  // Grain
-  m_grainSpeed.setBounds(m_speedSlider.getRight() + 40, sliderY, sliderSize,
-                         sliderSize);
-  m_grainSpeedLabel.setBounds(m_grainSpeed.getX(), labelY, sliderSize, spacer);
-
-  m_grainLength.setBounds(m_grainSpeed.getRight() + 20, sliderY, sliderSize,
-                          sliderSize);
-  m_grainLengthLabel.setBounds(m_grainLength.getX(), labelY, sliderSize,
-                               spacer);
-
-  m_grainOverlap.setBounds(m_grainLength.getRight() + 20, sliderY, sliderSize,
-                           sliderSize);
-  m_grainOverlapLabel.setBounds(m_grainOverlap.getX(), labelY, sliderSize,
-                                spacer);
-
-  m_grainsCount.setBounds(m_grainOverlap.getRight() + 20, sliderY, sliderSize,
-                          sliderSize);
-  m_grainsCountLabel.setBounds(m_grainsCount.getX(), labelY, sliderSize,
-                               spacer);
-
-  m_grainSpread.setBounds(m_grainsCount.getRight() + 20, sliderY, sliderSize,
-                          sliderSize);
-  m_grainSpreadLabel.setBounds(m_grainSpread.getX(), labelY, sliderSize,
-                               spacer);
-
-  m_granulatorLabel.setBounds(
-      m_grainSpeed.getX(), m_thumbnailBounds.getBottom(),
-      m_grainSpread.getRight() - m_grainSpeed.getX(), spacer);
-  m_granulatorButton.setBounds(m_granulatorLabel.getBounds());
-
   // FX
-  m_reverbAmount.setBounds(m_grainSpread.getRight() + 40, sliderY, sliderSize,
+
+  m_granulator.setBounds(m_speedLabel.getRight() + 40,
+                         m_thumbnailBounds.getBottom(), 500,
+                         (labelY + spacer * 2) - sliderY);
+
+  m_reverbAmount.setBounds(m_granulator.getRight() + 40, sliderY, sliderSize,
                            sliderSize);
   m_reverbAmountLabel.setBounds(m_reverbAmount.getX(), labelY, sliderSize,
                                 spacer);
@@ -545,6 +401,8 @@ void TrackComponent::filesDropped(const StringArray &files, int, int) {
   const juce::Colour color(random.nextInt(256), random.nextInt(256),
                            random.nextInt(256));
   m_color = color;
+
+  addAndMakeVisible(m_granulator);
   layoutSliders();
   layoutButtons();
   loadTheme();
