@@ -128,14 +128,6 @@ void Granulator::layoutSliders() {
   m_grainsCountLabel.setColour(juce::Label::textColourId, juce::Colours::black);
   m_grainsCountLabel.setText("Grains", juce::dontSendNotification);
   m_grainsCountLabel.setJustificationType(juce::Justification::centredTop);
-  /*
-     m_grainLength.setEnabled(false);
-     m_grainOverlap.setEnabled(false);
-     m_grainSpeed.setEnabled(false);
-     m_grainsCount.setEnabled(false);
-     m_grainSpread.setEnabled(false);
-
-     */
 }
 
 void Granulator::loadTheme() {
