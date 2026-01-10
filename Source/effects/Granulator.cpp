@@ -54,7 +54,10 @@ void Granulator::setTheme(const Theme theme) {
 }
 
 void Granulator::setEngine(rust_part::Engine *engine) { m_engine = engine; }
-void Granulator::setColor(const juce::Colour color) { m_color = color; }
+void Granulator::setColor(const juce::Colour color) {
+  m_color = color;
+  layoutSliders();
+}
 
 void Granulator::layoutSliders() {
   addAndMakeVisible(m_granulatorLabel);

@@ -118,6 +118,8 @@ target_sources(Xycles
         Source/track/TrackSlider.h
         Source/effects/Granulator.cpp
         Source/effects/Granulator.h
+        Source/effects/Reverb.cpp
+        Source/effects/Reverb.h
   Source/subcomponents/PlayButton.h
   Source/subcomponents/RecordButton.h
   Source/subcomponents/StopButton.h
