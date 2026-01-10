@@ -3,9 +3,6 @@
 //
 
 #include "TrackComponent.h"
-#include "juce_graphics/juce_graphics.h"
-#include "juce_gui_basics/juce_gui_basics.h"
-#include "juce_gui_extra/juce_gui_extra.h"
 
 TrackComponent::TrackComponent(rust_part::Engine *engine)
     : m_engine(engine), m_thumbnailCache(5),
@@ -24,6 +21,9 @@ TrackComponent::TrackComponent(rust_part::Engine *engine)
   m_granulator.setEnabled(false);
   m_granulator.setEngine(m_engine);
 
+  addAndMakeVisible(m_reverb);
+  m_reverb.setEngine(m_engine);
+
   m_formatManager.registerBasicFormats();
 }
 
@@ -33,11 +33,6 @@ void TrackComponent::layoutSliders() {
   m_playHeadLabel.setText("PlayHead", juce::dontSendNotification);
   m_playHeadLabel.setColour(juce::Label::textColourId, juce::Colours::black);
   m_playHeadLabel.setJustificationType(juce::Justification::centred);
-
-  addAndMakeVisible(m_reverbLabel);
-  m_reverbLabel.setText("Reverb", juce::dontSendNotification);
-  m_reverbLabel.setColour(juce::Label::textColourId, juce::Colours::black);
-  m_reverbLabel.setJustificationType(juce::Justification::centred);
 
   addAndMakeVisible(m_gainSlider);
   m_gainSlider.setRange(0.01, 2.00, 0.01);
@@ -96,52 +91,6 @@ void TrackComponent::layoutSliders() {
     m_engine->set_end(static_cast<float>(m_endTime.getValue()));
     repaint();
   };
-
-  addAndMakeVisible(m_reverbAmount);
-  m_reverbAmount.setRange(0.0, 1.0, 0.01);
-  m_reverbAmount.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
-  m_reverbAmount.setTrackColor(m_color);
-  m_reverbAmount.onValueChange = [&]() {
-    m_engine->set_reverb_wet(static_cast<float>(m_reverbAmount.getValue()));
-  };
-  m_reverbAmount.setValue(0.0);
-
-  addAndMakeVisible(m_reverbAmountLabel);
-  m_reverbAmountLabel.attachToComponent(&m_reverbAmount, false);
-  m_reverbAmountLabel.setColour(juce::Label::textColourId,
-                                juce::Colours::black);
-  m_reverbAmountLabel.setText("Dry/Wet", juce::dontSendNotification);
-  m_reverbAmountLabel.setJustificationType(juce::Justification::centredTop);
-
-  addAndMakeVisible(m_reverbSize);
-  m_reverbSize.setRange(0.0, 1.0, 0.01);
-  m_reverbSize.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
-  m_reverbSize.setTrackColor(m_color);
-  m_reverbSize.onValueChange = [&]() {
-    m_engine->set_reverb_size(static_cast<float>(m_reverbSize.getValue()));
-  };
-  m_reverbSize.setValue(0.5);
-
-  addAndMakeVisible(m_reverbSizeLabel);
-  m_reverbSizeLabel.attachToComponent(&m_reverbSize, false);
-  m_reverbSizeLabel.setColour(juce::Label::textColourId, juce::Colours::black);
-  m_reverbSizeLabel.setText("Room Size", juce::dontSendNotification);
-  m_reverbSizeLabel.setJustificationType(juce::Justification::centredTop);
-
-  addAndMakeVisible(m_reverbDamp);
-  m_reverbDamp.setRange(0.0, 1.0, 0.01);
-  m_reverbDamp.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
-  m_reverbDamp.setTrackColor(m_color);
-  m_reverbDamp.onValueChange = [&]() {
-    m_engine->set_reverb_damp(static_cast<float>(m_reverbDamp.getValue()));
-  };
-  m_reverbDamp.setValue(0.0);
-
-  addAndMakeVisible(m_reverbDampLabel);
-  m_reverbDampLabel.attachToComponent(&m_reverbDamp, false);
-  m_reverbDampLabel.setColour(juce::Label::textColourId, juce::Colours::black);
-  m_reverbDampLabel.setText("Dampening", juce::dontSendNotification);
-  m_reverbDampLabel.setJustificationType(juce::Justification::centredTop);
 }
 
 void TrackComponent::layoutButtons() {
@@ -169,6 +118,14 @@ void TrackComponent::layoutButtons() {
                                juce::Colours::transparentWhite);
   m_granulatorButton.toBack();
   m_granulatorButton.onClick = [&] { togglePlayMode(); };
+
+  addAndMakeVisible(m_reverbButton);
+  m_reverbButton.setColour(juce::TextButton::buttonColourId,
+                           juce::Colours::transparentWhite);
+  m_reverbButton.setColour(juce::ComboBox::outlineColourId,
+                           juce::Colours::transparentWhite);
+  m_reverbButton.toBack();
+  // m_reverbButton.onClick = [&] { togglePlayMode(); };
 
   m_playButton.toFront(true);
   m_stopButton.toFront(true);
@@ -297,27 +254,13 @@ void TrackComponent::loadTheme() {
   case Theme::Light: {
     m_gainLabel.setColour(juce::Label::textColourId, juce::Colours::black);
     m_speedLabel.setColour(juce::Label::textColourId, juce::Colours::black);
-    m_reverbLabel.setColour(juce::Label::textColourId, juce::Colours::black);
     m_playHeadLabel.setColour(juce::Label::textColourId, juce::Colours::black);
-    m_reverbDampLabel.setColour(juce::Label::textColourId,
-                                juce::Colours::black);
-    m_reverbSizeLabel.setColour(juce::Label::textColourId,
-                                juce::Colours::black);
-    m_reverbAmountLabel.setColour(juce::Label::textColourId,
-                                  juce::Colours::black);
     break;
   }
   case Theme::Dark: {
     m_gainLabel.setColour(juce::Label::textColourId, juce::Colours::white);
     m_speedLabel.setColour(juce::Label::textColourId, juce::Colours::white);
-    m_reverbLabel.setColour(juce::Label::textColourId, juce::Colours::white);
     m_playHeadLabel.setColour(juce::Label::textColourId, juce::Colours::white);
-    m_reverbDampLabel.setColour(juce::Label::textColourId,
-                                juce::Colours::white);
-    m_reverbSizeLabel.setColour(juce::Label::textColourId,
-                                juce::Colours::white);
-    m_reverbAmountLabel.setColour(juce::Label::textColourId,
-                                  juce::Colours::white);
     break;
   }
   }
@@ -328,10 +271,7 @@ void TrackComponent::loadTheme() {
   m_speedSlider.setTheme(m_theme);
 
   m_granulator.setTheme(m_theme);
-
-  m_reverbAmount.setTheme(m_theme);
-  m_reverbDamp.setTheme(m_theme);
-  m_reverbSize.setTheme(m_theme);
+  m_reverb.setTheme(m_theme);
 
   m_startTime.setTheme(m_theme);
   m_endTime.setTheme(m_theme);
@@ -367,22 +307,10 @@ void TrackComponent::resized() {
                          (labelY + spacer * 2) - sliderY);
   m_granulatorButton.setBounds(m_granulator.getBounds());
 
-  m_reverbAmount.setBounds(m_granulator.getRight() + 40, sliderY, sliderSize,
-                           sliderSize);
-  m_reverbAmountLabel.setBounds(m_reverbAmount.getX(), labelY, sliderSize,
-                                spacer);
-
-  m_reverbSize.setBounds(m_reverbAmount.getRight() + 20, sliderY, sliderSize,
-                         sliderSize);
-  m_reverbSizeLabel.setBounds(m_reverbSize.getX(), labelY, sliderSize, spacer);
-
-  m_reverbDamp.setBounds(m_reverbSize.getRight() + 20, sliderY, sliderSize,
-                         sliderSize);
-  m_reverbDampLabel.setBounds(m_reverbDamp.getX(), labelY, sliderSize, spacer);
-
-  m_reverbLabel.setBounds(m_reverbAmount.getX(), m_thumbnailBounds.getBottom(),
-                          m_reverbDamp.getRight() - m_reverbAmount.getX(),
-                          spacer);
+  m_reverb.setBounds(m_granulator.getRight() + 40,
+                     m_thumbnailBounds.getBottom(), 260,
+                     (labelY + spacer * 2) - sliderY);
+  m_reverbButton.setBounds(m_reverb.getBounds());
 
   m_startTime.setBounds(m_thumbnailBounds.getX(),
                         m_gainSlider.getBottom() + spacer,
@@ -415,6 +343,10 @@ void TrackComponent::filesDropped(const StringArray &files, int, int) {
 
   addAndMakeVisible(m_granulator);
   m_granulator.setColor(m_color);
+
+  addAndMakeVisible(m_reverb);
+  m_reverb.setColor(m_color);
+
   layoutSliders();
   layoutButtons();
   loadTheme();

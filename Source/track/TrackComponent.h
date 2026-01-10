@@ -4,12 +4,14 @@
 
 #pragma once
 #include "../effects/Granulator.h"
+#include "../effects/Reverb.h"
 #include "../static/Utilities.h"
 #include "../subcomponents/PlayButton.h"
 #include "../subcomponents/StopButton.h"
 
 #include "TrackKnob.h"
 #include "TrackSlider.h"
+#include "juce_gui_basics/juce_gui_basics.h"
 #include "rust_part.h"
 #include <JuceHeader.h>
 
@@ -56,12 +58,11 @@ private:
   TrackKnob m_gainSlider, m_speedSlider;
   juce::Label m_gainLabel, m_speedLabel;
 
-  juce::Label m_reverbLabel;
-  TrackKnob m_reverbSize, m_reverbAmount, m_reverbDamp;
-  juce::Label m_reverbSizeLabel, m_reverbAmountLabel, m_reverbDampLabel;
-
   Granulator m_granulator;
   juce::TextButton m_granulatorButton;
+
+  Freeverb m_reverb;
+  juce::TextButton m_reverbButton;
 
   TrackSlider m_startTime, m_endTime;
   Xycles::PlayButton m_playButton;
