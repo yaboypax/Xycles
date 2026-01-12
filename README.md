@@ -8,9 +8,17 @@ Xycles began as an exploration into Rust, particularly in building a Finite Stat
 
 ## Build
 >[!WARNING]
->This project is still in the works and is not recommended to be built from source
+>This project is still in development, any nightly build could have errors and functionality could be altered drastically
 
-Clone this repository and run the `./build.sh bash` script. This will build using `cmake --build` and run the release build for you.
+Clone this repository and run the `build.sh` bash script. This will build using `cmake --build` and run the release build for you.
+
+```
+git clone https://github.com/yaboypax/Xycles.git
+
+cd Xycles
+
+./build.sh 
+```
 
 To generate platform specific project files without building run:
 
