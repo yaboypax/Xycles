@@ -120,6 +120,8 @@ target_sources(Xycles
         Source/effects/Granulator.h
         Source/effects/Reverb.cpp
         Source/effects/Reverb.h
+        Source/base/EffectComponent.cpp
+        Source/base/EffectComponent.h
   Source/subcomponents/PlayButton.h
   Source/subcomponents/RecordButton.h
   Source/subcomponents/StopButton.h
