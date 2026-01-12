@@ -1,9 +1,6 @@
 #include "Granulator.h"
 
-Granulator::Granulator() {
-  setInterceptsMouseClicks(false, true);
-  m_color = juce::Colours::black;
-
+Granulator::Granulator() : EffectComponent() {
   loadTheme();
   layoutSliders();
 }
@@ -51,12 +48,6 @@ void Granulator::setTheme(const Theme theme) {
   m_grainOverlap.setTheme(m_theme);
   m_grainsCount.setTheme(m_theme);
   m_grainSpread.setTheme(m_theme);
-}
-
-void Granulator::setEngine(rust_part::Engine *engine) { m_engine = engine; }
-void Granulator::setColor(const juce::Colour color) {
-  m_color = color;
-  layoutSliders();
 }
 
 void Granulator::layoutSliders() {
