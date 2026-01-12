@@ -1,9 +1,6 @@
 #include "Reverb.h"
 
-Freeverb::Freeverb() {
-  setInterceptsMouseClicks(false, true);
-  m_color = juce::Colours::black;
-
+Freeverb::Freeverb() : EffectComponent() {
   loadTheme();
   layoutSliders();
 }
@@ -39,13 +36,6 @@ void Freeverb::setTheme(const Theme theme) {
   m_reverbDamp.setTheme(m_theme);
   m_reverbSize.setTheme(m_theme);
 }
-
-void Freeverb::setEngine(rust_part::Engine *engine) { m_engine = engine; }
-void Freeverb::setColor(const juce::Colour color) {
-  m_color = color;
-  layoutSliders();
-}
-
 void Freeverb::layoutSliders() {
 
   addAndMakeVisible(m_reverbLabel);
