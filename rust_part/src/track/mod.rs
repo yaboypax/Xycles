@@ -8,6 +8,7 @@ use play_head::PlayHead;
 
 use freeverb::Freeverb;
 
+use aych_delay::{Delay, Settings};
 #[inline]
 fn rando(state: &mut u32) -> f32 {
     *state = state.wrapping_mul(1664525).wrapping_add(1013904223);
@@ -35,6 +36,7 @@ pub struct Track {
     pub play_head: PlayHead,
     pub grain_head: GrainHead,
     pub reverb: Freeverb,
+    pub delay: Delay,
 }
 
 impl Track {
@@ -178,6 +180,8 @@ impl Track {
             //     *s = (*s).clamp(-1.0, 1.0);
             // }
         }
+
+        // self.delay.process_realtime(buffer);
     }
 
     pub fn grain_head(&self) -> &GrainHead {

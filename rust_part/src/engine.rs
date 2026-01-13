@@ -1,3 +1,4 @@
+use aych_delay::{Delay, Settings};
 use crossbeam_queue::ArrayQueue;
 use rodio::{source::Source, Decoder};
 use std::sync::Arc;
@@ -196,6 +197,17 @@ impl Engine {
             play_head: PlayHead::new(),
             grain_head: GrainHead::new(sample_rate),
             reverb: Freeverb::new(sample_rate),
+            delay: Delay::new(Settings {
+                delay_time: 1666.66,
+                feedback: 0.75,
+                width: 0.5,
+                lowpass_filter: 22000.0,
+                highpass_filter: 300.0,
+                dry_wet_mix: 0.5,
+                output_level: 0.75,
+                sample_rate: sample_rate as f32,
+                ..Settings::default()
+            }),
         }
     }
 
