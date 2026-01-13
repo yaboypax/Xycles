@@ -11,6 +11,7 @@ crossbeam-queue = "0.3.12"
 cxx = "1.0.158"
 rodio = "0.20.1"
 freeverb = "0.1.0"
+aych-delay = { git = "https://github.com/yaboypax/aych-delay", branch = "realtime-process"}
 
 [build-dependencies]
 cxx-build = "1.0.158"
