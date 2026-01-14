@@ -4,8 +4,10 @@
 
 #pragma once
 #include "../effects/Delay.h"
+#include "../effects/EffectRack.h"
 #include "../effects/Granulator.h"
 #include "../effects/Reverb.h"
+
 #include "../static/Utilities.h"
 #include "../subcomponents/PlayButton.h"
 #include "../subcomponents/StopButton.h"
@@ -67,6 +69,9 @@ private:
 
   HDelay m_delay;
   juce::TextButton m_delayButton;
+
+  EffectRack m_effectRack;
+  juce::Viewport m_effectViewport;
 
   TrackSlider m_startTime, m_endTime;
   Xycles::PlayButton m_playButton;
