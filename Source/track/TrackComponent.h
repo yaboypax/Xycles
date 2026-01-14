@@ -65,6 +65,9 @@ private:
   Freeverb m_reverb;
   juce::TextButton m_reverbButton;
 
+  HDelay m_delay;
+  juce::TextButton m_delayButton;
+
   TrackSlider m_startTime, m_endTime;
   Xycles::PlayButton m_playButton;
   Xycles::StopButton m_stopButton;
