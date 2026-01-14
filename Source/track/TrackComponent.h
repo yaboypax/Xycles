@@ -3,6 +3,7 @@
 //
 
 #pragma once
+#include "../effects/Delay.h"
 #include "../effects/Granulator.h"
 #include "../effects/Reverb.h"
 #include "../static/Utilities.h"

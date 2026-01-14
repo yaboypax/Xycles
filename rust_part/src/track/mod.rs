@@ -98,6 +98,19 @@ impl Track {
             ParameterState::SetReverbDamp(damp) => {
                 self.reverb.set_dampening(damp);
             }
+
+            ParameterState::SetDelayWet(wet) => {
+                self.delay.settings.dry_wet_mix = wet;
+            }
+
+            ParameterState::SetDelayTime(time) => {
+                self.delay.settings.delay_time = time;
+            }
+
+            ParameterState::SetDelayFeedback(feedback) => {
+                self.delay.settings.feedback = feedback;
+            }
+
             _ => {}
         }
     }
@@ -181,7 +194,7 @@ impl Track {
             // }
         }
 
-        // self.delay.process_realtime(buffer);
+        self.delay.process_realtime(buffer);
     }
 
     pub fn grain_head(&self) -> &GrainHead {
@@ -317,5 +330,7 @@ impl Track {
         ghm.spawn = spawn_ctr;
         ghm.rng_state = rng_state;
         *ghm.grains() = grains;
+
+        self.delay.process_realtime(buffer);
     }
 }
