@@ -32,6 +32,10 @@ pub enum ParameterState {
     SetReverbWet(f64),
     SetReverbSize(f64),
     SetReverbDamp(f64),
+
+    SetDelayWet(f32),
+    SetDelayTime(f32),
+    SetDelayFeedback(f32),
 }
 
 pub enum EngineEvent {
@@ -121,6 +125,22 @@ impl Engine {
         )))
     }
 
+    pub fn set_delay_wet(&mut self, wet: f32) {
+        self.push_event(EngineEvent::SetParameters(ParameterState::SetDelayWet(wet)))
+    }
+
+    pub fn set_delay_time(&mut self, time: f32) {
+        self.push_event(EngineEvent::SetParameters(ParameterState::SetDelayTime(
+            time,
+        )))
+    }
+
+    pub fn set_delay_feedback(&mut self, feedback: f32) {
+        self.push_event(EngineEvent::SetParameters(
+            ParameterState::SetDelayFeedback(feedback),
+        ))
+    }
+
     pub fn get_playhead(&self) -> f32 {
         match &self.state {
             EngineState::Playing(track) | EngineState::Ready(track) => {
@@ -204,7 +224,7 @@ impl Engine {
                 lowpass_filter: 22000.0,
                 highpass_filter: 300.0,
                 dry_wet_mix: 0.5,
-                output_level: 0.75,
+                output_level: 1.0,
                 sample_rate: sample_rate as f32,
                 ..Settings::default()
             }),

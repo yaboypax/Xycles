@@ -38,6 +38,10 @@ mod ffi {
         fn set_reverb_size(self: &mut Engine, size: f32);
         fn set_reverb_damp(self: &mut Engine, damp: f32);
 
+        fn set_delay_time(self: &mut Engine, time: f32);
+        fn set_delay_feedback(self: &mut Engine, feedback: f32);
+        fn set_delay_wet(self: &mut Engine, wet: f32);
+
         fn get_playhead(self: &Engine) -> f32;
         fn get_length(self: &Engine) -> usize;
         // fn get_start(self: &Engine) -> f32;
