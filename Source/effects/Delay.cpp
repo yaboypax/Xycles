@@ -10,6 +10,10 @@ void HDelay::resized() {
   constexpr int sliderY = 20, sliderSize = 75, spacer = 25;
   constexpr int labelY = sliderSize + sliderY;
 
+  if (getWindowState() != Full) {
+    return;
+  }
+
   m_delayAmount.setBounds(0, sliderY, sliderSize, sliderSize);
   m_delayAmountLabel.setBounds(m_delayAmount.getX(), labelY, sliderSize,
                                spacer);

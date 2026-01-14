@@ -10,6 +10,10 @@ void Freeverb::resized() {
   constexpr int sliderY = 20, sliderSize = 75, spacer = 25;
   constexpr int labelY = sliderSize + sliderY;
 
+  if (getWindowState() != Full) {
+    return;
+  }
+
   m_reverbAmount.setBounds(0, sliderY, sliderSize, sliderSize);
   m_reverbAmountLabel.setBounds(m_reverbAmount.getX(), labelY, sliderSize,
                                 spacer);
