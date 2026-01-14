@@ -120,7 +120,12 @@ void TrackComponent::layoutButtons() {
   m_granulatorButton.setColour(juce::ComboBox::outlineColourId,
                                juce::Colours::transparentWhite);
   m_granulatorButton.toBack();
-  m_granulatorButton.onClick = [&] { togglePlayMode(); };
+  m_granulatorButton.onClick = [&] {
+    m_granulator.cycleWindowState();
+    resized();
+    repaint();
+    togglePlayMode();
+  };
 
   addAndMakeVisible(m_reverbButton);
   m_reverbButton.setColour(juce::TextButton::buttonColourId,
@@ -128,7 +133,11 @@ void TrackComponent::layoutButtons() {
   m_reverbButton.setColour(juce::ComboBox::outlineColourId,
                            juce::Colours::transparentWhite);
   m_reverbButton.toBack();
-  // m_reverbButton.onClick = [&] { togglePlayMode(); };
+  m_reverbButton.onClick = [&] {
+    m_reverb.cycleWindowState();
+    resized();
+    repaint();
+  };
 
   addAndMakeVisible(m_delayButton);
   m_delayButton.setColour(juce::TextButton::buttonColourId,
@@ -136,7 +145,11 @@ void TrackComponent::layoutButtons() {
   m_delayButton.setColour(juce::ComboBox::outlineColourId,
                           juce::Colours::transparentWhite);
   m_delayButton.toBack();
-  // m_delayButton.onClick = [&] { togglePlayMode(); };
+  m_delayButton.onClick = [&] {
+    m_delay.cycleWindowState();
+    resized();
+    repaint();
+  };
 
   m_playButton.toFront(true);
   m_stopButton.toFront(true);
@@ -323,14 +336,23 @@ void TrackComponent::resized() {
                          (labelY + spacer * 2) - sliderY);
   m_granulatorButton.setBounds(m_granulator.getBounds());
 
+  int reverbWidth = 20;
+  if (m_reverb.getWindowState() == EffectWindowState::Full) {
+    reverbWidth = 260;
+  }
   m_reverb.setBounds(m_granulator.getRight() + 40,
-                     m_thumbnailBounds.getBottom(), 260,
+                     m_thumbnailBounds.getBottom(), reverbWidth,
                      (labelY + spacer * 2) - sliderY);
   m_reverbButton.setBounds(m_reverb.getBounds());
 
+  int delayWidth = 20;
+  if (m_delay.getWindowState() == EffectWindowState::Full) {
+    delayWidth = 260;
+  }
+
   m_delay.setBounds(m_reverb.getRight() + 40, m_thumbnailBounds.getBottom(),
-                    260, (labelY + spacer * 2) - sliderY);
-  m_delayButton.setBounds(m_reverb.getBounds());
+                    delayWidth, (labelY + spacer * 2) - sliderY);
+  m_delayButton.setBounds(m_delay.getBounds());
 
   m_startTime.setBounds(m_thumbnailBounds.getX(),
                         m_gainSlider.getBottom() + spacer,
@@ -366,6 +388,9 @@ void TrackComponent::filesDropped(const StringArray &files, int, int) {
 
   addAndMakeVisible(m_reverb);
   m_reverb.setColor(m_color);
+
+  addAndMakeVisible(m_delay);
+  m_delay.setColor(m_color);
 
   layoutSliders();
   layoutButtons();

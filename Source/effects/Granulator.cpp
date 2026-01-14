@@ -11,6 +11,10 @@ void Granulator::resized() {
   constexpr int sliderY = 20, sliderSize = 75, spacer = 25;
   constexpr int labelY = sliderSize + sliderY;
 
+  if (getWindowState() != Full) {
+    return;
+  }
+
   m_grainSpeed.setBounds(0, sliderY, sliderSize, sliderSize);
   m_grainSpeedLabel.setBounds(m_grainSpeed.getX(), labelY, sliderSize, spacer);
 

@@ -10,7 +10,7 @@ public:
   EffectComponent();
   virtual ~EffectComponent() override;
 
-  void paint(juce::Graphics &) override {}
+  void paint(juce::Graphics &) override;
   void resized() override {}
   virtual void setTheme(const Theme) {}
   void setEngine(rust_part::Engine *engine);
@@ -18,6 +18,7 @@ public:
 
   void setWindowState(const EffectWindowState);
   EffectWindowState getWindowState();
+  void cycleWindowState();
 
 protected:
   virtual void layoutSliders() {}
