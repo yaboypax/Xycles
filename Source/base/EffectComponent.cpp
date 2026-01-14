@@ -13,3 +13,9 @@ void EffectComponent::setColor(const juce::Colour color) {
   m_color = color;
   layoutSliders();
 }
+
+void EffectComponent::setWindowState(const EffectWindowState windowState) {
+  m_windowState = windowState;
+}
+
+EffectWindowState EffectComponent::getWindowState() { return m_windowState; }

@@ -3,6 +3,7 @@
 Granulator::Granulator() : EffectComponent() {
   loadTheme();
   layoutSliders();
+  setWindowState(Minimized);
 }
 
 void Granulator::resized() {

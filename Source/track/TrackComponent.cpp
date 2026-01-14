@@ -24,6 +24,9 @@ TrackComponent::TrackComponent(rust_part::Engine *engine)
   addAndMakeVisible(m_reverb);
   m_reverb.setEngine(m_engine);
 
+  addAndMakeVisible(m_delay);
+  m_delay.setEngine(m_engine);
+
   m_formatManager.registerBasicFormats();
 }
 
@@ -126,6 +129,14 @@ void TrackComponent::layoutButtons() {
                            juce::Colours::transparentWhite);
   m_reverbButton.toBack();
   // m_reverbButton.onClick = [&] { togglePlayMode(); };
+
+  addAndMakeVisible(m_delayButton);
+  m_delayButton.setColour(juce::TextButton::buttonColourId,
+                          juce::Colours::transparentWhite);
+  m_delayButton.setColour(juce::ComboBox::outlineColourId,
+                          juce::Colours::transparentWhite);
+  m_delayButton.toBack();
+  // m_delayButton.onClick = [&] { togglePlayMode(); };
 
   m_playButton.toFront(true);
   m_stopButton.toFront(true);
@@ -272,6 +283,7 @@ void TrackComponent::loadTheme() {
 
   m_granulator.setTheme(m_theme);
   m_reverb.setTheme(m_theme);
+  m_delay.setTheme(m_theme);
 
   m_startTime.setTheme(m_theme);
   m_endTime.setTheme(m_theme);
@@ -302,8 +314,12 @@ void TrackComponent::resized() {
 
   // FX
 
+  int granulatorWidth = 20;
+  if (m_granulator.getWindowState() == EffectWindowState::Full) {
+    granulatorWidth = 460;
+  }
   m_granulator.setBounds(m_speedLabel.getRight() + 40,
-                         m_thumbnailBounds.getBottom(), 460,
+                         m_thumbnailBounds.getBottom(), granulatorWidth,
                          (labelY + spacer * 2) - sliderY);
   m_granulatorButton.setBounds(m_granulator.getBounds());
 
@@ -311,6 +327,10 @@ void TrackComponent::resized() {
                      m_thumbnailBounds.getBottom(), 260,
                      (labelY + spacer * 2) - sliderY);
   m_reverbButton.setBounds(m_reverb.getBounds());
+
+  m_delay.setBounds(m_reverb.getRight() + 40, m_thumbnailBounds.getBottom(),
+                    260, (labelY + spacer * 2) - sliderY);
+  m_delayButton.setBounds(m_reverb.getBounds());
 
   m_startTime.setBounds(m_thumbnailBounds.getX(),
                         m_gainSlider.getBottom() + spacer,
