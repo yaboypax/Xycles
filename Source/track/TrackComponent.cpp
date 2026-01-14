@@ -27,6 +27,10 @@ TrackComponent::TrackComponent(rust_part::Engine *engine)
   addAndMakeVisible(m_delay);
   m_delay.setEngine(m_engine);
 
+  m_effectViewport.setViewedComponent(&m_effectRack, false);
+  m_effectViewport.setScrollBarsShown(false, true);
+  addAndMakeVisible(m_effectViewport);
+
   m_formatManager.registerBasicFormats();
 }
 
@@ -322,37 +326,46 @@ void TrackComponent::resized() {
   m_speedSlider.setBounds(m_gainSlider.getRight() + 20, sliderY, sliderSize,
                           sliderSize);
   const int labelY = m_gainSlider.getBottom();
+  const auto effectHeight = (labelY + spacer * 2) - sliderY;
+
   m_gainLabel.setBounds(50, labelY, sliderSize, spacer);
   m_speedLabel.setBounds(m_speedSlider.getX(), labelY, sliderSize, spacer);
 
   // FX
 
+  m_effectRack.setSize(1000, effectHeight);
+
   int granulatorWidth = 20;
   if (m_granulator.getWindowState() == EffectWindowState::Full) {
     granulatorWidth = 460;
   }
-  m_granulator.setBounds(m_speedLabel.getRight() + 40,
-                         m_thumbnailBounds.getBottom(), granulatorWidth,
-                         (labelY + spacer * 2) - sliderY);
-  m_granulatorButton.setBounds(m_granulator.getBounds());
+  // m_granulator.setBounds(m_speedLabel.getRight() + 40,
+  //                        m_thumbnailBounds.getBottom(), granulatorWidth,
+  //                        effectHeight;
+  // m_granulatorButton.setBounds(m_granulator.getBounds());
 
   int reverbWidth = 20;
   if (m_reverb.getWindowState() == EffectWindowState::Full) {
     reverbWidth = 260;
   }
-  m_reverb.setBounds(m_granulator.getRight() + 40,
-                     m_thumbnailBounds.getBottom(), reverbWidth,
-                     (labelY + spacer * 2) - sliderY);
-  m_reverbButton.setBounds(m_reverb.getBounds());
+  // m_reverb.setBounds(m_granulator.getRight() + 40,
+  //                    m_thumbnailBounds.getBottom(), reverbWidth,
+  //                    (labelY + spacer * 2) - sliderY);
+  // m_reverbButton.setBounds(m_reverb.getBounds());
 
   int delayWidth = 20;
   if (m_delay.getWindowState() == EffectWindowState::Full) {
     delayWidth = 260;
   }
 
-  m_delay.setBounds(m_reverb.getRight() + 40, m_thumbnailBounds.getBottom(),
-                    delayWidth, (labelY + spacer * 2) - sliderY);
-  m_delayButton.setBounds(m_delay.getBounds());
+  // m_delay.setBounds(m_reverb.getRight() + 40, m_thumbnailBounds.getBottom(),
+  //                    delayWidth, (labelY + spacer * 2) - sliderY);
+  // m_delayButton.setBounds(m_delay.getBounds());
+
+  const int effectStart = m_speedLabel.getRight() + 40;
+  m_effectViewport.setBounds(effectStart, m_thumbnailBounds.getBottom(),
+                             m_thumbnailBounds.getRight() - effectStart,
+                             effectHeight);
 
   m_startTime.setBounds(m_thumbnailBounds.getX(),
                         m_gainSlider.getBottom() + spacer,
@@ -383,13 +396,8 @@ void TrackComponent::filesDropped(const StringArray &files, int, int) {
                            random.nextInt(256));
   m_color = color;
 
-  addAndMakeVisible(m_granulator);
   m_granulator.setColor(m_color);
-
-  addAndMakeVisible(m_reverb);
   m_reverb.setColor(m_color);
-
-  addAndMakeVisible(m_delay);
   m_delay.setColor(m_color);
 
   layoutSliders();
