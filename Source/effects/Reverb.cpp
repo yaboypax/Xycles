@@ -50,7 +50,7 @@ void Freeverb::layoutSliders() {
   m_reverbAmount.onValueChange = [&]() {
     m_engine->set_reverb_wet(static_cast<float>(m_reverbAmount.getValue()));
   };
-  m_reverbAmount.setValue(0.0);
+  m_reverbAmount.setValue(0.5);
 
   addAndMakeVisible(m_reverbAmountLabel);
   m_reverbAmountLabel.attachToComponent(&m_reverbAmount, false);
