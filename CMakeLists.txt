@@ -123,6 +123,7 @@ target_sources(Xycles
         Source/effects/Delay.cpp
         Source/effects/Delay.h
         Source/effects/EffectRack.h
+        Source/effects/EffectRack.cpp
         Source/base/EffectComponent.cpp
         Source/base/EffectComponent.h
   Source/subcomponents/PlayButton.h
