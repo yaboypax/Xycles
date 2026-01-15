@@ -8,7 +8,7 @@ struct PowerButton : juce::TextButton {
     Path powerButton;
 
     auto bounds = getLocalBounds();
-    auto size = jmin(bounds.getWidth(), bounds.getHeight()) - 6;
+    auto size = jmin(bounds.getWidth(), bounds.getHeight());
     auto r = bounds.withSizeKeepingCentre(size, size).toFloat();
 
     float ang = 30.f;
@@ -24,10 +24,9 @@ struct PowerButton : juce::TextButton {
     PathStrokeType pst(2.f, PathStrokeType::JointStyle::curved);
 
     auto color =
-        getToggleState() ? Colours::dimgrey : juce::Colour(188, 198, 206);
+        getToggleState() ? Colours::black : juce::Colour(188, 198, 206);
 
     g.setColour(color);
     g.strokePath(powerButton, pst);
-    g.drawEllipse(r, 2);
   }
 };

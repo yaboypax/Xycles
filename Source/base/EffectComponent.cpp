@@ -24,8 +24,8 @@ EffectComponent::~EffectComponent() = default;
 
 void EffectComponent::paint(juce::Graphics &g) {
   if (getWindowState() == Minimized) {
-    g.setColour(m_color);
-    g.drawRoundedRectangle(getLocalBounds().toFloat(), 6.f, 2.f);
+    g.fillCheckerBoard(getLocalBounds().toFloat(), 4.f, 4.f,
+                       m_color.withAlpha(0.3f), juce::Colours::white);
   }
 }
 
