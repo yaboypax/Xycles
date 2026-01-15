@@ -10,6 +10,7 @@ public:
   Granulator();
   void resized() override;
   void setTheme(const Theme theme) override;
+  std::function<void()> playModeCallback;
 
 private:
   void layoutSliders() override;
