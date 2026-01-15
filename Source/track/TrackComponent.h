@@ -3,11 +3,7 @@
 //
 
 #pragma once
-#include "../effects/Delay.h"
 #include "../effects/EffectRack.h"
-#include "../effects/Granulator.h"
-#include "../effects/Reverb.h"
-
 #include "../static/Utilities.h"
 #include "../subcomponents/PlayButton.h"
 #include "../subcomponents/StopButton.h"
@@ -60,15 +56,6 @@ private:
   juce::Label m_playHeadLabel;
   TrackKnob m_gainSlider, m_speedSlider;
   juce::Label m_gainLabel, m_speedLabel;
-
-  Granulator m_granulator;
-  juce::TextButton m_granulatorButton;
-
-  Freeverb m_reverb;
-  juce::TextButton m_reverbButton;
-
-  HDelay m_delay;
-  juce::TextButton m_delayButton;
 
   EffectRack m_effectRack;
   juce::Viewport m_effectViewport;
