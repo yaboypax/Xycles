@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../static/Utilities.h"
-#include "juce_graphics/juce_graphics.h"
+#include "../subcomponents/PowerButton.h"
 #include <JuceHeader.h>
 #include <rust_part.h>
 
@@ -11,7 +11,8 @@ public:
   virtual ~EffectComponent() override;
 
   void paint(juce::Graphics &) override;
-  void resized() override {}
+  void resized() override;
+
   virtual void setTheme(const Theme) {}
   void setEngine(rust_part::Engine *engine);
   void setColor(const juce::Colour color);
@@ -19,6 +20,7 @@ public:
   void setWindowState(const EffectWindowState);
   EffectWindowState getWindowState();
   void cycleWindowState();
+  std::function<void()> powerButtonCallback;
 
 protected:
   virtual void layoutSliders() {}
@@ -28,4 +30,5 @@ protected:
   Theme m_theme = Theme::Light;
   EffectWindowState m_windowState = EffectWindowState::Full;
   juce::Colour m_color;
+  PowerButton m_powerButton;
 };
