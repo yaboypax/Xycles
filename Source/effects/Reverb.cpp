@@ -7,6 +7,8 @@ Freeverb::Freeverb() : EffectComponent() {
 
 void Freeverb::resized() {
 
+  EffectComponent::resized();
+
   constexpr int sliderY = 20, sliderSize = 75, spacer = 25;
   constexpr int labelY = sliderSize + sliderY;
 
@@ -92,6 +94,8 @@ void Freeverb::layoutSliders() {
   m_reverbDampLabel.setColour(juce::Label::textColourId, juce::Colours::black);
   m_reverbDampLabel.setText("Dampening", juce::dontSendNotification);
   m_reverbDampLabel.setJustificationType(juce::Justification::centredTop);
+
+  m_reverbLabel.toBack();
 }
 
 void Freeverb::loadTheme() {

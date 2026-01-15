@@ -7,6 +7,8 @@ HDelay::HDelay() : EffectComponent() {
 
 void HDelay::resized() {
 
+  EffectComponent::resized();
+
   constexpr int sliderY = 20, sliderSize = 75, spacer = 25;
   constexpr int labelY = sliderSize + sliderY;
 
@@ -94,6 +96,8 @@ void HDelay::layoutSliders() {
                                  juce::Colours::black);
   m_delayFeedbackLabel.setText("Feedback", juce::dontSendNotification);
   m_delayFeedbackLabel.setJustificationType(juce::Justification::centredTop);
+
+  m_delayLabel.toBack();
 }
 
 void HDelay::loadTheme() {
