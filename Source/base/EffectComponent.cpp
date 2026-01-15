@@ -3,6 +3,22 @@
 EffectComponent::EffectComponent() {
   setInterceptsMouseClicks(false, true);
   m_color = juce::Colours::black;
+
+  addAndMakeVisible(m_powerButton);
+  m_powerButton.setToggleable(true);
+  m_powerButton.setClickingTogglesState(true);
+  m_powerButton.onClick = [&]() {
+    auto enabled = m_powerButton.getToggleState();
+    for (auto child : getChildren()) {
+      child->setEnabled(enabled);
+      if (!enabled)
+        m_powerButton.setEnabled(true);
+    }
+
+    if (powerButtonCallback) {
+      powerButtonCallback();
+    }
+  };
 }
 EffectComponent::~EffectComponent() = default;
 
@@ -11,6 +27,11 @@ void EffectComponent::paint(juce::Graphics &g) {
     g.setColour(m_color);
     g.drawRoundedRectangle(getLocalBounds().toFloat(), 6.f, 2.f);
   }
+}
+
+void EffectComponent::resized() {
+  constexpr int buttonSize = 20;
+  m_powerButton.setBounds(0, 0, buttonSize, buttonSize);
 }
 
 void EffectComponent::setEngine(rust_part::Engine *engine) {
@@ -31,14 +52,17 @@ void EffectComponent::cycleWindowState() {
   case Minimized:
     setWindowState(Full);
     layoutSliders();
+    addAndMakeVisible(m_powerButton);
     break;
   case Small:
     setWindowState(Full);
     layoutSliders();
+    addAndMakeVisible(m_powerButton);
     break;
   case Full:
     setWindowState(Minimized);
     removeAllChildren();
+    addAndMakeVisible(m_powerButton);
     break;
   }
 

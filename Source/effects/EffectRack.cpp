@@ -5,8 +5,6 @@ EffectRack::EffectRack() {
   addAndMakeVisible(m_reverb);
   addAndMakeVisible(m_delay);
 
-  m_granulator.setEnabled(false);
-
   addAndMakeVisible(m_granulatorButton);
   m_granulatorButton.setColour(juce::TextButton::buttonColourId,
                                juce::Colours::transparentWhite);
@@ -17,8 +15,9 @@ EffectRack::EffectRack() {
     m_granulator.cycleWindowState();
     resized();
     repaint();
+  };
 
-    m_granulator.setEnabled(!m_granulator.isEnabled());
+  m_granulator.powerButtonCallback = [&] {
     if (playbackCallback)
       playbackCallback();
   };

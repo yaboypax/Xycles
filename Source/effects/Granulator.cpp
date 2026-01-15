@@ -3,10 +3,15 @@
 Granulator::Granulator() : EffectComponent() {
   loadTheme();
   layoutSliders();
-  setWindowState(Minimized);
+  for (auto child : getChildren()) {
+    child->setEnabled(false);
+  }
+  m_powerButton.setEnabled(true);
 }
 
 void Granulator::resized() {
+
+  EffectComponent::resized();
 
   constexpr int sliderY = 20, sliderSize = 75, spacer = 25;
   constexpr int labelY = sliderSize + sliderY;
@@ -127,6 +132,8 @@ void Granulator::layoutSliders() {
   m_grainsCountLabel.setColour(juce::Label::textColourId, juce::Colours::black);
   m_grainsCountLabel.setText("Grains", juce::dontSendNotification);
   m_grainsCountLabel.setJustificationType(juce::Justification::centredTop);
+
+  m_granulatorLabel.toBack();
 }
 
 void Granulator::loadTheme() {
