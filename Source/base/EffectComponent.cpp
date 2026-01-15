@@ -19,6 +19,7 @@ void EffectComponent::setEngine(rust_part::Engine *engine) {
 void EffectComponent::setColor(const juce::Colour color) {
   m_color = color;
   layoutSliders();
+  resized();
 }
 
 void EffectComponent::setWindowState(const EffectWindowState windowState) {

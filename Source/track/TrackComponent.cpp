@@ -3,6 +3,7 @@
 //
 
 #include "TrackComponent.h"
+#include "juce_gui_basics/juce_gui_basics.h"
 
 TrackComponent::TrackComponent(rust_part::Engine *engine)
     : m_engine(engine), m_thumbnailCache(5),
@@ -22,6 +23,7 @@ TrackComponent::TrackComponent(rust_part::Engine *engine)
 
   m_effectViewport.setViewedComponent(&m_effectRack, false);
   m_effectViewport.setScrollBarsShown(false, true);
+  m_effectViewport.setScrollBarThickness(4.f);
   addAndMakeVisible(m_effectViewport);
 
   m_formatManager.registerBasicFormats();
@@ -292,7 +294,7 @@ void TrackComponent::resized() {
                              effectHeight);
 
   m_startTime.setBounds(m_thumbnailBounds.getX(),
-                        m_gainSlider.getBottom() + spacer * 2,
+                        m_gainSlider.getBottom() + spacer + 5,
                         m_thumbnailBounds.getWidth(), 20);
   m_endTime.setBounds(m_thumbnailBounds.getX(), m_startTime.getBottom() + 5,
                       m_thumbnailBounds.getWidth(), 20);
