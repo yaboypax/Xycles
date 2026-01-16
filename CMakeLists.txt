@@ -178,7 +178,11 @@ if (MSVC)
             Propsys
             runtimeobject
     )
-endif ()
+
+    else()
+target_link_libraries(Xycles PRIVATE pthread)
+
+    endif ()
 
 target_link_libraries(Xycles
         PRIVATE
@@ -186,7 +190,6 @@ target_link_libraries(Xycles
         juce::juce_audio_utils
         rust_part
         ${RUST_PART_LIB}
-  pthread
         PUBLIC
         juce::juce_recommended_config_flags
         juce::juce_recommended_lto_flags
