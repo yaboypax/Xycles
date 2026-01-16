@@ -3,6 +3,8 @@
 Freeverb::Freeverb() : EffectComponent() {
   loadTheme();
   layoutSliders();
+  m_powerButton.setToggleState(true,
+                               juce::NotificationType::dontSendNotification);
 }
 
 void Freeverb::resized() {

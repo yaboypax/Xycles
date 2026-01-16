@@ -1,8 +1,11 @@
 #include "Delay.h"
+#include "juce_events/juce_events.h"
 
 HDelay::HDelay() : EffectComponent() {
   loadTheme();
   layoutSliders();
+  m_powerButton.setToggleState(true,
+                               juce::NotificationType::dontSendNotification);
 }
 
 void HDelay::resized() {
