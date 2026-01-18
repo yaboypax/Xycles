@@ -124,6 +124,8 @@ target_sources(Xycles
         Source/effects/Delay.h
         Source/effects/EffectRack.h
         Source/effects/EffectRack.cpp
+        Source/effects/Compressor.h
+        Source/effects/Compressor.cpp
         Source/base/EffectComponent.cpp
         Source/base/EffectComponent.h
   Source/subcomponents/PlayButton.h
@@ -179,10 +181,10 @@ if (MSVC)
             runtimeobject
     )
 
-    else()
-target_link_libraries(Xycles PRIVATE pthread)
+else()
+  target_link_libraries(Xycles PRIVATE pthread)
 
-    endif ()
+endif ()
 
 target_link_libraries(Xycles
         PRIVATE
