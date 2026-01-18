@@ -12,6 +12,8 @@ cxx = "1.0.158"
 rodio = "0.20.1"
 freeverb = "0.1.0"
 aych-delay = { git = "https://github.com/yaboypax/aych-delay", branch = "realtime-process"}
+compressor = { git = "https://github.com/yaboypax/compressor.git"}
+
 
 [build-dependencies]
 cxx-build = "1.0.158"
