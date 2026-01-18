@@ -1,7 +1,10 @@
 #pragma once
+#include "../effects/Compressor.h"
 #include "../effects/Delay.h"
 #include "../effects/Granulator.h"
 #include "../effects/Reverb.h"
+
+#include "juce_gui_basics/juce_gui_basics.h"
 #include <JuceHeader.h>
 
 class EffectRack : public juce::Component {
@@ -25,4 +28,7 @@ private:
 
   HDelay m_delay;
   juce::TextButton m_delayButton;
+
+  Compressor m_compressor;
+  juce::TextButton m_compressorButton;
 };
