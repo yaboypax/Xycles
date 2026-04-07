@@ -188,9 +188,13 @@ target_link_libraries(Xycles
         PRIVATE
         XyclesBinaryData
         juce::juce_audio_utils
-        rust_part
+        rust_part_crate
         ${RUST_PART_LIB}
         PUBLIC
         juce::juce_recommended_config_flags
         juce::juce_recommended_lto_flags
         juce::juce_recommended_warning_flags)
+
+        
+        message(STATUS "RUST_PART_LIB = ${RUST_PART_LIB}")
+        message(STATUS "RUST_OUT_DIR = ${RUST_OUT_DIR}")
