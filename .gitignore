@@ -1,3 +1,5 @@
 build/*
 rust_part/target/
+rust_part/build/
+rust_part/rust_part.h
 .cache/
