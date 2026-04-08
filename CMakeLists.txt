@@ -28,7 +28,7 @@ set(GDK_BACKEND x11)
 set(RUST_CRATE_NAME "rust_part")
 
 # Add everything necessary for the Rust libary
-include_directories(${CMAKE_CURRENT_BINARY_DIR}/${RUST_CRATE_NAME})
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/${RUST_CRATE_NAME})
 include_directories(include)
 add_subdirectory(${RUST_CRATE_NAME})
 
@@ -188,13 +188,10 @@ target_link_libraries(Xycles
         PRIVATE
         XyclesBinaryData
         juce::juce_audio_utils
-        rust_part_crate
         ${RUST_PART_LIB}
         PUBLIC
         juce::juce_recommended_config_flags
         juce::juce_recommended_lto_flags
         juce::juce_recommended_warning_flags)
 
-        
-        message(STATUS "RUST_PART_LIB = ${RUST_PART_LIB}")
-        message(STATUS "RUST_OUT_DIR = ${RUST_OUT_DIR}")
+        add_dependencies(Xycles rust_part)
