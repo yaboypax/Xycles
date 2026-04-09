@@ -19,6 +19,14 @@ project(XYCLES VERSION 0.0.1)
 # This will make the LSP work in vscode, zed or other IDEs
 set(CMAKE_EXPORT_COMPILE_COMMANDS true)
 
+include(CheckIPOSupported)
+check_ipo_supported(RESULT ipo_supported)
+
+if(ipo_supported)
+  set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
+endif()
+
+
 # Set the C++ version
 set(CMAKE_CXX_STANDARD 17)
 
@@ -186,6 +194,7 @@ else()
 
 endif ()
 
+
 target_link_libraries(Xycles
         PRIVATE
         XyclesBinaryData
@@ -196,4 +205,3 @@ target_link_libraries(Xycles
         juce::juce_recommended_lto_flags
         juce::juce_recommended_warning_flags)
 
-        add_dependencies(Xycles rust_part)
