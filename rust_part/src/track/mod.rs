@@ -272,17 +272,15 @@ impl Track {
         for frame in 0..frames {
             // every hop_size frames spawn a new grain at read_pos=0
             if spawn_ctr == 0 {
-                for _ in 0..count {
+                for i in 0..count {
                     let pan = random_pan(spread, &mut rng_state);
+                    let offset = i as f32 * 10.0;
                     grains.push(Grain {
-                        // anchor the grain at current head position inside the loop
-                        read_position,
+                        read_position: (read_position + offset).rem_euclid(loop_len as f32),
                         window_position: 0,
                         pan,
                         grain_speed,
                     });
-
-                    read_position += 10.0;
                 }
                 spawn_ctr = hop_size;
                 if grains.len() > 64 {
