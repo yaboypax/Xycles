@@ -272,6 +272,12 @@ impl Track {
         for frame in 0..frames {
             // every hop_size frames spawn a new grain at read_pos=0
             if spawn_ctr == 0 {
+                const MAX_GRAINS: usize = 64;
+                let cap_for_new = MAX_GRAINS.saturating_sub(count);
+                if grains.len() > cap_for_new {
+                    let to_drop = grains.len() - cap_for_new;
+                    grains.drain(0..to_drop);
+                }
                 for i in 0..count {
                     let pan = random_pan(spread, &mut rng_state);
                     let offset = i as f32 * 10.0;
@@ -283,9 +289,6 @@ impl Track {
                     });
                 }
                 spawn_ctr = hop_size;
-                if grains.len() > 64 {
-                    grains.remove(0);
-                }
             }
             spawn_ctr = spawn_ctr.saturating_sub(1);
 
