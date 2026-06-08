@@ -163,12 +163,22 @@ impl Track {
                     )
                 });
 
-            for channel in 0..self.channels {
-                let s0 = *self.samples.get(base_offset + channel).unwrap_or(&0.0);
-                let s1 = *self.samples.get(next_offset + channel).unwrap_or(&0.0);
+            let dry_channels = self.channels.min(2);
+            let mut dry = [0.0f32; 2];
+            for c in 0..dry_channels {
+                let s0 = *self.samples.get(base_offset + c).unwrap_or(&0.0);
+                let s1 = *self.samples.get(next_offset + c).unwrap_or(&0.0);
+                dry[c] = s0 + (s1 - s0) * fraction;
+            }
+            if dry_channels == 1 {
+                dry[1] = dry[0];
+            }
 
-                let (left_wet, right_wet) = self.reverb.tick((s0 as f64, s1 as f64));
-                let mut sample = left_wet as f32 + (right_wet - left_wet) as f32 * fraction;
+            let (left_wet, right_wet) = self.reverb.tick((dry[0] as f64, dry[1] as f64));
+            let wet = [left_wet as f32, right_wet as f32];
+
+            for channel in 0..self.channels {
+                let mut sample = if channel < 2 { wet[channel] } else { 0.0 };
 
                 if index >= loop_length - crossfade_samples {
                     let fade_pos = (index + 1 + crossfade_samples - loop_length) as f32
