@@ -209,6 +209,9 @@ impl Engine {
         let channels = source.channels() as usize;
         let samples: Vec<f32> = source.convert_samples().collect();
         let end = samples.len() / channels;
+        let mut reverb = Freeverb::new(sample_rate);
+        reverb.set_wet(0.0);
+        reverb.set_dry(1.0);
         Track {
             samples,
             start: 0,
@@ -216,7 +219,7 @@ impl Engine {
             channels,
             play_head: PlayHead::new(),
             grain_head: GrainHead::new(sample_rate),
-            reverb: Freeverb::new(sample_rate),
+            reverb,
             delay: Delay::new(Settings {
                 delay_time: 1666.66,
                 feedback: 0.1,
