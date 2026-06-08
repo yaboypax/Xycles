@@ -49,11 +49,20 @@ impl Track {
             ParameterState::SetStart(start) => {
                 let start_samples = start * (samples / channels) as f32;
                 self.start = start_samples as usize;
-                self.play_head_mut().position = start_samples;
+                self.play_head_mut().position = 0.0;
+                self.grain_head_mut().base_pos = 0.0;
             }
             ParameterState::SetEnd(end) => {
                 self.end = (end * (self.samples.len() / self.channels) as f32) as usize;
-                self.play_head_mut().position = self.start as f32;
+                let new_loop_len = self.end.saturating_sub(self.start) as f32;
+                let ph = self.play_head_mut();
+                if ph.position >= new_loop_len {
+                    ph.position = 0.0;
+                }
+                let gh = self.grain_head_mut();
+                if gh.base_pos >= new_loop_len {
+                    gh.base_pos = 0.0;
+                }
             }
 
             ParameterState::SetGain(g) => {

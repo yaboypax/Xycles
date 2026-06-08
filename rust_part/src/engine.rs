@@ -241,12 +241,12 @@ impl Engine {
             }
             (EngineState::Ready(track), EngineEvent::Play) => {
                 let mut t = track;
-                t.play_head_mut().position = t.start as f32;
+                t.play_head_mut().position = 0.0;
                 EngineState::Playing(t)
             }
             (EngineState::Ready(track), EngineEvent::GrainPlay) => {
                 let mut t = track;
-                t.grain_head_mut().base_pos = t.start as f32;
+                t.grain_head_mut().base_pos = 0.0;
                 EngineState::Granulating(t)
             }
             (EngineState::Ready(track), EngineEvent::SetParameters(state)) => {
