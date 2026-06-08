@@ -1,0 +1,45 @@
+{
+  "version": 3,
+  "configurePresets": [
+    {
+      "name": "base-ninja",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/${presetName}",
+      "cacheVariables": {
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+      }
+    },
+    {
+      "name": "msvc-release",
+      "inherits": "base-ninja",
+      "environment": {
+        "CC": "cl",
+        "CXX": "cl"
+      },
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    {
+      "name": "msvc-debug",
+      "inherits": "base-ninja",
+      "environment": {
+        "CC": "cl",
+        "CXX": "cl"
+      },
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "build-release",
+      "configurePreset": "msvc-release"
+    },
+    {
+      "name": "build-debug",
+      "configurePreset": "msvc-debug"
+    }
+  ]
+}
