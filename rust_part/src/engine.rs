@@ -226,7 +226,7 @@ impl Engine {
                 width: 0.5,
                 lowpass_filter: 22000.0,
                 highpass_filter: 30.0,
-                dry_wet_mix: 0.5,
+                dry_wet_mix: 0.0,
                 output_level: 1.0,
                 sample_rate: sample_rate as f32,
                 ..Settings::default()
