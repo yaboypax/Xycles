@@ -5,6 +5,7 @@
 #include "TrackKnob.h"
 
 TrackKnob::TrackKnob() {
+  setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
   setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
 }
 void TrackKnob::setTrackColor(juce::Colour color) {
