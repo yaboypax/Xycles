@@ -204,3 +204,5 @@ target_link_libraries(Xycles
         juce::juce_recommended_config_flags
         juce::juce_recommended_warning_flags)
 
+add_dependencies(Xycles rust_part)
+
