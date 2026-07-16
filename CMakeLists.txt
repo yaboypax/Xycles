@@ -22,7 +22,9 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS true)
 include(CheckIPOSupported)
 check_ipo_supported(RESULT ipo_supported)
 
-if(ipo_supported)
+option(XYCLES_LTO "link-time optimisation. slow to link, for distribution builds" ON)
+
+if(ipo_supported AND XYCLES_LTO)
   set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
 endif()
 
