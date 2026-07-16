@@ -13,9 +13,9 @@ use freeverb::Freeverb;
 
 pub enum EngineState {
     Idle,
-    Ready(Track),
-    Playing(Track),
-    Granulating(Track),
+    Ready(Box<Track>),
+    Playing(Box<Track>),
+    Granulating(Box<Track>),
 }
 
 pub enum ParameterState {
@@ -52,6 +52,7 @@ pub struct Engine {
     state: EngineState,
     commands: Arc<ArrayQueue<EngineEvent>>,
     loading: Arc<AtomicBool>,
+    retired: Arc<ArrayQueue<Box<Track>>>,
 }
 
 impl Engine {
@@ -60,6 +61,7 @@ impl Engine {
             state: EngineState::Idle,
             commands: Arc::new(ArrayQueue::new(32)),
             loading: Arc::new(AtomicBool::new(false)),
+            retired: Arc::new(ArrayQueue::new(32)),
         }
     }
 
@@ -67,9 +69,11 @@ impl Engine {
     pub fn load_audio(&mut self, path: &str) {
         let commands = Arc::clone(&self.commands);
         let loading = Arc::clone(&self.loading);
+        let retired = Arc::clone(&self.retired);
         let path = path.to_string();
         loading.store(true, Ordering::Relaxed);
         std::thread::spawn(move || {
+            while retired.pop().is_some() {}
             if let Some(track) = Engine::load_path(path) {
                 let _ = commands.push(EngineEvent::Load(Box::new(track)));
             }
@@ -253,7 +257,17 @@ impl Engine {
         let old = mem::replace(&mut self.state, EngineState::Idle);
         self.state = match (old, event) {
             // ─── Idle ───
-            (_, EngineEvent::Load(track)) => EngineState::Ready(*track),
+            (old_state, EngineEvent::Load(track)) => {
+                match old_state {
+                    EngineState::Ready(old_track)
+                    | EngineState::Playing(old_track)
+                    | EngineState::Granulating(old_track) => {
+                        let _ = self.retired.push(old_track);
+                    }
+                    EngineState::Idle => {}
+                }
+                EngineState::Ready(track)
+            }
             (EngineState::Ready(track), EngineEvent::Play) => {
                 let mut t = track;
                 t.play_head_mut().position = 0.0;
