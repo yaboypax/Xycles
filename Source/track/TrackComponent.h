@@ -46,6 +46,7 @@ private:
   rust_part::Engine *m_engine;
   void layoutSliders();
   void layoutButtons();
+  void setControlsEnabled(bool enabled);
 
   Theme m_theme = Theme::Light;
   juce::Colour m_color;

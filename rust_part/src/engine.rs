@@ -1,6 +1,7 @@
 use aych_delay::{Delay, Settings};
 use crossbeam_queue::ArrayQueue;
 use rodio::{source::Source, Decoder};
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use std::{fs::File, io::BufReader, mem};
 
@@ -39,7 +40,7 @@ pub enum ParameterState {
 }
 
 pub enum EngineEvent {
-    Load(String),
+    Load(Box<Track>),
     Play,
     GrainPlay,
     Stop,
@@ -50,6 +51,7 @@ pub enum EngineEvent {
 pub struct Engine {
     state: EngineState,
     commands: Arc<ArrayQueue<EngineEvent>>,
+    loading: Arc<AtomicBool>,
 }
 
 impl Engine {
@@ -57,12 +59,25 @@ impl Engine {
         Engine {
             state: EngineState::Idle,
             commands: Arc::new(ArrayQueue::new(32)),
+            loading: Arc::new(AtomicBool::new(false)),
         }
     }
 
     // FFI Bridge
     pub fn load_audio(&mut self, path: &str) {
-        self.push_event(EngineEvent::Load(path.into()))
+        let commands = Arc::clone(&self.commands);
+        let loading = Arc::clone(&self.loading);
+        let path = path.to_string();
+        loading.store(true, Ordering::Relaxed);
+        std::thread::spawn(move || {
+            if let Some(track) = Engine::load_path(path) {
+                let _ = commands.push(EngineEvent::Load(Box::new(track)));
+            }
+            loading.store(false, Ordering::Relaxed);
+        });
+    }
+    pub fn is_loading(&self) -> bool {
+        self.loading.load(Ordering::Relaxed)
     }
     pub fn play(&mut self) {
         self.push_event(EngineEvent::Play)
@@ -202,9 +217,9 @@ impl Engine {
         }
     }
 
-    pub fn load_path(&mut self, path: String) -> Track {
-        let file = BufReader::new(File::open(&path).unwrap());
-        let source = Decoder::new(file).unwrap();
+    pub fn load_path(path: String) -> Option<Track> {
+        let file = BufReader::new(File::open(&path).ok()?);
+        let source = Decoder::new(file).ok()?;
         let sample_rate = source.sample_rate() as usize;
         let channels = source.channels() as usize;
         let samples: Vec<f32> = source.convert_samples().collect();
@@ -212,7 +227,7 @@ impl Engine {
         let mut reverb = Freeverb::new(sample_rate);
         reverb.set_wet(0.0);
         reverb.set_dry(1.0);
-        Track {
+        Some(Track {
             samples,
             start: 0,
             end,
@@ -231,17 +246,14 @@ impl Engine {
                 sample_rate: sample_rate as f32,
                 ..Settings::default()
             }),
-        }
+        })
     }
 
     pub fn transition(&mut self, event: EngineEvent) {
         let old = mem::replace(&mut self.state, EngineState::Idle);
         self.state = match (old, event) {
             // ─── Idle ───
-            (_, EngineEvent::Load(path)) => {
-                let track = self.load_path(path);
-                EngineState::Ready(track)
-            }
+            (_, EngineEvent::Load(track)) => EngineState::Ready(*track),
             (EngineState::Ready(track), EngineEvent::Play) => {
                 let mut t = track;
                 t.play_head_mut().position = 0.0;

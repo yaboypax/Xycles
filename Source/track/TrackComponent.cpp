@@ -163,7 +163,21 @@ void TrackComponent::togglePlayMode() {
   repaint();
 }
 
-void TrackComponent::update() { repaint(); }
+void TrackComponent::setControlsEnabled(const bool enabled) {
+  m_playButton.setEnabled(enabled);
+  m_stopButton.setEnabled(enabled);
+  m_gainSlider.setEnabled(enabled);
+  m_speedSlider.setEnabled(enabled);
+  m_startTime.setEnabled(enabled);
+  m_endTime.setEnabled(enabled);
+  m_loopMasterButton.setEnabled(enabled);
+  m_effectRack.setEnabled(enabled);
+}
+
+void TrackComponent::update() {
+  setControlsEnabled(!m_engine->is_loading());
+  repaint();
+}
 
 void TrackComponent::paint(juce::Graphics &g) { drawTrack(g); }
 

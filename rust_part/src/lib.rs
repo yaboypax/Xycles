@@ -44,6 +44,7 @@ mod ffi {
 
         fn get_playhead(self: &Engine) -> f32;
         fn get_length(self: &Engine) -> usize;
+        fn is_loading(self: &Engine) -> bool;
         // fn get_start(self: &Engine) -> f32;
         // fn get_end(self: &Engine) -> f32;
     }
