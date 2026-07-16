@@ -1,18 +1,36 @@
 #!/usr/bin/env bash
-mkdir -p build
-cd build
-cmake .. -DCMAKE_BUILD_TYPE=Release
-cmake --build . --config Release -- -j 6
+set -euo pipefail
 
-OS=$(uname)
-case "$OS" in
+cd "$(dirname "$0")"
+
+for tool in cmake cargo git; do
+  if ! command -v "$tool" >/dev/null 2>&1; then
+    echo "error: $tool not found on PATH. see the dependencies section of the README." >&2
+    exit 1
+  fi
+done
+
+if command -v nproc >/dev/null 2>&1; then
+  JOBS=$(nproc)
+elif command -v sysctl >/dev/null 2>&1; then
+  JOBS=$(sysctl -n hw.ncpu)
+else
+  JOBS=4
+fi
+
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build --config Release --parallel "$JOBS"
+
+ARTEFACTS="build/Xycles_artefacts/Release"
+
+case "$(uname -s)" in
 'Darwin')
-  open Xycles_artefacts/Release/Xycles.app
+  open "$ARTEFACTS/Xycles.app"
   ;;
 'CYGWIN'* | 'MSYS'* | 'MINGW'*)
-  Xycles_artefacts/Release/Xycles.exe
+  "$ARTEFACTS/Xycles.exe"
   ;;
 *)
-  Xycles_artefacts/Release/Xycles
+  "$ARTEFACTS/Xycles"
   ;;
 esac
