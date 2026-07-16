@@ -171,6 +171,7 @@ void TrackComponent::setControlsEnabled(const bool enabled) {
   m_startTime.setEnabled(enabled);
   m_endTime.setEnabled(enabled);
   m_loopMasterButton.setEnabled(enabled);
+  m_loadButton.setEnabled(enabled);
   m_effectRack.setEnabled(enabled);
 }
 
@@ -345,6 +346,8 @@ void TrackComponent::filesDropped(const StringArray &files, int, int) {
 }
 
 bool TrackComponent::isInterestedInFileDrag(const StringArray &files) {
+  if (m_engine->is_loading())
+    return false;
   if (files.begin()->contains(".wav")) {
     return true;
   } else
