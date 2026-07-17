@@ -177,12 +177,9 @@ void TrackComponent::setControlsEnabled(const bool enabled) {
 
 void TrackComponent::update() {
   const juce::String path(m_engine->get_path().c_str());
-  if (path != m_loadedPath) {
+  if (path.isNotEmpty() && path != m_loadedPath) {
     m_loadedPath = path;
-    if (path.isNotEmpty())
-      loadFileThumbnail(path);
-    else
-      m_thumbnail.clear();
+    loadFileThumbnail(path);
   }
   setControlsEnabled(!m_engine->is_loading());
   repaint();
