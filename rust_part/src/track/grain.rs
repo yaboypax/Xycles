@@ -1,4 +1,3 @@
-
 pub struct Grain {
     pub read_position: f32,
     pub window_position: usize,
@@ -20,7 +19,7 @@ pub struct GrainHead {
     pub count:       usize,
     pub spread:      f32,
     pub rng_state:   u32,
-    
+    pub view:        Vec<f32>,
 }
 
 impl GrainHead {
@@ -45,8 +44,23 @@ impl GrainHead {
             spawn: 0,
             count: 1,
             spread: 1.0,
-            rng_state: 0
+            rng_state: 0,
+            view: Vec::with_capacity(256),
         }}
+
+    pub fn snapshot(&mut self, loop_len: usize) {
+        self.view.clear();
+        for g in &self.grains {
+            let position = if loop_len > 0 {
+                g.read_position / loop_len as f32
+            } else {
+                0.0
+            };
+            let alpha = self.window.get(g.window_position).copied().unwrap_or(0.0);
+            self.view.push(position);
+            self.view.push(alpha);
+        }
+    }
 
     pub fn calculate_window(grain_size: usize) -> Vec<f32> {
         let denom = (grain_size - 1) as f32;

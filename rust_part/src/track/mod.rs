@@ -350,6 +350,7 @@ impl Track {
         ghm.spawn = spawn_ctr;
         ghm.rng_state = rng_state;
         *ghm.grains() = grains;
+        ghm.snapshot(loop_len);
 
         self.delay.process_realtime(buffer);
     }

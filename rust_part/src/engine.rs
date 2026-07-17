@@ -202,6 +202,18 @@ impl Engine {
         }
     }
 
+    // interleaved [f32] {position, alpha}
+    pub fn fill_grains(&self, out: &mut [f32]) -> usize {
+        let view = match &self.state {
+            EngineState::Granulating(track) => &track.grain_head.view,
+            _ => return 0,
+        };
+        let mut n = view.len().min(out.len());
+        n -= n % 2;
+        out[..n].copy_from_slice(&view[..n]);
+        n / 2
+    }
+
     pub fn fill_silence(buffer: &mut [f32]) {
         for sample in buffer.iter_mut() {
             *sample = 0.0
