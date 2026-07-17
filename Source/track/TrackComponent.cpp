@@ -222,8 +222,10 @@ void TrackComponent::drawTrack(juce::Graphics &g) {
 
     g.setColour(themeColor);
     g.setFont(32.0f);
-    g.drawText("Click to Select or Drag and Drop .wav File", m_thumbnailBounds,
-               juce::Justification::centred, false);
+    g.drawText(m_engine->is_loading()
+                   ? "Loading..."
+                   : "Click to Select or Drag and Drop .wav File",
+               m_thumbnailBounds, juce::Justification::centred, false);
   }
 }
 
