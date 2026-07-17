@@ -68,6 +68,7 @@ private:
   juce::AudioFormatManager m_formatManager;
   juce::AudioThumbnailCache m_thumbnailCache;
   juce::AudioThumbnail m_thumbnail;
+  juce::String m_loadedPath;
   juce::Rectangle<int> m_thumbnailBounds;
   juce::TextButton m_loadButton;
   std::unique_ptr<juce::FileChooser> m_fileChooser;

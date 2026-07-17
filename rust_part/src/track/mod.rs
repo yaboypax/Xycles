@@ -29,6 +29,7 @@ fn equal_power_gains(pan: f32) -> (f32, f32) {
 }
 
 pub struct Track {
+    pub path: String,
     pub samples: Vec<f32>,
     pub start: usize,
     pub end: usize,

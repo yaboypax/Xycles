@@ -176,6 +176,14 @@ void TrackComponent::setControlsEnabled(const bool enabled) {
 }
 
 void TrackComponent::update() {
+  const juce::String path(m_engine->get_path().c_str());
+  if (path != m_loadedPath) {
+    m_loadedPath = path;
+    if (path.isNotEmpty())
+      loadFileThumbnail(path);
+    else
+      m_thumbnail.clear();
+  }
   setControlsEnabled(!m_engine->is_loading());
   repaint();
 }
@@ -327,7 +335,6 @@ void TrackComponent::resized() {
 
 void TrackComponent::filesDropped(const StringArray &files, int, int) {
   if (isInterestedInFileDrag(files)) {
-    loadFileThumbnail(*files.begin());
     const std::string path = files.begin()->toStdString();
     const rust::Str rustPath = path;
     m_engine->load_audio(rustPath);

@@ -193,6 +193,15 @@ impl Engine {
         }
     }
 
+    pub fn get_path(&self) -> String {
+        match &self.state {
+            EngineState::Playing(track)
+            | EngineState::Ready(track)
+            | EngineState::Granulating(track) => track.path.clone(),
+            EngineState::Idle => String::new(),
+        }
+    }
+
     pub fn fill_silence(buffer: &mut [f32]) {
         for sample in buffer.iter_mut() {
             *sample = 0.0
@@ -232,6 +241,7 @@ impl Engine {
         reverb.set_wet(0.0);
         reverb.set_dry(1.0);
         Some(Track {
+            path,
             samples,
             start: 0,
             end,
