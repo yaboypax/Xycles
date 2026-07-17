@@ -211,12 +211,23 @@ void TrackComponent::drawTrack(juce::Graphics &g) {
         m_thumbnail.getTotalLength() * m_startTime.getValue(),
         m_thumbnail.getTotalLength() * m_endTime.getValue(), 1.0f);
 
-    g.setColour(themeColor);
     const auto playPosition =
         m_engine->get_playhead() * m_thumbnailBounds.toFloat().getWidth() +
         m_thumbnailBounds.toFloat().getX();
-    g.drawLine(playPosition, m_thumbnailBounds.toFloat().getY(), playPosition,
-               m_thumbnailBounds.toFloat().getHeight() * 1.25f);
+
+    const float boxLeft = m_thumbnailBounds.toFloat().getX();
+    g.setColour(m_color.withAlpha(0.15f));
+    g.fillRect(boxLeft, m_thumbnailBounds.toFloat().getY(),
+               playPosition - boxLeft, m_thumbnailBounds.toFloat().getHeight());
+
+    const float top = m_thumbnailBounds.toFloat().getY() + 6.0f;
+    const float height = m_thumbnailBounds.toFloat().getHeight() - 12.0f;
+    g.setColour(m_color.withAlpha(0.20f));
+    g.fillRoundedRectangle(playPosition - 3.5f, top, 7.0f, height, 3.5f);
+    g.setColour(m_color.withAlpha(0.45f));
+    g.fillRoundedRectangle(playPosition - 2.0f, top, 4.0f, height, 2.0f);
+    g.setColour(themeColor);
+    g.fillRoundedRectangle(playPosition - 0.8f, top, 1.6f, height, 0.8f);
 
     if (m_loadedPath.isNotEmpty()) {
       juce::Graphics::ScopedSaveState saved(g);
