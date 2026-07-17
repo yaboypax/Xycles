@@ -217,6 +217,24 @@ void TrackComponent::drawTrack(juce::Graphics &g) {
         m_thumbnailBounds.toFloat().getX();
     g.drawLine(playPosition, m_thumbnailBounds.toFloat().getY(), playPosition,
                m_thumbnailBounds.toFloat().getHeight() * 1.25f);
+
+    if (m_loadedPath.isNotEmpty()) {
+      juce::Graphics::ScopedSaveState saved(g);
+      const auto name = juce::File(m_loadedPath).getFileName();
+      const float length = m_thumbnailBounds.toFloat().getHeight();
+      const float thickness = 20.0f;
+      const float cx = m_thumbnailBounds.toFloat().getX() - 15.0f;
+      const float cy = m_thumbnailBounds.toFloat().getCentreY();
+      g.setColour(m_color);
+      g.setFont(18.0f);
+      g.addTransform(juce::AffineTransform::rotation(
+          -juce::MathConstants<float>::halfPi, cx, cy));
+      g.drawText(name,
+                 juce::Rectangle<float>(cx - length / 2.0f,
+                                        cy - thickness / 2.0f, length, thickness)
+                     .toNearestInt(),
+                 juce::Justification::centred, false);
+    }
   } else {
     animate(g);
 
