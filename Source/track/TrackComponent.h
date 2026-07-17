@@ -69,6 +69,7 @@ private:
   juce::AudioThumbnailCache m_thumbnailCache;
   juce::AudioThumbnail m_thumbnail;
   juce::String m_loadedPath;
+  std::vector<float> m_grainBuffer = std::vector<float>(256);
   juce::Rectangle<int> m_thumbnailBounds;
   juce::TextButton m_loadButton;
   std::unique_ptr<juce::FileChooser> m_fileChooser;

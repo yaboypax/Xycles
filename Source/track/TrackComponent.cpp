@@ -222,6 +222,20 @@ void TrackComponent::drawTrack(juce::Graphics &g) {
 
     const float top = m_thumbnailBounds.toFloat().getY() + 6.0f;
     const float height = m_thumbnailBounds.toFloat().getHeight() - 12.0f;
+
+    const float boxWidth = m_thumbnailBounds.toFloat().getWidth();
+    const size_t grainCount = m_engine->fill_grains(
+        rust::Slice<float>(m_grainBuffer.data(), m_grainBuffer.size()));
+    for (size_t i = 0; i < grainCount; ++i) {
+      const float grainX = boxLeft + m_grainBuffer[2 * i] * boxWidth;
+      const float alpha = m_grainBuffer[2 * i + 1];
+      const float grainHeight = height * 0.6f;
+      const float grainY = top + (height - grainHeight) * 0.5f;
+      g.setColour(
+          juce::Colours::white.interpolatedWith(m_color, 0.25f).withAlpha(alpha));
+      g.fillRoundedRectangle(grainX - 1.0f, grainY, 2.0f, grainHeight, 1.0f);
+    }
+
     g.setColour(m_color.withAlpha(0.20f));
     g.fillRoundedRectangle(playPosition - 3.5f, top, 7.0f, height, 3.5f);
     g.setColour(m_color.withAlpha(0.45f));
